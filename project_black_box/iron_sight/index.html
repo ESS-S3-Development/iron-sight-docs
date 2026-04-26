@@ -71,7 +71,7 @@
     /* ── Main ── */
     main {
       flex: 1;
-      max-width: 900px;
+      max-width: 960px;
       width: 100%;
       margin: 0 auto;
       padding: 48px 24px;
@@ -126,11 +126,15 @@
       align-items: center;
       justify-content: center;
       font-size: 16px;
+      font-weight: 800;
       flex-shrink: 0;
     }
     .icon-blue   { background: #1c2d4d; color: #58a6ff; }
     .icon-purple { background: #2d1f4d; color: #d2a8ff; }
     .icon-green  { background: #1a3a2a; color: #3fb950; }
+    .icon-amber  { background: #2d2208; color: #e3b341; }
+    .icon-teal   { background: #0f2d2d; color: #39d0c8; }
+    .icon-dev    { background: #1a1a2e; color: #7d8590; }
 
     .card-tag {
       font-size: 10px;
@@ -145,6 +149,8 @@
     .tag-v2   { background: #2d1f4d; color: #d2a8ff; border: 1px solid #6e40c9; }
     .tag-v21  { background: #2d1f4d; color: #d2a8ff; border: 1px solid #6e40c9; }
     .tag-btc  { background: #2d2208; color: #e3b341; border: 1px solid #9e6a03; }
+    .tag-doji { background: #0f2d2d; color: #39d0c8; border: 1px solid #1a6a66; }
+    .tag-dev  { background: #1e1e2e; color: #7d8590; border: 1px solid #30363d; }
 
     .card-title {
       font-size: 15px;
@@ -198,6 +204,8 @@
       align-items: center;
       font-size: 11px;
       color: #7d8590;
+      flex-wrap: wrap;
+      gap: 8px;
     }
     footer a { color: #58a6ff; text-decoration: none; }
   </style>
@@ -210,11 +218,11 @@
       <div class="logo-icon">IS</div>
       <div class="logo-text">
         <h1>IRON SIGHT</h1>
-        <p>Script Reference Library · S3 Development</p>
+        <p>Script Reference Library &middot; S3 Development</p>
       </div>
     </div>
     <div class="header-badge">
-      <span>●</span> Pine Script v6 · TradingView
+      <span>&#9679;</span> Pine Script v6 &middot; TradingView
     </div>
   </header>
 
@@ -226,7 +234,7 @@
     <div class="card-grid">
 
       <!-- V1 -->
-      <a class="card" href="project_black_box/iron_sight/iron_sight_v1_reference.html">
+      <a class="card" href="iron_sight_v1_reference.html">
         <div class="card-header">
           <div class="card-icon icon-blue">V1</div>
           <span class="card-tag tag-v1">EMA Crossover</span>
@@ -243,24 +251,24 @@
       </a>
 
       <!-- V2 -->
-      <a class="card" href="project_black_box/iron_sight/iron_sight_v2_reference.html">
+      <a class="card" href="iron_sight_v2_reference.html">
         <div class="card-header">
           <div class="card-icon icon-purple">V2</div>
           <span class="card-tag tag-v2">8AM Reversal</span>
         </div>
         <div class="card-title">IRON-SIGHT-V2</div>
         <div class="card-desc">
-          ICT/SMC 8AM manipulation range model. Liquidity sweep detection + IFVG confirmation. OVERWATCH · VANGUARD · SENTINEL architecture.
+          ICT/SMC 8AM manipulation range model. Liquidity sweep detection + IFVG confirmation. OVERWATCH &middot; VANGUARD &middot; SENTINEL architecture.
         </div>
         <div class="card-meta">
           <span class="meta-item"><strong>Direction:</strong> Long &amp; Short</span>
-          <span class="meta-item"><strong>Session:</strong> 9AM–12PM NY</span>
+          <span class="meta-item"><strong>Session:</strong> 9AM&ndash;12PM NY</span>
           <span class="meta-item"><strong>Pine:</strong> v6</span>
         </div>
       </a>
 
       <!-- V2.1 -->
-      <a class="card" href="project_black_box/iron_sight/iron_sight_v2_reference.html">
+      <a class="card" href="iron_sight_v2_1_reference.html">
         <div class="card-header">
           <div class="card-icon icon-purple">V2.1</div>
           <span class="card-tag tag-v21">MES Calibrated</span>
@@ -277,19 +285,59 @@
       </a>
 
       <!-- BTC/ETH -->
-      <a class="card" href="project_black_box/iron_sight/btc_eth_accumulation_reference.html">
+      <a class="card" href="btc_eth_accumulation_reference.html">
         <div class="card-header">
-          <div class="card-icon icon-green">₿</div>
+          <div class="card-icon icon-amber">&#8383;</div>
           <span class="card-tag tag-btc">Accumulation</span>
         </div>
         <div class="card-title">BTC/ETH Accumulation Scanner v1.0</div>
         <div class="card-desc">
-          Multi-signal scoring indicator for mid-to-long term crypto accumulation. RSI · 200 EMA · MACD · Bollinger Bands · Golden Cross.
+          Multi-signal scoring indicator for mid-to-long term crypto accumulation. RSI &middot; 200 EMA &middot; MACD &middot; Bollinger Bands &middot; Golden Cross.
         </div>
         <div class="card-meta">
-          <span class="meta-item"><strong>Assets:</strong> BTC · ETH</span>
+          <span class="meta-item"><strong>Assets:</strong> BTC &middot; ETH</span>
           <span class="meta-item"><strong>TF:</strong> Daily / Weekly</span>
           <span class="meta-item"><strong>Pine:</strong> v6</span>
+        </div>
+      </a>
+
+      <!-- Level Reaction & Doji -->
+      <a class="card" href="level_reaction_doji_strategy_reference.html">
+        <div class="card-header">
+          <div class="card-icon icon-teal">DR</div>
+          <span class="card-tag tag-doji">Price Action</span>
+        </div>
+        <div class="card-title">Level Reaction &amp; Doji Strategy</div>
+        <div class="card-desc">
+          3-point confluence reversal model. Structural S/R detection, Doji indecision candle at level, directional reaction confirmation. model_id: REACTION-DOJI-V1.
+        </div>
+        <div class="card-meta">
+          <span class="meta-item"><strong>Direction:</strong> Long &amp; Short</span>
+          <span class="meta-item"><strong>Market:</strong> Any</span>
+          <span class="meta-item"><strong>Pine:</strong> v6</span>
+        </div>
+      </a>
+
+    </div>
+
+    <!-- Developer Resources -->
+    <p class="section-label">Developer Resources</p>
+
+    <div class="card-grid">
+
+      <!-- Doji Dev Guide -->
+      <a class="card" href="reaction_doji_developer_guide.html">
+        <div class="card-header">
+          <div class="card-icon icon-teal" style="font-size:13px;">DEV</div>
+          <span class="card-tag tag-doji">Interactive Guide</span>
+        </div>
+        <div class="card-title">Reaction &amp; Doji — Developer Guide</div>
+        <div class="card-desc">
+          Block-by-block walkthrough of the Level Reaction &amp; Doji strategy with inline SVG chart visuals, code annotations, and full pipeline diagram. Designed for new developers.
+        </div>
+        <div class="card-meta">
+          <span class="meta-item"><strong>Script:</strong> REACTION-DOJI-V1</span>
+          <span class="meta-item"><strong>Level:</strong> Beginner</span>
         </div>
       </a>
 
@@ -298,17 +346,17 @@
     <!-- Versioning note -->
     <p class="section-label">Versioning Convention</p>
     <div class="version-note">
-      <strong>Minor mod</strong> (parameter tuning, bug fixes, calibration) → decimal increment: v2.1, v2.2 &nbsp;·&nbsp;
-      <strong>New market or major structural change</strong> → whole number: v3, v4, v5 &nbsp;·&nbsp;
-      <strong>New strategy model</strong> → whole number: v3, v4, v5
+      <strong>Minor mod</strong> (parameter tuning, bug fixes, calibration) &rarr; decimal increment: v2.1, v2.2 &nbsp;&middot;&nbsp;
+      <strong>New market or major structural change</strong> &rarr; whole number: v3, v4, v5 &nbsp;&middot;&nbsp;
+      <strong>New strategy model</strong> &rarr; whole number: v3, v4, v5
     </div>
 
   </main>
 
   <!-- Footer -->
   <footer>
-    <span>Iron Sight · S3 Development · Executive Special Service, Inc.</span>
-    <span>Pine Script v6 · TradingView · Internal Use Only</span>
+    <span>Iron Sight &middot; S3 Development &middot; Executive Special Service, Inc.</span>
+    <span>Pine Script v6 &middot; TradingView &middot; Internal Use Only</span>
   </footer>
 
 </body>
