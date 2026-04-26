@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Trading Solutions | Matrix-1 Branding</title>
+  <style>
+    :root {
+      --bg: #05070a;
+      --surface: #0d1117;
+      --card-bg: rgba(13, 17, 23, 0.8);
+      --accent: #00c2ff;
+      --accent-glow: rgba(0, 194, 255, 0.3);
+      --text-main: #e6edf3;
+      --text-muted: #8b949e;
+      --border: #30363d;
+      --matrix-green: #23d18b;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text-main);
+      font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      line-height: 1.6;
+      padding: 20px;
+    }
+
+    /* ── Header ── */
+    .header {
+      text-align: center;
+      margin-bottom: 50px;
+      padding: 40px 20px;
+      border-bottom: 1px solid var(--border);
+    }
+    .header h1 {
+      font-size: 2.5rem;
+      font-weight: 800;
+      letter-spacing: -1px;
+      text-transform: uppercase;
+      background: linear-gradient(to right, #fff, var(--accent));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 10px;
+    }
+    .header p {
+      color: var(--text-muted);
+      font-size: 1.1rem;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    /* ── Use Case Grid ── */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 25px;
+      max-width: 1200px;
+      margin: 0 auto 60px auto;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 30px;
+      position: relative;
+      transition: all 0.3s ease;
+      overflow: hidden;
+    }
+    .card:hover {
+      border-color: var(--accent);
+      box-shadow: 0 0 20px var(--accent-glow);
+      transform: translateY(-5px);
+    }
+    .card::before {
+      content: "";
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 2px;
+      background: linear-gradient(90deg, transparent, var(--accent), transparent);
+    }
+
+    .card-tag {
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      margin-bottom: 15px;
+      display: block;
+    }
+    .card h2 {
+      font-size: 1.5rem;
+      margin-bottom: 15px;
+      color: #fff;
+    }
+    .card p {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      margin-bottom: 20px;
+    }
+
+    .card-features {
+      list-style: none;
+      margin-bottom: 25px;
+    }
+    .card-features li {
+      font-size: 0.85rem;
+      color: var(--text-main);
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .card-features li::before {
+      content: "▹";
+      color: var(--accent);
+      font-weight: bold;
+    }
+
+    .price-box {
+      border-top: 1px solid var(--border);
+      padding-top: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .price-label { font-size: 0.8rem; color: var(--text-muted); }
+    .price-value { font-size: 1.25rem; font-weight: 800; color: var(--accent); }
+
+    /* ── Matrix Comparison ── */
+    .matrix-section {
+      max-width: 1200px;
+      margin: 0 auto;
+      overflow-x: auto;
+    }
+    .matrix-section h2 {
+      text-align: center;
+      margin-bottom: 30px;
+      font-size: 1.8rem;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: var(--surface);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    th, td {
+      padding: 20px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+    th {
+      background: #161b22;
+      color: var(--accent);
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    tr:last-child td { border-bottom: none; }
+    .check { color: var(--matrix-green); font-weight: bold; }
+
+    /* ── CTA ── */
+    .cta {
+      text-align: center;
+      margin-top: 60px;
+      padding: 40px;
+    }
+    .btn {
+      display: inline-block;
+      background: var(--accent);
+      color: #000;
+      padding: 15px 40px;
+      border-radius: 6px;
+      text-decoration: none;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      transition: opacity 0.2s;
+    }
+    .btn:hover { opacity: 0.9; }
+
+    @media (max-width: 768px) {
+      .grid { grid-template-columns: 1fr; }
+      .header h1 { font-size: 1.8rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <header class="header">
+    <h1>Strategic Automation</h1>
+    <p>Enterprise-grade trading infrastructure and custom bot development for the modern algorithmic landscape.</p>
+  </header>
+
+  <section class="grid">
+    <!-- Case A -->
+    <div class="card">
+      <span class="card-tag">Tier I &middot; Foundation</span>
+      <h2>Retail Automation</h2>
+      <p>Convert your manual technical strategy into a 24/7 automated alert-ready system.</p>
+      <ul class="card-features">
+        <li>Single Indicator Logic (EMA, RSI, MACD)</li>
+        <li>Standard TP/SL Management</li>
+        <li>Pine Script v6 Optimization</li>
+        <li>Basic Alert Webhook Config</li>
+      </ul>
+      <div class="price-box">
+        <span class="price-label">Starts at</span>
+        <span class="price-value">$499</span>
+      </div>
+    </div>
+
+    <!-- Case B -->
+    <div class="card">
+      <span class="card-tag">Tier II &middot; Sniper</span>
+      <h2>Intraday Execution</h2>
+      <p>Precision execution for session-based strategies and liquidity models.</p>
+      <ul class="card-features">
+        <li>Multi-Confluence Logic</li>
+        <li>Session & Timing Killzones</li>
+        <li>Dynamic Risk/Reward UI</li>
+        <li>Interactive Chart Dashboard</li>
+      </ul>
+      <div class="price-box">
+        <span class="price-label">Starts at</span>
+        <span class="price-value">$1,299</span>
+      </div>
+    </div>
+
+    <!-- Case C -->
+    <div class="card">
+      <span class="card-tag">Tier III &middot; Institutional</span>
+      <h2>SMC/ICT Architecture</h2>
+      <p>Advanced institutional models calibrated for Futures and high-stakes Prop accounts.</p>
+      <ul class="card-features">
+        <li>Liquidity Sweep Detection</li>
+        <li>IFVG/FVG Validation Pipeline</li>
+        <li>Nighthawk Webhook Server</li>
+        <li>Sentinel Performance Logging</li>
+      </ul>
+      <div class="price-box">
+        <span class="price-label">Starts at</span>
+        <span class="price-value">$3,499</span>
+      </div>
+    </div>
+
+    <!-- Case D -->
+    <div class="card">
+      <span class="card-tag">Tier IV &middot; Passive</span>
+      <h2>Portfolio Scanner</h2>
+      <p>Global scanners that identify accumulation zones across 50+ assets simultaneously.</p>
+      <ul class="card-features">
+        <li>Multi-Asset Confluence Scoring</li>
+        <li>HTF Accumulation Logic</li>
+        <li>Daily/Weekly Telemetry Reports</li>
+        <li>Spot & Futures Compatibility</li>
+      </ul>
+      <div class="price-box">
+        <span class="price-label">Starts at</span>
+        <span class="price-value">$2,199</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="matrix-section">
+    <h2>Performance Matrix</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Capability</th>
+          <th>Foundation</th>
+          <th>Sniper</th>
+          <th>Institutional</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Core Automation</td>
+          <td class="check">Yes</td>
+          <td class="check">Yes</td>
+          <td class="check">Yes</td>
+        </tr>
+        <tr>
+          <td>Session Filters</td>
+          <td>&mdash;</td>
+          <td class="check">Yes</td>
+          <td class="check">Yes</td>
+        </tr>
+        <tr>
+          <td>Price Action Engine</td>
+          <td>&mdash;</td>
+          <td class="check">Yes</td>
+          <td class="check">Yes</td>
+        </tr>
+        <tr>
+          <td>Cloud Database (Sentinel)</td>
+          <td>&mdash;</td>
+          <td>&mdash;</td>
+          <td class="check">Yes</td>
+        </tr>
+        <tr>
+          <td>Webhook Middleware</td>
+          <td>Manual</td>
+          <td class="check">Semi-Auto</td>
+          <td class="check">Full Integration</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <div class="cta">
+    <a href="#" class="btn">Initiate Consultation</a>
+  </div>
+
+</body>
+</html>
