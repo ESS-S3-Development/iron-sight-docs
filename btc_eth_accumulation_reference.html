@@ -208,6 +208,23 @@
     }
 
     /* ── Print button ── */
+    .back-btn {
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      background: #2962ff;
+      color: #fff;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      box-shadow: 0 2px 8px rgba(41,98,255,0.4);
+    }
+    .back-btn:hover { background: #1a47cc; }
+
     .print-btn {
       position: fixed;
       top: 20px;
@@ -230,6 +247,7 @@
 </head>
 <body>
 
+<a class="back-btn no-print" href="index.html">&larr; Library</a>
 <button class="print-btn no-print" onclick="window.print()">Save as PDF</button>
 
 <div class="container">
