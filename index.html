@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Iron Sight — Script Reference Library</title>
+  <style>
+    @media print {
+      .no-print { display: none; }
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #0d1117;
+      color: #e6edf3;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── Header ── */
+    header {
+      background: #161b22;
+      border-bottom: 1px solid #30363d;
+      padding: 24px 40px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .logo-icon {
+      width: 40px;
+      height: 40px;
+      background: linear-gradient(135deg, #2962ff, #4a148c);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      font-weight: 900;
+      color: #fff;
+      letter-spacing: -1px;
+    }
+    .logo-text h1 {
+      font-size: 18px;
+      font-weight: 800;
+      color: #e6edf3;
+      letter-spacing: 0.5px;
+    }
+    .logo-text p {
+      font-size: 11px;
+      color: #7d8590;
+      margin-top: 1px;
+    }
+    .header-badge {
+      background: #21262d;
+      border: 1px solid #30363d;
+      border-radius: 20px;
+      padding: 5px 14px;
+      font-size: 11px;
+      color: #7d8590;
+    }
+    .header-badge span { color: #3fb950; margin-right: 6px; }
+
+    /* ── Main ── */
+    main {
+      flex: 1;
+      max-width: 960px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 48px 24px;
+    }
+
+    .section-label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+      color: #7d8590;
+      margin-bottom: 20px;
+    }
+
+    /* ── Cards ── */
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 16px;
+      margin-bottom: 48px;
+    }
+
+    .card {
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 10px;
+      padding: 24px;
+      text-decoration: none;
+      color: inherit;
+      transition: border-color 0.15s, transform 0.15s, box-shadow 0.15s;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .card:hover {
+      border-color: #58a6ff;
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+    }
+
+    .card-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 8px;
+    }
+    .card-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      font-weight: 800;
+      flex-shrink: 0;
+    }
+    .icon-blue   { background: #1c2d4d; color: #58a6ff; }
+    .icon-purple { background: #2d1f4d; color: #d2a8ff; }
+    .icon-green  { background: #1a3a2a; color: #3fb950; }
+    .icon-amber  { background: #2d2208; color: #e3b341; }
+    .icon-teal   { background: #0f2d2d; color: #39d0c8; }
+    .icon-dev    { background: #1a1a2e; color: #7d8590; }
+
+    .card-tag {
+      font-size: 10px;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      white-space: nowrap;
+    }
+    .tag-v1   { background: #1c2d4d; color: #58a6ff; border: 1px solid #1f6feb; }
+    .tag-v2   { background: #2d1f4d; color: #d2a8ff; border: 1px solid #6e40c9; }
+    .tag-v21  { background: #2d1f4d; color: #d2a8ff; border: 1px solid #6e40c9; }
+    .tag-btc  { background: #2d2208; color: #e3b341; border: 1px solid #9e6a03; }
+    .tag-doji { background: #0f2d2d; color: #39d0c8; border: 1px solid #1a6a66; }
+    .tag-dev  { background: #1e1e2e; color: #7d8590; border: 1px solid #30363d; }
+
+    .card-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: #e6edf3;
+      line-height: 1.3;
+    }
+    .card-desc {
+      font-size: 12px;
+      color: #7d8590;
+      line-height: 1.5;
+    }
+
+    .card-meta {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: auto;
+      padding-top: 12px;
+      border-top: 1px solid #21262d;
+    }
+    .meta-item {
+      font-size: 11px;
+      color: #7d8590;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .meta-item strong { color: #adbac7; }
+
+    /* ── Version note ── */
+    .version-note {
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 8px;
+      padding: 16px 20px;
+      font-size: 12px;
+      color: #7d8590;
+      line-height: 1.7;
+      margin-bottom: 48px;
+    }
+    .version-note strong { color: #e6edf3; }
+
+    /* ── Strategic Products (Solutions) ── */
+    .solutions-section {
+      margin-top: 60px;
+      padding-top: 40px;
+      border-top: 1px solid #30363d;
+    }
+    .solutions-header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+    .solutions-header h2 {
+      font-size: 28px;
+      font-weight: 800;
+      color: #00c2ff;
+      text-transform: uppercase;
+      letter-spacing: -0.5px;
+      margin-bottom: 12px;
+    }
+    .solutions-header p {
+      color: #7d8590;
+      font-size: 14px;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    .solutions-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+      margin-bottom: 60px;
+    }
+
+    .sol-card {
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 12px;
+      padding: 30px;
+      position: relative;
+      transition: all 0.3s ease;
+      display: flex;
+      flex-direction: column;
+    }
+    .sol-card:hover {
+      border-color: #00c2ff;
+      box-shadow: 0 0 20px rgba(0, 194, 255, 0.15);
+      transform: translateY(-4px);
+    }
+    .sol-card::before {
+      content: "";
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 2px;
+      background: linear-gradient(90deg, transparent, #00c2ff, transparent);
+    }
+
+    .sol-tag {
+      font-size: 10px;
+      font-weight: 700;
+      color: #00c2ff;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      margin-bottom: 15px;
+    }
+    .sol-card h3 {
+      font-size: 18px;
+      font-weight: 700;
+      color: #e6edf3;
+      margin-bottom: 12px;
+    }
+    .sol-card p {
+      color: #7d8590;
+      font-size: 13px;
+      margin-bottom: 20px;
+    }
+
+    .sol-features {
+      list-style: none;
+      margin-bottom: 25px;
+      padding: 0;
+    }
+    .sol-features li {
+      font-size: 12px;
+      color: #e6edf3;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .sol-features li::before {
+      content: "▹";
+      color: #00c2ff;
+    }
+
+    .sol-price {
+      margin-top: auto;
+      border-top: 1px solid #21262d;
+      padding-top: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .sol-price-label { font-size: 11px; color: #7d8590; }
+    .sol-price-value { font-size: 18px; font-weight: 800; color: #00c2ff; }
+
+    /* ── Matrix Table ── */
+    .matrix-wrap {
+      overflow-x: auto;
+      margin-bottom: 40px;
+    }
+    .matrix-table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #0d1117;
+      border-radius: 8px;
+      overflow: hidden;
+      font-size: 13px;
+    }
+    .matrix-table th, .matrix-table td {
+      padding: 16px;
+      text-align: left;
+      border-bottom: 1px solid #30363d;
+    }
+    .matrix-table th {
+      background: #161b22;
+      color: #00c2ff;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .matrix-table .check { color: #23d18b; font-weight: bold; }
+
+    .sol-cta {
+      text-align: center;
+      margin-top: 40px;
+    }
+    .sol-btn {
+      display: inline-block;
+      background: #00c2ff;
+      color: #0d1117;
+      padding: 12px 32px;
+      border-radius: 6px;
+      text-decoration: none;
+      font-weight: 700;
+      font-size: 14px;
+      text-transform: uppercase;
+      transition: opacity 0.2s;
+    }
+    .sol-btn:hover { opacity: 0.9; }
+
+    /* ── Footer ── */
+    footer {
+      background: #161b22;
+      border-top: 1px solid #30363d;
+      padding: 20px 40px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11px;
+      color: #7d8590;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    footer a { color: #58a6ff; text-decoration: none; }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <header>
+    <div class="logo">
+      <div class="logo-icon">IS</div>
+      <div class="logo-text">
+        <h1>IRON SIGHT</h1>
+        <p>Script Reference Library &middot; S3 Development</p>
+      </div>
+    </div>
+    <div class="header-badge">
+      <span>&#9679;</span> Pine Script v6 &middot; TradingView
+    </div>
+  </header>
+
+  <!-- Main -->
+  <main>
+
+    <p class="section-label">Strategy Scripts</p>
+
+    <div class="card-grid">
+
+      <!-- V1 -->
+      <a class="card" href="iron_sight_v1_reference.html">
+        <div class="card-header">
+          <div class="card-icon icon-blue">V1</div>
+          <span class="card-tag tag-v1">EMA Crossover</span>
+        </div>
+        <div class="card-title">IRON-SIGHT-V1</div>
+        <div class="card-desc">
+          Dual EMA crossover entry model. EMA(9) vs EMA(21) with RSI telemetry in JSON alert payload. Long only. Baseline strategy.
+        </div>
+        <div class="card-meta">
+          <span class="meta-item"><strong>Direction:</strong> Long only</span>
+          <span class="meta-item"><strong>Market:</strong> Any</span>
+          <span class="meta-item"><strong>Pine:</strong> v6</span>
+        </div>
+      </a>
+
+      <!-- V2 -->
+      <a class="card" href="iron_sight_v2_reference.html">
+        <div class="card-header">
+          <div class="card-icon icon-purple">V2</div>
+          <span class="card-tag tag-v2">8AM Reversal</span>
+        </div>
+        <div class="card-title">IRON-SIGHT-V2</div>
+        <div class="card-desc">
+          ICT/SMC 8AM manipulation range model. Liquidity sweep detection + IFVG confirmation. OVERWATCH &middot; VANGUARD &middot; SENTINEL architecture.
+        </div>
+        <div class="card-meta">
+          <span class="meta-item"><strong>Direction:</strong> Long &amp; Short</span>
+          <span class="meta-item"><strong>Session:</strong> 9AM&ndash;12PM NY</span>
+          <span class="meta-item"><strong>Pine:</strong> v6</span>
+        </div>
+      </a>
+
+      <!-- V2.1 -->
+      <a class="card" href="iron_sight_v2_1_reference.html">
+        <div class="card-header">
+          <div class="card-icon icon-purple">V2.1</div>
+          <span class="card-tag tag-v21">MES Calibrated</span>
+        </div>
+        <div class="card-title">IRON-SIGHT-V2.1</div>
+        <div class="card-desc">
+          V2 calibrated for Micro E-mini S&amp;P 500 (MES). TP adjusted to 160 ticks (40 pts / $200). SL 50 ticks (12.5 pts / $62.50). R:R 3.2:1.
+        </div>
+        <div class="card-meta">
+          <span class="meta-item"><strong>Market:</strong> MES1!</span>
+          <span class="meta-item"><strong>TF:</strong> 5m / 15m</span>
+          <span class="meta-item"><strong>Pine:</strong> v6</span>
+        </div>
+      </a>
+
+      <!-- BTC/ETH -->
+      <a class="card" href="btc_eth_accumulation_reference.html">
+        <div class="card-header">
+          <div class="card-icon icon-amber">&#8383;</div>
+          <span class="card-tag tag-btc">Accumulation</span>
+        </div>
+        <div class="card-title">BTC/ETH Accumulation Scanner v1.0</div>
+        <div class="card-desc">
+          Multi-signal scoring indicator for mid-to-long term crypto accumulation. RSI &middot; 200 EMA &middot; MACD &middot; Bollinger Bands &middot; Golden Cross.
+        </div>
+        <div class="card-meta">
+          <span class="meta-item"><strong>Assets:</strong> BTC &middot; ETH</span>
+          <span class="meta-item"><strong>TF:</strong> Daily / Weekly</span>
+          <span class="meta-item"><strong>Pine:</strong> v6</span>
+        </div>
+      </a>
+
+      <!-- Level Reaction & Doji -->
+      <a class="card" href="level_reaction_doji_strategy_reference.html">
+        <div class="card-header">
+          <div class="card-icon icon-teal">DR</div>
+          <span class="card-tag tag-doji">Price Action</span>
+        </div>
+        <div class="card-title">Level Reaction &amp; Doji Strategy</div>
+        <div class="card-desc">
+          3-point confluence reversal model. Structural S/R detection, Doji indecision candle at level, directional reaction confirmation. model_id: REACTION-DOJI-V1.
+        </div>
+        <div class="card-meta">
+          <span class="meta-item"><strong>Direction:</strong> Long &amp; Short</span>
+          <span class="meta-item"><strong>Market:</strong> Any</span>
+          <span class="meta-item"><strong>Pine:</strong> v6</span>
+        </div>
+      </a>
+
+    </div>
+
+    <!-- Developer Resources -->
+    <p class="section-label">Developer Resources</p>
+
+    <div class="card-grid">
+
+      <!-- Doji Dev Guide -->
+      <a class="card" href="reaction_doji_developer_guide.html">
+        <div class="card-header">
+          <div class="card-icon icon-teal" style="font-size:13px;">DEV</div>
+          <span class="card-tag tag-doji">Interactive Guide</span>
+        </div>
+        <div class="card-title">Reaction &amp; Doji — Developer Guide</div>
+        <div class="card-desc">
+          Block-by-block walkthrough of the Level Reaction &amp; Doji strategy with inline SVG chart visuals, code annotations, and full pipeline diagram. Designed for new developers.
+        </div>
+        <div class="card-meta">
+          <span class="meta-item"><strong>Script:</strong> REACTION-DOJI-V1</span>
+          <span class="meta-item"><strong>Level:</strong> Beginner</span>
+        </div>
+      </a>
+
+    </div>
+
+    <!-- Strategic Products -->
+    <section class="solutions-section">
+      <div class="solutions-header">
+        <h2>Strategic Products</h2>
+        <p>Enterprise-grade automation and custom institutional infrastructure.</p>
+      </div>
+
+      <div class="solutions-grid">
+        <!-- Tier I -->
+        <div class="sol-card">
+          <span class="sol-tag">Tier I &middot; Foundation</span>
+          <h3>Retail Automation</h3>
+          <p>Convert your manual technical strategy into a 24/7 automated alert-ready system.</p>
+          <ul class="sol-features">
+            <li>Single Indicator Logic (EMA, RSI)</li>
+            <li>Standard TP/SL Management</li>
+            <li>Pine Script v6 Optimization</li>
+            <li>Webhook Alert Ready</li>
+          </ul>
+          <div class="sol-price">
+            <span class="sol-price-label">Starts at</span>
+            <span class="sol-price-value">$499</span>
+          </div>
+        </div>
+
+        <!-- Tier II -->
+        <div class="sol-card">
+          <span class="sol-tag">Tier II &middot; Sniper</span>
+          <h3>Intraday Execution</h3>
+          <p>Precision execution for session-based strategies and liquidity models.</p>
+          <ul class="sol-features">
+            <li>Multi-Confluence Logic</li>
+            <li>Session & Killzone Filters</li>
+            <li>Dynamic Risk/Reward UI</li>
+            <li>Interactive Dashboard</li>
+          </ul>
+          <div class="sol-price">
+            <span class="sol-price-label">Starts at</span>
+            <span class="sol-price-value">$1,299</span>
+          </div>
+        </div>
+
+        <!-- Tier III -->
+        <div class="sol-card">
+          <span class="sol-tag">Tier III &middot; Institutional</span>
+          <h3>SMC/ICT Architecture</h3>
+          <p>Advanced institutional models calibrated for Futures and Prop accounts.</p>
+          <ul class="sol-features">
+            <li>Liquidity Sweep Detection</li>
+            <li>IFVG/FVG Validation</li>
+            <li>Nighthawk Webhook Server</li>
+            <li>Sentinel Logging Suite</li>
+          </ul>
+          <div class="sol-price">
+            <span class="sol-price-label">Starts at</span>
+            <span class="sol-price-value">$3,499</span>
+          </div>
+        </div>
+
+        <!-- Tier IV -->
+        <div class="sol-card">
+          <span class="sol-tag">Tier IV &middot; Passive</span>
+          <h3>Portfolio Scanner</h3>
+          <p>Identify accumulation zones across 50+ assets simultaneously.</p>
+          <ul class="sol-features">
+            <li>Multi-Asset Confluence</li>
+            <li>HTF Accumulation Logic</li>
+            <li>Daily Telemetry Reports</li>
+            <li>Spot & Futures Support</li>
+          </ul>
+          <div class="sol-price">
+            <span class="sol-price-label">Starts at</span>
+            <span class="sol-price-value">$2,199</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="matrix-wrap">
+        <table class="matrix-table">
+          <thead>
+            <tr>
+              <th>Capability</th>
+              <th>Foundation</th>
+              <th>Sniper</th>
+              <th>Institutional</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Core Automation</td>
+              <td class="check">Yes</td>
+              <td class="check">Yes</td>
+              <td class="check">Yes</td>
+            </tr>
+            <tr>
+              <td>Session Filters</td>
+              <td>&mdash;</td>
+              <td class="check">Yes</td>
+              <td class="check">Yes</td>
+            </tr>
+            <tr>
+              <td>Price Action Engine</td>
+              <td>&mdash;</td>
+              <td class="check">Yes</td>
+              <td class="check">Yes</td>
+            </tr>
+            <tr>
+              <td>Database (Sentinel)</td>
+              <td>&mdash;</td>
+              <td>&mdash;</td>
+              <td class="check">Yes</td>
+            </tr>
+            <tr>
+              <td>Webhook Middleware</td>
+              <td>Manual</td>
+              <td class="check">Semi-Auto</td>
+              <td class="check">Full Integration</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="sol-cta">
+        <a href="mailto:neo@executivespecialservice.us" class="sol-btn">Initiate Consultation</a>
+      </div>
+    </section>
+
+    <!-- Versioning note -->
+    <p class="section-label">Versioning Convention</p>
+    <div class="version-note">
+      <strong>Minor mod</strong> (parameter tuning, bug fixes, calibration) &rarr; decimal increment: v2.1, v2.2 &nbsp;&middot;&nbsp;
+      <strong>New market or major structural change</strong> &rarr; whole number: v3, v4, v5 &nbsp;&middot;&nbsp;
+      <strong>New strategy model</strong> &rarr; whole number: v3, v4, v5
+    </div>
+
+  </main>
+
+  <!-- Footer -->
+  <footer>
+    <span>Iron Sight &middot; S3 Development &middot; Executive Special Service, Inc.</span>
+    <span>Pine Script v6 &middot; TradingView &middot; Internal Use Only</span>
+  </footer>
+
+</body>
+</html>

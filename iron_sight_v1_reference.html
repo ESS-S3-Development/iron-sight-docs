@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>IRON-SIGHT-V1 — Reference Guide</title>
+  <style>
+    @media print {
+      .no-print { display: none; }
+      body { font-size: 11pt; }
+      h1 { font-size: 18pt; }
+      h2 { font-size: 14pt; }
+      h3 { font-size: 12pt; }
+      table { page-break-inside: avoid; }
+      .section { page-break-inside: avoid; }
+      .page-break { page-break-before: always; }
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #f4f6f9;
+      color: #1a1a2e;
+      line-height: 1.6;
+    }
+
+    .container {
+      max-width: 860px;
+      margin: 0 auto;
+      background: #fff;
+      padding: 48px 56px;
+      box-shadow: 0 2px 24px rgba(0,0,0,0.08);
+    }
+
+    .header {
+      border-bottom: 3px solid #1565c0;
+      padding-bottom: 24px;
+      margin-bottom: 32px;
+    }
+    .header-top { display: flex; justify-content: space-between; align-items: flex-start; }
+    .badge {
+      background: #1565c0;
+      color: #fff;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      padding: 4px 10px;
+      border-radius: 3px;
+      text-transform: uppercase;
+    }
+    .version-tag {
+      background: #e3f2fd;
+      color: #1565c0;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 3px;
+      border: 1px solid #1565c0;
+    }
+    h1 {
+      font-size: 26px;
+      font-weight: 800;
+      color: #0d1b6e;
+      margin-top: 10px;
+      margin-bottom: 6px;
+    }
+    .subtitle { color: #555; font-size: 13px; }
+    .meta { display: flex; gap: 24px; margin-top: 14px; font-size: 12px; color: #777; flex-wrap: wrap; }
+    .meta span strong { color: #333; }
+
+    .section { margin-bottom: 36px; }
+
+    h2 {
+      font-size: 16px;
+      font-weight: 700;
+      color: #0d1b6e;
+      border-left: 4px solid #1565c0;
+      padding-left: 10px;
+      margin-bottom: 14px;
+    }
+    h3 {
+      font-size: 12px;
+      font-weight: 700;
+      color: #333;
+      margin-top: 16px;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    p { margin-bottom: 10px; font-size: 13px; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12.5px;
+      margin-bottom: 16px;
+    }
+    thead tr { background: #0d1b6e; color: #fff; }
+    thead th { padding: 9px 12px; text-align: left; font-weight: 600; }
+    tbody tr:nth-child(even) { background: #f4f6f9; }
+    tbody td { padding: 8px 12px; vertical-align: top; }
+
+    .callout {
+      border-radius: 6px;
+      padding: 14px 18px;
+      font-size: 12.5px;
+      margin-bottom: 14px;
+      border-left: 5px solid;
+    }
+    .callout-blue  { background: #e3f2fd; border-color: #1565c0; }
+    .callout-green { background: #e8f5e9; border-color: #2e7d32; }
+    .callout-amber { background: #fff8e1; border-color: #f9a825; }
+    .callout-red   { background: #fce4ec; border-color: #c62828; }
+    .callout strong { display: block; margin-bottom: 4px; }
+
+    .flow {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+    .flow-box {
+      background: #e3f2fd;
+      border: 1px solid #1565c0;
+      border-radius: 6px;
+      padding: 10px 16px;
+      font-size: 12px;
+      font-weight: 600;
+      text-align: center;
+      color: #0d1b6e;
+      min-width: 120px;
+    }
+    .flow-arrow {
+      font-size: 20px;
+      color: #1565c0;
+      padding: 0 8px;
+      font-weight: 700;
+    }
+    .flow-box.trigger { background: #fff8e1; border-color: #f9a825; color: #5d4037; }
+    .flow-box.action  { background: #e8f5e9; border-color: #2e7d32; color: #1b5e20; }
+
+    .code-block {
+      background: #1e2130;
+      color: #a8d8a8;
+      font-family: 'Courier New', monospace;
+      font-size: 11px;
+      padding: 16px 20px;
+      border-radius: 6px;
+      white-space: pre;
+      overflow-x: auto;
+      margin-bottom: 14px;
+      line-height: 1.7;
+    }
+    .code-comment { color: #7c8fa6; }
+    .code-key     { color: #82aaff; }
+    .code-val     { color: #c3e88d; }
+    .code-num     { color: #f78c6c; }
+
+    .indicator-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .indicator-card {
+      border: 1px solid #c5cae9;
+      border-radius: 8px;
+      padding: 14px 16px;
+      background: #f8f9ff;
+    }
+    .indicator-card .label {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: #5c6bc0;
+      margin-bottom: 4px;
+    }
+    .indicator-card .value {
+      font-size: 15px;
+      font-weight: 800;
+      color: #0d1b6e;
+    }
+    .indicator-card .desc {
+      font-size: 11px;
+      color: #666;
+      margin-top: 4px;
+    }
+
+    ul.bullets { padding-left: 18px; font-size: 13px; }
+    ul.bullets li { margin-bottom: 5px; }
+
+    .steps { counter-reset: step; list-style: none; padding: 0; }
+    .steps li {
+      counter-increment: step;
+      display: flex;
+      gap: 14px;
+      margin-bottom: 12px;
+      font-size: 13px;
+    }
+    .steps li::before {
+      content: counter(step);
+      background: #1565c0;
+      color: #fff;
+      border-radius: 50%;
+      width: 24px;
+      height: 24px;
+      min-width: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 700;
+      margin-top: 1px;
+    }
+
+    .footer {
+      border-top: 1px solid #ddd;
+      margin-top: 48px;
+      padding-top: 16px;
+      font-size: 11px;
+      color: #888;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .print-btn {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: #1565c0;
+      color: #fff;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 2px 8px rgba(21,101,192,0.4);
+    }
+    .print-btn:hover { background: #0d47a1; }
+
+    .back-btn {
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      background: #1565c0;
+      color: #fff;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      box-shadow: 0 2px 8px rgba(21,101,192,0.4);
+    }
+    .back-btn:hover { background: #0d47a1; }
+  </style>
+</head>
+<body>
+
+<a class="back-btn no-print" href="index.html">&larr; Library</a>
+<button class="print-btn no-print" onclick="window.print()">Save as PDF</button>
+
+<div class="container">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="header-top">
+      <span class="badge">Pine Script v6 · Strategy · TradingView</span>
+      <span class="version-tag">V1 — EMA Crossover</span>
+    </div>
+    <h1>IRON-SIGHT-V1</h1>
+    <p class="subtitle">EMA Crossover Entry Model with RSI Telemetry and JSON Alert Output</p>
+    <div class="meta">
+      <span><strong>File:</strong> iron_sight_v1.pine</span>
+      <span><strong>Type:</strong> strategy() — backtestable</span>
+      <span><strong>Capital:</strong> $100,000 initial</span>
+      <span><strong>Direction:</strong> Long only</span>
+      <span><strong>Pine Version:</strong> v6</span>
+    </div>
+  </div>
+
+  <!-- OVERVIEW -->
+  <div class="section">
+    <h2>Overview</h2>
+    <p>
+      IRON-SIGHT-V1 is a <strong>baseline trend-following strategy</strong> built on a classic
+      dual-EMA crossover. It enters long when the fast 9-period EMA crosses above the slow 21-period EMA,
+      signaling a momentum shift to the upside.
+    </p>
+    <p>
+      RSI(14) is captured at entry and included in the alert payload as metadata — it is
+      <strong>not used as a filter</strong> in V1, making this a pure crossover model. The strategy
+      outputs a structured <strong>JSON alert message</strong> compatible with webhook-based automation
+      pipelines (e.g., NIGHTHAWK).
+    </p>
+    <div class="callout callout-blue">
+      <strong>Role in the Iron Sight System</strong>
+      V1 is the foundational entry model. It establishes the alert message schema (JSON with
+      <code>model_id</code>, <code>rsi</code>, <code>ema_gap</code>) that downstream systems consume.
+      V2 extends this architecture with ICT/Smart Money logic.
+    </div>
+  </div>
+
+  <!-- INDICATORS -->
+  <div class="section">
+    <h2>Indicators Used</h2>
+    <div class="indicator-grid">
+      <div class="indicator-card">
+        <div class="label">Fast EMA</div>
+        <div class="value">EMA(9)</div>
+        <div class="desc">Plotted in blue. Short-term momentum. Crossing above EMA(21) triggers entry.</div>
+      </div>
+      <div class="indicator-card">
+        <div class="label">Slow EMA</div>
+        <div class="value">EMA(21)</div>
+        <div class="desc">Plotted in red. Medium-term trend baseline. Acts as the crossover threshold.</div>
+      </div>
+      <div class="indicator-card">
+        <div class="label">RSI (Metadata)</div>
+        <div class="value">RSI(14)</div>
+        <div class="desc">Not used as an entry filter. Captured at the moment of entry and embedded in the alert JSON for downstream analysis.</div>
+      </div>
+      <div class="indicator-card">
+        <div class="label">EMA Gap (Metadata)</div>
+        <div class="value">EMA(9) − EMA(21)</div>
+        <div class="desc">Difference between fast and slow EMA at entry. Included in alert payload to quantify momentum strength.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ENTRY LOGIC -->
+  <div class="section">
+    <h2>Entry Logic</h2>
+    <div class="flow">
+      <div class="flow-box trigger">EMA(9) crosses<br>above EMA(21)</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box">Build JSON<br>alert message</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box action">strategy.entry<br>"Long"</div>
+    </div>
+
+    <table>
+      <thead>
+        <tr><th>Condition</th><th>Logic</th><th>Notes</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Long Entry</strong></td>
+          <td><code>ta.crossover(EMA9, EMA21)</code></td>
+          <td>Fires on the bar where the fast EMA crosses above the slow EMA</td>
+        </tr>
+        <tr>
+          <td><strong>Short Entry</strong></td>
+          <td>Not defined</td>
+          <td>V1 is long-only; no short conditions exist</td>
+        </tr>
+        <tr>
+          <td><strong>Exit Logic</strong></td>
+          <td>Not explicitly defined</td>
+          <td>TradingView default: reversal on opposite crossover or end of backtest</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout callout-amber">
+      <strong>No Explicit Exit — V1 Limitation</strong>
+      IRON-SIGHT-V1 does not define <code>strategy.exit()</code> or <code>strategy.close()</code> calls.
+      Positions are closed by TradingView's default behavior (next opposing signal or end of data).
+      For live trading, manual exits or a downstream system must handle position closure.
+    </div>
+  </div>
+
+  <!-- ALERT PAYLOAD -->
+  <div class="section">
+    <h2>Alert Message — JSON Payload</h2>
+    <p>When a long entry triggers, the following JSON string is passed as the <code>alert_message</code> parameter of <code>strategy.entry()</code> and delivered as the POST body to NIGHTHAWK:</p>
+    <div class="code-block"><span class="code-comment">// Long entry payload — fired by strategy.entry() on EMA crossover</span>
+{
+  <span class="code-key">"secret"</span>:    <span class="code-val">"tac_com_alpha_9"</span>,
+  <span class="code-key">"model_id"</span>:  <span class="code-val">"IRON-SIGHT-V1"</span>,
+  <span class="code-key">"ticker"</span>:    <span class="code-val">"NASDAQ:AAPL"</span>,
+  <span class="code-key">"action"</span>:    <span class="code-val">"BUY"</span>,
+  <span class="code-key">"price"</span>:     <span class="code-num">187.42</span>,
+  <span class="code-key">"metadata"</span>: {
+    <span class="code-key">"rsi"</span>:       <span class="code-num">54.3</span>,
+    <span class="code-key">"ema_gap"</span>:   <span class="code-num">1.2847</span>,
+    <span class="code-key">"timestamp"</span>: <span class="code-num">1745000000000</span>
+  }
+}</div>
+
+    <div class="code-block"><span class="code-comment">// Manual test payload — fired by alert() from FORCE MANUAL TRIGGER toggle</span>
+{
+  <span class="code-key">"secret"</span>:    <span class="code-val">"tac_com_alpha_9"</span>,
+  <span class="code-key">"model_id"</span>:  <span class="code-val">"IRON-SIGHT-V1"</span>,
+  <span class="code-key">"ticker"</span>:    <span class="code-val">"NASDAQ:AAPL"</span>,
+  <span class="code-key">"action"</span>:    <span class="code-val">"TEST"</span>,
+  <span class="code-key">"price"</span>:     <span class="code-num">187.42</span>,
+  <span class="code-key">"metadata"</span>: {
+    <span class="code-key">"rsi"</span>:       <span class="code-num">54.3</span>,
+    <span class="code-key">"note"</span>:      <span class="code-val">"MANUAL_TRIGGER"</span>,
+    <span class="code-key">"timestamp"</span>: <span class="code-num">1745000000000</span>
+  }
+}</div>
+
+    <table>
+      <thead>
+        <tr><th>Field</th><th>Type</th><th>Description</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>secret</code></td><td>string</td><td>Auth token. NIGHTHAWK returns 401 Unauthorized if missing or incorrect.</td></tr>
+        <tr><td><code>model_id</code></td><td>string</td><td>Must match the <code>model_id</code> row in the SENTINEL <code>models</code> table exactly.</td></tr>
+        <tr><td><code>ticker</code></td><td>string</td><td>TradingView full symbol ID including exchange prefix (e.g., <code>syminfo.tickerid</code>).</td></tr>
+        <tr><td><code>action</code></td><td>string</td><td>BUY, SELL, or TEST.</td></tr>
+        <tr><td><code>price</code></td><td>float</td><td>Close price at the entry bar (<code>close</code>).</td></tr>
+        <tr><td><code>metadata.rsi</code></td><td>float</td><td>RSI(14) at the moment of entry — logged for downstream analysis, not used as a filter.</td></tr>
+        <tr><td><code>metadata.ema_gap</code></td><td>float</td><td>EMA(9) minus EMA(21). Positive value confirms bullish momentum width at entry.</td></tr>
+        <tr><td><code>metadata.timestamp</code></td><td>int</td><td>Unix millisecond timestamp from TradingView's <code>timenow</code>.</td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout callout-green">
+      <strong>Webhook Integration</strong>
+      In TradingView, create an alert on this strategy. Set <strong>Trigger</strong> to <em>Once Per Bar Close</em>
+      and paste your NIGHTHAWK endpoint in the <strong>Webhook URL</strong> field. The alert condition for
+      production signals should be set to <em>Order fills</em>. For the manual test block, create a separate
+      alert with condition <em>Any alert() function call</em>.
+    </div>
+  </div>
+
+  <!-- CHART VISUALS -->
+  <div class="section">
+    <h2>Chart Visuals</h2>
+    <table>
+      <thead>
+        <tr><th>Element</th><th>Color</th><th>Purpose</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Fast EMA line</td><td>Blue</td><td>EMA(9) — short-term momentum</td></tr>
+        <tr><td>Slow EMA line</td><td>Red</td><td>EMA(21) — medium-term trend</td></tr>
+        <tr><td>Crossover point</td><td>TradingView default marker</td><td>Long entry marked automatically by strategy engine</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- SETUP -->
+  <div class="section">
+    <h2>TradingView Setup</h2>
+    <ol class="steps">
+      <li>Open a chart on your desired instrument and timeframe.</li>
+      <li>Open the <strong>Pine Script Editor</strong> (<code>Alt+P</code>), clear existing code, paste <code>iron_sight_v1.pine</code>.</li>
+      <li>Click <strong>Add to chart</strong>. The strategy overlay and EMA lines will appear.</li>
+      <li>Open the <strong>Strategy Tester</strong> tab (bottom panel) to review backtest results.</li>
+      <li>To activate alerts: hover over the indicator name → <strong>···</strong> → <strong>Add alert</strong>.</li>
+      <li>Set <strong>Trigger</strong> to <em>Once Per Bar Close</em> to avoid intra-bar noise.</li>
+      <li>If using a webhook, paste your endpoint URL in the <strong>Webhook URL</strong> field.</li>
+    </ol>
+  </div>
+
+  <!-- ON-SCREEN DASHBOARD -->
+  <div class="section">
+    <h2>On-Screen Dashboard</h2>
+    <p>
+      A 5-row table is rendered in the <strong>top-right corner of the chart</strong> on the final bar
+      (<code>barstate.islast</code>). It gives a real-time read on strategy conditions without opening the Strategy Tester.
+    </p>
+    <table>
+      <thead>
+        <tr><th>Row</th><th>Condition</th><th>Green When</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Fast EMA &gt; Slow EMA</td><td><code>fastEMA &gt; slowEMA</code></td><td>EMA(9) is above EMA(21) — bullish alignment</td></tr>
+        <tr><td>EMA Crossover</td><td><code>longCondition</code></td><td>The crossover fired on the most recent bar</td></tr>
+        <tr><td>RSI &gt; 50</td><td><code>rsiValue &gt; 50</code></td><td>Momentum is in bullish territory</td></tr>
+        <tr><td>RSI (live)</td><td>Text display</td><td>Live RSI(14) value — green if &gt; 50</td></tr>
+        <tr><td>Signal Bias</td><td>Text: LONG / WATCH / WAIT</td><td>LONG (crossover active), WATCH (EMA aligned, no cross), WAIT (bearish)</td></tr>
+      </tbody>
+    </table>
+    <div class="callout callout-blue">
+      <strong>RSI is Metadata Only in V1</strong>
+      The RSI value shown in the dashboard is for monitoring. It does not gate entries in V1 —
+      a crossover fires regardless of RSI level. This is intentional: V1 is a pure EMA model.
+    </div>
+  </div>
+
+  <!-- MANUAL TEST BLOCK -->
+  <div class="section">
+    <h2>Manual Test Block — FORCE MANUAL TRIGGER</h2>
+    <p>
+      A checkbox input (<em>FORCE MANUAL TRIGGER</em>) appears in the strategy settings. When toggled ON,
+      the script fires a TEST webhook on the current bar's close using <code>alert(test_msg, alert.freq_all)</code>.
+    </p>
+    <div class="callout callout-amber">
+      <strong>Two Different Alert Types — Separate TradingView Alerts Required</strong>
+      <ul style="padding-left:16px; margin-top:6px; font-size:12.5px;">
+        <li><strong>Production signal</strong> (<code>strategy.entry(alert_message=...)</code>): Create alert with condition set to <em>Order fills</em>.</li>
+        <li><strong>Manual test</strong> (<code>alert()</code>): Create a separate alert with condition set to <em>Any alert() function call</em>.</li>
+      </ul>
+    </div>
+    <p>
+      Toggle FORCE MANUAL TRIGGER ON, wait for the next bar close, and verify NIGHTHAWK returns
+      <code>{"status":"Logged"}</code>. Toggle it back OFF immediately after testing.
+    </p>
+  </div>
+
+  <!-- LIMITATIONS -->
+  <div class="section">
+    <h2>Known Limitations / V1 vs V2</h2>
+    <table>
+      <thead>
+        <tr><th>Feature</th><th>V1 Status</th><th>V2 Status</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Entry logic</td><td>EMA(9/21) crossover</td><td>8AM range + liquidity sweep + IFVG</td></tr>
+        <tr><td>Short entries</td><td>Not implemented</td><td>Implemented (VANGUARD_SHORT)</td></tr>
+        <tr><td>Explicit exits</td><td>Not defined</td><td>TP/SL via strategy.exit() (SENTINEL)</td></tr>
+        <tr><td>RSI filter</td><td>Metadata only (no filter)</td><td>Not used in V2 either</td></tr>
+        <tr><td>HTF data</td><td>None</td><td>Previous day H/L + 1H highs/lows</td></tr>
+        <tr><td>Session timing</td><td>None (trades all hours)</td><td>8AM–12PM NY time only</td></tr>
+        <tr><td>Alert JSON</td><td>secret, model_id, ticker, action, price, metadata.rsi, metadata.ema_gap</td><td>secret, model_id, ticker, action, price, metadata.tier, metadata.liquidity, metadata.note</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="footer">
+    <span>IRON-SIGHT-V1 · Pine Script v6 · iron_sight_v1.pine</span>
+    <span>Iron Sight System · project_black_box/iron_sight · April 2026</span>
+  </div>
+
+</div>
+</body>
+</html>
