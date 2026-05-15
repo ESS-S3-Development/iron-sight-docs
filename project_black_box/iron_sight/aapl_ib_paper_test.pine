@@ -1,0 +1,147 @@
+// @S3 Development | Project Black-Box
+// AAPL IB Paper Trade — Execution Test v1.0
+// Purpose: Validates end-to-end trade execution from TradingView → NIGHTHAWK → Interactive Brokers
+// Timeframe: 5-min | Symbol: NASDAQ:AAPL
+//@version=6
+
+strategy("AAPL IB Paper Trade — Execution Test",
+  shorttitle        = "AAPL-IB-TEST",
+  overlay           = true,
+  pyramiding        = 30,
+  initial_capital   = 10000,
+  default_qty_type  = strategy.fixed,
+  default_qty_value = 1,
+  currency          = currency.USD)
+
+// ══════════════════════════════════════════════════════════════════
+//  INPUTS
+// ══════════════════════════════════════════════════════════════════
+grp          = "Test Configuration"
+target_price = input.float(295.00, "Limit Buy Price ($)",       step=0.01, group=grp)
+start_date   = input.time(timestamp("2026-05-14 00:00 +0000"),  "Test Start Date", group=grp)
+max_days     = input.int(30,       "Test Duration (Trading Days)", minval=1, maxval=60, group=grp)
+
+// ══════════════════════════════════════════════════════════════════
+//  DAY TRACKING
+//  Uses a date integer (YYYYMMDD) so month/year rollovers are safe
+// ══════════════════════════════════════════════════════════════════
+cur_date = year(time) * 10000 + month(time) * 100 + dayofmonth(time)
+
+var int  prev_date    = -1
+var int  days_elapsed = 0
+var bool order_placed = false
+
+// First bar of a new trading day inside regular market hours
+new_day = cur_date != prev_date and session.ismarket
+
+if new_day and time >= start_date
+    strategy.cancel_all()   // cancel any unfilled limit from prior day
+    prev_date    := cur_date
+    order_placed := false
+    if days_elapsed < max_days
+        days_elapsed += 1
+
+// ══════════════════════════════════════════════════════════════════
+//  ENTRY — one limit order per day, held indefinitely
+// ══════════════════════════════════════════════════════════════════
+in_window = time >= start_date
+         and days_elapsed > 0
+         and days_elapsed <= max_days
+         and session.ismarket
+
+if in_window and not order_placed
+    entry_id = "AAPL_D" + str.tostring(days_elapsed)
+
+    msg = '{'                                                        +
+          '"secret":"tac_com_alpha_9",'                             +
+          '"model_id":"AAPL-IB-TEST-V1",'                           +
+          '"ticker":"NASDAQ:AAPL",'                                  +
+          '"action":"BUY",'                                          +
+          '"qty":1,'                                                 +
+          '"order_type":"LMT",'                                      +
+          '"price":'    + str.tostring(target_price, "#.00") + ','  +
+          '"metadata":{'                                             +
+          '"type":"IB_PAPER_TEST",'                                  +
+          '"day":'      + str.tostring(days_elapsed) + ','           +
+          '"of":'       + str.tostring(max_days)     + ','           +
+          '"timestamp":' + str.tostring(timenow)     +              +
+          '}}'
+
+    strategy.entry(entry_id, strategy.long, qty=1, limit=target_price, alert_message=msg)
+
+    log.info("IB-TEST | Day {0}/{1} | LMT order placed @ ${2} | ID: {3}",
+             days_elapsed, max_days,
+             str.tostring(target_price, "#.00"),
+             entry_id)
+
+    // ── Alert Logic ───────────────────────────────────────────────
+    // NOTE: For dynamic JSON alerts to work, you MUST set the Alert Condition to
+    // "Any alert() function call" in the TradingView Alert Dialog.
+    log.info("SIGNAL: IB paper trade order placed. Payload: {0}", msg)
+    alert(msg, alert.freq_once_per_bar_close)
+
+    order_placed := true
+
+// ══════════════════════════════════════════════════════════════════
+//  SYSLOG — bar-by-bar telemetry
+// ══════════════════════════════════════════════════════════════════
+log.info("SYSLOG | {0} | {1} | Price: {2} | Day: {3}/{4} | Order: {5} | Position: {6}",
+  syminfo.ticker,
+  timeframe.period,
+  str.tostring(close, "#.00"),
+  days_elapsed,
+  max_days,
+  order_placed ? "PLACED" : "PENDING",
+  str.tostring(int(strategy.position_size)))
+
+// ══════════════════════════════════════════════════════════════════
+//  DASHBOARD
+// ══════════════════════════════════════════════════════════════════
+var table dash = table.new(
+  position.top_right, 2, 7,
+  bgcolor      = color.new(#13161e, 5),
+  border_width = 1,
+  border_color = #2a2f40,
+  frame_width  = 1,
+  frame_color  = #2a2f40)
+
+if barstate.islast
+    test_done   = days_elapsed >= max_days
+    shares_held = int(strategy.position_size)
+    avg_price   = strategy.position_avg_price
+
+    // Header
+    table.cell(dash, 0, 0, "AAPL IB PAPER TEST",
+      text_color = #00c2ff, text_size = size.small, bgcolor = #1a1e2a)
+    table.cell(dash, 1, 0, "v1.0",
+      text_color = #7a849a, text_size = size.small, bgcolor = #1a1e2a)
+
+    // Day counter
+    table.cell(dash, 0, 1, "Day",          text_color = #7a849a, text_size = size.small)
+    table.cell(dash, 1, 1, str.tostring(days_elapsed) + " / " + str.tostring(max_days),
+      text_color = #cdd3e0, text_size = size.small)
+
+    // Limit price
+    table.cell(dash, 0, 2, "Limit Price",  text_color = #7a849a, text_size = size.small)
+    table.cell(dash, 1, 2, "$" + str.tostring(target_price, "#.00"),
+      text_color = #ffc107, text_size = size.small)
+
+    // Today's order status
+    table.cell(dash, 0, 3, "Order Today",  text_color = #7a849a, text_size = size.small)
+    table.cell(dash, 1, 3, order_placed ? "PLACED" : "PENDING",
+      text_color = order_placed ? #22d35e : #7a849a, text_size = size.small)
+
+    // Shares held
+    table.cell(dash, 0, 4, "Shares Held",  text_color = #7a849a, text_size = size.small)
+    table.cell(dash, 1, 4, str.tostring(shares_held),
+      text_color = #cdd3e0, text_size = size.small)
+
+    // Avg entry price
+    table.cell(dash, 0, 5, "Avg Entry",    text_color = #7a849a, text_size = size.small)
+    table.cell(dash, 1, 5, shares_held > 0 ? "$" + str.tostring(avg_price, "#.00") : "—",
+      text_color = #cdd3e0, text_size = size.small)
+
+    // Test status
+    table.cell(dash, 0, 6, "Test Status",  text_color = #7a849a, text_size = size.small)
+    table.cell(dash, 1, 6, test_done ? "COMPLETE" : "RUNNING",
+      text_color = test_done ? #ff4560 : #22d35e, text_size = size.small)
