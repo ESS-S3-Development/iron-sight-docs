@@ -344,6 +344,111 @@
     }
     .sol-btn:hover { opacity: 0.9; }
 
+    /* ── Strategy of the Week ── */
+    .sotw-section {
+      margin-bottom: 56px;
+    }
+    .sotw-panel {
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 12px;
+      overflow: hidden;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0;
+    }
+    @media (max-width: 680px) {
+      .sotw-panel { grid-template-columns: 1fr; }
+    }
+    .sotw-video {
+      position: relative;
+      padding-bottom: 56.25%;
+      height: 0;
+      background: #0d1117;
+    }
+    .sotw-video iframe {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      border: none;
+    }
+    .sotw-info {
+      padding: 28px 32px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 16px;
+      border-left: 1px solid #30363d;
+    }
+    @media (max-width: 680px) {
+      .sotw-info { border-left: none; border-top: 1px solid #30363d; }
+    }
+    .sotw-eyebrow {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: #26d9c7;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .sotw-eyebrow::before {
+      content: '';
+      display: inline-block;
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: #26d9c7;
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+    .sotw-title {
+      font-size: 22px;
+      font-weight: 800;
+      color: #e6edf3;
+      line-height: 1.2;
+      margin: 4px 0;
+    }
+    .sotw-subtitle {
+      font-size: 12px;
+      color: #7d8590;
+      line-height: 1.6;
+    }
+    .sotw-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .sotw-tag {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 20px;
+      background: #0d2d2a;
+      color: #26d9c7;
+      border: 1px solid #00695c;
+    }
+    .sotw-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #26d9c7;
+      color: #0d1117;
+      font-size: 12px;
+      font-weight: 700;
+      padding: 10px 18px;
+      border-radius: 6px;
+      text-decoration: none;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      align-self: flex-start;
+      transition: opacity 0.15s;
+    }
+    .sotw-link:hover { opacity: 0.85; }
+
     /* ── Footer ── */
     footer {
       background: #161b22;
@@ -379,6 +484,42 @@
 
   <!-- Main -->
   <main>
+
+    <!-- Strategy of the Week -->
+    <div class="sotw-section">
+      <p class="section-label">Strategy of the Week</p>
+      <div class="sotw-panel">
+        <div class="sotw-video">
+          <iframe
+            src="https://www.youtube.com/embed/VtbUwwkHkJE"
+            title="AI-MOMO-V1 — Strategy of the Week | S3 Development"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowfullscreen>
+          </iframe>
+        </div>
+        <div class="sotw-info">
+          <div>
+            <div class="sotw-eyebrow">New Strategy &middot; May 2026</div>
+            <div class="sotw-title">AI-MOMO-V1</div>
+            <p class="sotw-subtitle">
+              AI Tech Momentum Breakout — a 4-layer entry model built for high-volatility AI equities.
+              Captures explosive directional moves on NVDA, AMD, MSFT, and META using EMA trend stack,
+              RSI momentum, and ATR-based risk management.
+            </p>
+          </div>
+          <div class="sotw-tags">
+            <span class="sotw-tag">Momentum Breakout</span>
+            <span class="sotw-tag">Long &amp; Short</span>
+            <span class="sotw-tag">Daily / 4H</span>
+            <span class="sotw-tag">Pine v6</span>
+            <span class="sotw-tag">OBSERVATION</span>
+          </div>
+          <a class="sotw-link" href="ai_tech_momentum_breakout_reference.html">
+            View Full Reference &rarr;
+          </a>
+        </div>
+      </div>
+    </div>
 
     <p class="section-label">Strategy Scripts</p>
 
