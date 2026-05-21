@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>8AM-RSM-MNQ-V1 — Reference Guide</title>
+  <style>
+    @media print {
+      .no-print { display: none; }
+      body { font-size: 11pt; }
+      h1 { font-size: 18pt; }
+      h2 { font-size: 14pt; }
+      h3 { font-size: 12pt; }
+      table { page-break-inside: avoid; }
+      .section { page-break-inside: avoid; }
+      .page-break { page-break-before: always; }
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #f4f6f9;
+      color: #1a1a2e;
+      line-height: 1.6;
+    }
+
+    .container {
+      max-width: 860px;
+      margin: 0 auto;
+      background: #fff;
+      padding: 48px 56px;
+      box-shadow: 0 2px 24px rgba(0,0,0,0.08);
+    }
+
+    /* ── Header ── */
+    .header {
+      border-bottom: 3px solid #1565c0;
+      padding-bottom: 24px;
+      margin-bottom: 32px;
+    }
+    .header-top { display: flex; justify-content: space-between; align-items: flex-start; }
+    .badge {
+      background: #1565c0;
+      color: #fff;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      padding: 4px 10px;
+      border-radius: 3px;
+      text-transform: uppercase;
+    }
+    .version-tag {
+      background: #e3f2fd;
+      color: #1565c0;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 3px;
+      border: 1px solid #1565c0;
+    }
+    h1 { font-size: 26px; font-weight: 800; color: #0d1b6e; margin-top: 10px; margin-bottom: 6px; }
+    .subtitle { color: #555; font-size: 13px; }
+    .meta { display: flex; gap: 20px; margin-top: 14px; font-size: 12px; color: #777; flex-wrap: wrap; }
+    .meta span strong { color: #333; }
+
+    /* ── Sections ── */
+    .section { margin-bottom: 36px; }
+    h2 {
+      font-size: 16px;
+      font-weight: 700;
+      color: #0d1b6e;
+      border-left: 4px solid #1565c0;
+      padding-left: 10px;
+      margin-bottom: 14px;
+    }
+    h3 { font-size: 12px; font-weight: 700; color: #1565c0; margin-top: 18px; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
+    p { margin-bottom: 10px; font-size: 13px; }
+
+    /* ── Tables ── */
+    table { width: 100%; border-collapse: collapse; font-size: 12.5px; margin-bottom: 16px; }
+    thead tr { background: #0d1b6e; color: #fff; }
+    thead th { padding: 9px 12px; text-align: left; font-weight: 600; }
+    tbody tr:nth-child(even) { background: #f4f6f9; }
+    tbody td { padding: 8px 12px; vertical-align: top; }
+
+    /* ── Callouts ── */
+    .callout { border-radius: 6px; padding: 14px 18px; font-size: 12.5px; margin-bottom: 14px; border-left: 5px solid; }
+    .callout-blue   { background: #e3f2fd; border-color: #1565c0; }
+    .callout-teal   { background: #e0f7fa; border-color: #00838f; }
+    .callout-green  { background: #e8f5e9; border-color: #2e7d32; }
+    .callout-amber  { background: #fff8e1; border-color: #f9a825; }
+    .callout-red    { background: #fce4ec; border-color: #c62828; }
+    .callout-purple { background: #f3e5f5; border-color: #7b1fa2; }
+    .callout strong { display: block; margin-bottom: 4px; }
+
+    /* ── Step cards ── */
+    .step-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    @media (max-width: 700px) {
+      .step-grid { grid-template-columns: repeat(3, 1fr); }
+    }
+    .step-card {
+      border-radius: 8px;
+      padding: 12px;
+      text-align: center;
+      border: 1px solid;
+    }
+    .step-card .step-num  { font-size: 11px; font-weight: 700; margin-bottom: 4px; opacity: 0.7; }
+    .step-card .step-name { font-size: 12px; font-weight: 800; margin-bottom: 3px; }
+    .step-card .step-role { font-size: 10px; color: #555; }
+    .step-range   { background: #e3f2fd; border-color: #1565c0; color: #0d47a1; }
+    .step-sweep   { background: #fce4ec; border-color: #c62828; color: #b71c1c; }
+    .step-fvg     { background: #e8f5e9; border-color: #2e7d32; color: #1b5e20; }
+    .step-ifvg    { background: #e0f7fa; border-color: #00838f; color: #004d40; }
+    .step-signal  { background: #fff8e1; border-color: #f9a825; color: #5d4037; }
+
+    /* ── Flow ── */
+    .flow { display: flex; align-items: center; gap: 0; margin-bottom: 20px; flex-wrap: wrap; }
+    .flow-box {
+      background: #e3f2fd;
+      border: 1px solid #1565c0;
+      border-radius: 6px;
+      padding: 10px 14px;
+      font-size: 11.5px;
+      font-weight: 600;
+      text-align: center;
+      color: #0d1b6e;
+      min-width: 110px;
+    }
+    .flow-arrow { font-size: 20px; color: #1565c0; padding: 0 6px; font-weight: 700; }
+    .flow-box.green  { background: #e8f5e9; border-color: #2e7d32; color: #1b5e20; }
+    .flow-box.red    { background: #fce4ec; border-color: #c62828; color: #b71c1c; }
+    .flow-box.teal   { background: #e0f7fa; border-color: #00838f; color: #004d40; }
+    .flow-box.purple { background: #f3e5f5; border-color: #7b1fa2; color: #4a148c; }
+
+    /* ── Code ── */
+    .code-block {
+      background: #1e2130;
+      color: #a8d8a8;
+      font-family: 'Courier New', monospace;
+      font-size: 11px;
+      padding: 16px 20px;
+      border-radius: 6px;
+      white-space: pre;
+      overflow-x: auto;
+      margin-bottom: 14px;
+      line-height: 1.7;
+    }
+    .code-comment { color: #7c8fa6; }
+    .code-key     { color: #82aaff; }
+    .code-val     { color: #c3e88d; }
+
+    ul.bullets { padding-left: 18px; font-size: 13px; }
+    ul.bullets li { margin-bottom: 5px; }
+
+    .steps { counter-reset: step; list-style: none; padding: 0; }
+    .steps li { counter-increment: step; display: flex; gap: 14px; margin-bottom: 12px; font-size: 13px; }
+    .steps li::before {
+      content: counter(step);
+      background: #1565c0;
+      color: #fff;
+      border-radius: 50%;
+      width: 24px; height: 24px; min-width: 24px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 700; margin-top: 1px;
+    }
+
+    /* ── Visual key ── */
+    .visual-key { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 16px; }
+    .vk-item { display: flex; align-items: center; gap: 8px; font-size: 12px; }
+    .vk-swatch {
+      width: 24px; height: 14px; border-radius: 3px; flex-shrink: 0;
+    }
+    .sw-aqua   { background: #00bcd4; }
+    .sw-yellow { background: #fdd835; }
+    .sw-green  { background: rgba(76,175,80,0.35); border: 1px solid #4caf50; }
+    .sw-red    { background: rgba(244,67,54,0.35); border: 1px solid #f44336; }
+    .sw-teal   { background: rgba(0,150,136,0.45); border: 2px solid #009688; }
+    .sw-purple { background: rgba(156,39,176,0.45); border: 2px solid #9c27b0; }
+    .sw-blue   { background: rgba(33,150,243,0.28); border: 1px solid #2196f3; }
+    .sw-orange { background: rgba(255,152,0,0.28); border: 1px solid #ff9800; }
+    .sw-bluebg { background: rgba(33,150,243,0.10); border: 1px dashed #2196f3; }
+
+    .footer {
+      border-top: 1px solid #ddd;
+      margin-top: 48px;
+      padding-top: 16px;
+      font-size: 11px;
+      color: #888;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .print-btn {
+      position: fixed; top: 20px; right: 20px;
+      background: #1565c0; color: #fff; border: none;
+      padding: 10px 20px; border-radius: 6px;
+      font-size: 13px; font-weight: 600; cursor: pointer;
+      box-shadow: 0 2px 8px rgba(21,101,192,0.4);
+    }
+    .print-btn:hover { background: #0d47a1; }
+
+    .back-btn {
+      position: fixed; top: 20px; left: 20px;
+      background: #21262d; color: #e6edf3; border: none;
+      padding: 10px 20px; border-radius: 6px;
+      font-size: 13px; font-weight: 600; cursor: pointer;
+      text-decoration: none;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    }
+    .back-btn:hover { background: #30363d; }
+  </style>
+</head>
+<body>
+
+<a href="index.html" class="back-btn no-print">← Library</a>
+<button class="print-btn no-print" onclick="window.print()">Save as PDF</button>
+
+<div class="container">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="header-top">
+      <span class="badge">Pine Script v6 · Strategy · TradingView · MNQ Futures</span>
+      <span class="version-tag">V1 — 8AM Range Sweep Model</span>
+    </div>
+    <h1>8AM-RSM-MNQ-V1</h1>
+    <p class="subtitle">8AM Range Sweep Model — Micro Nasdaq Futures · ICT/SMC 5-Step Model · FVG · IFVG · Order Block Confluence</p>
+    <div class="meta">
+      <span><strong>File:</strong> 8am_range_sweep_mnq.pine</span>
+      <span><strong>Type:</strong> strategy() — backtestable</span>
+      <span><strong>Capital:</strong> $10,000 initial</span>
+      <span><strong>Instrument:</strong> MNQ1!</span>
+      <span><strong>Signal Window:</strong> 9AM–12PM NY</span>
+      <span><strong>Created:</strong> May 21, 2026</span>
+    </div>
+  </div>
+
+  <!-- OVERVIEW -->
+  <div class="section">
+    <h2>Overview</h2>
+    <p>
+      8AM-RSM-MNQ-V1 is an <strong>ICT/SMC manipulation-based reversal strategy</strong> calibrated for
+      Micro Nasdaq Futures (MNQ1!). It follows the institutional 8AM manipulation sequence — where
+      price establishes a range in the 8AM hour, sweeps liquidity on one side, and then reverses to
+      target the opposite end of the range during the 9AM–12PM New York session.
+    </p>
+    <p>
+      The model requires <strong>three-layer confluence</strong> before signaling: a confirmed sweep of
+      the 8AM range, an Inverted Fair Value Gap (IFVG) acting as the entry zone, and a supporting
+      Order Block providing structural confirmation. All three must align within the active signal window.
+    </p>
+
+    <div class="step-grid">
+      <div class="step-card step-range">
+        <div class="step-num">STEP 1</div>
+        <div class="step-name">8AM RANGE</div>
+        <div class="step-role">Define manipulation zone</div>
+      </div>
+      <div class="step-card step-sweep">
+        <div class="step-num">STEP 2</div>
+        <div class="step-name">SWEEP</div>
+        <div class="step-role">Liquidity taken one side</div>
+      </div>
+      <div class="step-card step-fvg">
+        <div class="step-num">STEP 3</div>
+        <div class="step-name">FVG</div>
+        <div class="step-role">Imbalance identified</div>
+      </div>
+      <div class="step-card step-ifvg">
+        <div class="step-num">STEP 4</div>
+        <div class="step-name">IFVG</div>
+        <div class="step-role">Entry zone confirmed</div>
+      </div>
+      <div class="step-card step-signal">
+        <div class="step-num">STEP 5</div>
+        <div class="step-name">ENTRY</div>
+        <div class="step-role">All 3 factors aligned</div>
+      </div>
+    </div>
+
+    <div class="callout callout-blue">
+      <strong>MNQ Calibration</strong>
+      Tick Size: 0.25 NQ points &nbsp;·&nbsp; Tick Value: $0.50/tick per contract &nbsp;·&nbsp;
+      Commission: $0.62/contract &nbsp;·&nbsp; Slippage: 2 ticks &nbsp;·&nbsp;
+      Default quantity: 1 contract &nbsp;·&nbsp; Recommended timeframe: 1m or 5m
+    </div>
+  </div>
+
+  <!-- 5-STEP MODEL -->
+  <div class="section">
+    <h2>The 5-Step Model</h2>
+
+    <h3>Step 1 — 8AM Range Definition</h3>
+    <p>
+      The script tracks the full high and low of the 8AM hour (8:00–8:59 AM New York). The range
+      locks when the 9AM signal window opens. Two dashed lines are drawn — aqua for the range high,
+      yellow for the range low — extending through the signal window.
+    </p>
+    <div class="callout callout-amber">
+      <strong>Range Reset</strong>
+      The range, sweep flags, FVG/IFVG zones, and Order Block state all reset at the start of each
+      new 8AM session. Each trading day begins with a clean slate.
+    </div>
+
+    <h3>Step 2 — Sweep Detection</h3>
+    <p>
+      Once the range is locked, the script watches for price to exceed either side of the 8AM range.
+      A <strong>HIGH SWEPT</strong> label fires when price takes out the range high (bearish bias —
+      price expected to fall to the range low). A <strong>LOW SWEPT</strong> label fires when price
+      takes out the range low (bullish bias — price expected to rally to the range high).
+    </p>
+    <p>Each sweep is registered only once per day. The sweep direction sets the trade bias.</p>
+
+    <h3>Step 3 — Fair Value Gap (FVG) Detection</h3>
+    <p>
+      A 3-bar imbalance is detected near the sweep zone. FVGs represent areas where price moved
+      so quickly that it left a gap between candle bodies — institutional order flow areas.
+    </p>
+    <table>
+      <thead>
+        <tr><th>FVG Type</th><th>Condition</th><th>Box Color</th><th>Meaning</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Bullish FVG</td><td><code>low[0] &gt; high[2]</code></td><td>Green (faded)</td><td>Gap up — demand imbalance</td></tr>
+        <tr><td>Bearish FVG</td><td><code>high[0] &lt; low[2]</code></td><td>Red (faded)</td><td>Gap down — supply imbalance</td></tr>
+      </tbody>
+    </table>
+    <p>A minimum FVG size filter (default 0.25 points) removes micro-gaps from noise.</p>
+
+    <h3>Step 4 — Inverted Fair Value Gap (IFVG) Confirmation</h3>
+    <p>
+      An IFVG forms when price closes back through a prior FVG in the opposite direction —
+      converting the imbalance into an entry zone. This is the primary entry trigger.
+    </p>
+    <table>
+      <thead>
+        <tr><th>IFVG Type</th><th>Trigger</th><th>Box Color</th><th>Bias</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Bullish IFVG</td><td>Close above top of bearish FVG</td><td>Teal</td><td>Long setup active</td></tr>
+        <tr><td>Bearish IFVG</td><td>Close below bottom of bullish FVG</td><td>Purple</td><td>Short setup active</td></tr>
+      </tbody>
+    </table>
+    <p>Only the first IFVG of each type per day is registered. Once set, it remains active for the signal window.</p>
+
+    <h3>Order Block (Supporting Confluence)</h3>
+    <p>
+      An Order Block is identified as the last candle of the opposing color before a significant
+      displacement move. It provides structural support/resistance confirming the IFVG entry zone.
+    </p>
+    <table>
+      <thead>
+        <tr><th>OB Type</th><th>Detected By</th><th>Box Color</th><th>Role</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Bullish OB</td><td>Last bearish candle before upside displacement</td><td>Blue (faded)</td><td>Support — SL placed below OB low</td></tr>
+        <tr><td>Bearish OB</td><td>Last bullish candle before downside displacement</td><td>Orange (faded)</td><td>Resistance — SL placed above OB high</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Step 5 — Entry Signal (All 3 Must Align)</h3>
+
+    <h3>Long Entry</h3>
+    <div class="flow">
+      <div class="flow-box">Range<br>Locked</div>
+      <div class="flow-arrow">+</div>
+      <div class="flow-box red">Low<br>Swept</div>
+      <div class="flow-arrow">+</div>
+      <div class="flow-box teal">Bull<br>IFVG</div>
+      <div class="flow-arrow">+</div>
+      <div class="flow-box">Bull OB<br>Present</div>
+      <div class="flow-arrow">+</div>
+      <div class="flow-box">Signal<br>Window</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box green">BUY<br>Long</div>
+    </div>
+
+    <h3>Short Entry</h3>
+    <div class="flow">
+      <div class="flow-box">Range<br>Locked</div>
+      <div class="flow-arrow">+</div>
+      <div class="flow-box red">High<br>Swept</div>
+      <div class="flow-arrow">+</div>
+      <div class="flow-box purple">Bear<br>IFVG</div>
+      <div class="flow-arrow">+</div>
+      <div class="flow-box">Bear OB<br>Present</div>
+      <div class="flow-arrow">+</div>
+      <div class="flow-box">Signal<br>Window</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box red">SELL<br>Short</div>
+    </div>
+
+    <div class="callout callout-blue">
+      <strong>One Position at a Time</strong>
+      Entries are only placed when <code>strategy.position_size == 0</code>. The strategy will not
+      add to an existing position. Only one trade per session per direction.
+    </div>
+  </div>
+
+  <!-- RISK MANAGEMENT -->
+  <div class="section">
+    <h2>Risk Management — Structure-Based</h2>
+    <p>
+      Unlike ATR-based models, this strategy uses <strong>structural levels</strong> for stops and targets.
+      The stop is placed beyond the confirming Order Block; the target is the opposite end of the 8AM range.
+      The Risk:Reward ratio is calculated dynamically and displayed on the entry label.
+    </p>
+
+    <table>
+      <thead>
+        <tr><th>Parameter</th><th>Long Trade</th><th>Short Trade</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Stop Loss</td><td>Below Bull OB low</td><td>Above Bear OB high</td></tr>
+        <tr><td>Take Profit</td><td>8AM Range High</td><td>8AM Range Low</td></tr>
+        <tr><td>R:R</td><td colspan="2">Calculated dynamically — shown on entry label</td></tr>
+        <tr><td>Qty</td><td colspan="2">1 MNQ contract (default)</td></tr>
+        <tr><td>Commission</td><td colspan="2">$0.62 per contract (NinjaTrader rate)</td></tr>
+        <tr><td>Slippage</td><td colspan="2">2 ticks ($1.00 per contract)</td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout callout-teal">
+      <strong>Why Structure Over ATR</strong>
+      The 8AM range model targets a defined price destination (the opposite range end). Using the
+      range end as TP and the OB as the structural SL gives you a logical, price-action-driven
+      R:R rather than a fixed multiple. High-probability setups on MNQ typically yield 2:1 to 4:1.
+    </div>
+  </div>
+
+  <!-- INPUTS REFERENCE -->
+  <div class="section">
+    <h2>All Configurable Inputs</h2>
+    <table>
+      <thead>
+        <tr><th>Group</th><th>Parameter</th><th>Default</th><th>Notes</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Session</td><td>Timezone</td><td>America/New_York</td><td>All session logic is timezone-aware</td></tr>
+        <tr><td>Session</td><td>Signal Window Open (Hour)</td><td>9</td><td>Hour at which signals can fire (9 = 9AM NY)</td></tr>
+        <tr><td>Session</td><td>Signal Window Close (Hour)</td><td>12</td><td>No new entries after this hour (12 = noon)</td></tr>
+        <tr><td>Model Parameters</td><td>Min FVG Size (points)</td><td>0.25</td><td>Minimum gap size to qualify as FVG — filters micro-gaps</td></tr>
+        <tr><td>Model Parameters</td><td>OB Lookback (bars)</td><td>10</td><td>Number of bars to look back when identifying the Order Block candle</td></tr>
+        <tr><td>Visuals</td><td>Show FVG Boxes</td><td>true</td><td>Toggle green/red FVG boxes on chart</td></tr>
+        <tr><td>Visuals</td><td>Show IFVG Zones</td><td>true</td><td>Toggle teal/purple IFVG boxes on chart</td></tr>
+        <tr><td>Visuals</td><td>Show Order Blocks</td><td>true</td><td>Toggle blue/orange OB boxes on chart</td></tr>
+        <tr><td>Visuals</td><td>Show Dashboard</td><td>true</td><td>Toggle the top-right status dashboard</td></tr>
+        <tr><td>Alerts</td><td>Webhook Secret</td><td>tac_com_alpha_9</td><td>Shared NIGHTHAWK authentication key — embedded in all payloads</td></tr>
+        <tr><td>Testing</td><td>Force Manual Trigger</td><td>false</td><td>Fires a test webhook — use with "Once Per Bar" alert setting</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- CHART VISUALS -->
+  <div class="section">
+    <h2>Chart Visuals</h2>
+
+    <div class="visual-key">
+      <div class="vk-item"><div class="vk-swatch sw-aqua"></div>Range High line (aqua dashed)</div>
+      <div class="vk-item"><div class="vk-swatch sw-yellow"></div>Range Low line (yellow dashed)</div>
+      <div class="vk-item"><div class="vk-swatch sw-green"></div>Bullish FVG box (green, faded)</div>
+      <div class="vk-item"><div class="vk-swatch sw-red"></div>Bearish FVG box (red, faded)</div>
+      <div class="vk-item"><div class="vk-swatch sw-teal"></div>Bullish IFVG zone (teal)</div>
+      <div class="vk-item"><div class="vk-swatch sw-purple"></div>Bearish IFVG zone (purple)</div>
+      <div class="vk-item"><div class="vk-swatch sw-blue"></div>Bullish Order Block (blue)</div>
+      <div class="vk-item"><div class="vk-swatch sw-orange"></div>Bearish Order Block (orange)</div>
+      <div class="vk-item"><div class="vk-swatch sw-bluebg"></div>Signal window background tint</div>
+    </div>
+
+    <table>
+      <thead>
+        <tr><th>Element</th><th>Style</th><th>Description</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Range High</td><td>Aqua dashed line (width 2)</td><td>8AM hour high — extends through signal window</td></tr>
+        <tr><td>Range Low</td><td>Yellow dashed line (width 2)</td><td>8AM hour low — extends through signal window</td></tr>
+        <tr><td>HIGH SWEPT label</td><td>Red label (above bar)</td><td>Fires when price takes out 8AM high · shows TP target</td></tr>
+        <tr><td>LOW SWEPT label</td><td>Green label (below bar)</td><td>Fires when price takes out 8AM low · shows TP target</td></tr>
+        <tr><td>Bullish FVG</td><td>Green box (85% transparent)</td><td>3-bar bullish imbalance — potential demand zone</td></tr>
+        <tr><td>Bearish FVG</td><td>Red box (85% transparent)</td><td>3-bar bearish imbalance — potential supply zone</td></tr>
+        <tr><td>Bullish IFVG</td><td>Teal box (65% transparent)</td><td>Bearish FVG reclaimed — active long entry zone</td></tr>
+        <tr><td>Bearish IFVG</td><td>Purple box (65% transparent)</td><td>Bullish FVG reclaimed — active short entry zone</td></tr>
+        <tr><td>Bullish OB</td><td>Blue box (82% transparent)</td><td>Last bearish candle before upside displacement</td></tr>
+        <tr><td>Bearish OB</td><td>Orange box (82% transparent)</td><td>Last bullish candle before downside displacement</td></tr>
+        <tr><td>BUY entry label</td><td>Lime triangle (below bar)</td><td>Shows SL, TP, and R:R on confirmed long signal</td></tr>
+        <tr><td>SELL entry label</td><td>Red triangle (above bar)</td><td>Shows SL, TP, and R:R on confirmed short signal</td></tr>
+        <tr><td>Signal window background</td><td>Blue tint (95% transparent)</td><td>Active during 9AM–12PM when range is locked</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- DASHBOARD -->
+  <div class="section">
+    <h2>Live Status Dashboard</h2>
+    <p>An 8-row table in the top-right corner shows the current state of all model conditions. Each row updates on every bar.</p>
+
+    <table>
+      <thead>
+        <tr><th>Row</th><th>When Green (✓)</th><th>When Gray (✗)</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Range Set</td><td>8AM range is locked and active</td><td>8AM hour not yet complete</td></tr>
+        <tr><td>High Swept</td><td>8AM range high has been taken out</td><td>High intact</td></tr>
+        <tr><td>Low Swept</td><td>8AM range low has been taken out</td><td>Low intact</td></tr>
+        <tr><td>IFVG Ready</td><td>At least one IFVG is confirmed for the day</td><td>No IFVG yet</td></tr>
+        <tr><td>OB Active</td><td>At least one Order Block has been identified</td><td>No OB yet</td></tr>
+        <tr><td>Signal Window</td><td>Current time is within 9AM–12PM NY</td><td>Outside signal window</td></tr>
+        <tr><td>Bias</td><td colspan="2">LONG · LONG SETUP · SHORT · SHORT SETUP · WAIT</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ALERT PAYLOAD -->
+  <div class="section page-break">
+    <h2>Alert Messages — JSON Payload</h2>
+    <p>The model sends payloads via <code>alert_message</code> on <code>strategy.entry()</code> and via 6 <code>alertcondition()</code> triggers for granular monitoring.</p>
+
+    <h3>Long Entry (BUY)</h3>
+    <div class="code-block">{
+  <span class="code-key">"secret"</span>:    <span class="code-val">"tac_com_alpha_9"</span>,
+  <span class="code-key">"model_id"</span>:  <span class="code-val">"8AM-RSM-MNQ-V1"</span>,
+  <span class="code-key">"ticker"</span>:    <span class="code-val">"MNQ1!"</span>,
+  <span class="code-key">"action"</span>:    <span class="code-val">"BUY"</span>,
+  <span class="code-key">"price"</span>:     <span class="code-val">21050.25</span>,
+  <span class="code-key">"metadata"</span>: {
+    <span class="code-key">"tier"</span>:      <span class="code-val">"8AM_SWEEP_REVERSAL"</span>,
+    <span class="code-key">"sl"</span>:        <span class="code-val">21025.00</span>,
+    <span class="code-key">"tp"</span>:        <span class="code-val">21125.50</span>,
+    <span class="code-key">"note"</span>:      <span class="code-val">"Low swept + bull IFVG + bull OB"</span>,
+    <span class="code-key">"timestamp"</span>: <span class="code-val">1747875600000</span>
+  }
+}</div>
+
+    <h3>Short Entry (SELL)</h3>
+    <div class="code-block">{
+  <span class="code-key">"secret"</span>:    <span class="code-val">"tac_com_alpha_9"</span>,
+  <span class="code-key">"model_id"</span>:  <span class="code-val">"8AM-RSM-MNQ-V1"</span>,
+  <span class="code-key">"ticker"</span>:    <span class="code-val">"MNQ1!"</span>,
+  <span class="code-key">"action"</span>:    <span class="code-val">"SELL"</span>,
+  <span class="code-key">"price"</span>:     <span class="code-val">21125.50</span>,
+  <span class="code-key">"metadata"</span>: {
+    <span class="code-key">"tier"</span>:      <span class="code-val">"8AM_SWEEP_REVERSAL"</span>,
+    <span class="code-key">"sl"</span>:        <span class="code-val">21150.75</span>,
+    <span class="code-key">"tp"</span>:        <span class="code-val">21050.25</span>,
+    <span class="code-key">"note"</span>:      <span class="code-val">"High swept + bear IFVG + bear OB"</span>,
+    <span class="code-key">"timestamp"</span>: <span class="code-val">1747875600000</span>
+  }
+}</div>
+
+    <h3>Alert Conditions (6 total)</h3>
+    <table>
+      <thead>
+        <tr><th>Alert Name</th><th>Event</th><th>Payload Field</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>8AM High Swept</td><td>Range high taken out</td><td><code>"event": "HIGH_SWEPT"</code></td></tr>
+        <tr><td>8AM Low Swept</td><td>Range low taken out</td><td><code>"event": "LOW_SWEPT"</code></td></tr>
+        <tr><td>Bullish IFVG Formed</td><td>Bearish FVG reclaimed long</td><td><code>"event": "BULL_IFVG"</code></td></tr>
+        <tr><td>Bearish IFVG Formed</td><td>Bullish FVG reclaimed short</td><td><code>"event": "BEAR_IFVG"</code></td></tr>
+        <tr><td>Long Entry Signal</td><td>Full 3-factor long confluence</td><td><code>"action": "BUY"</code></td></tr>
+        <tr><td>Short Entry Signal</td><td>Full 3-factor short confluence</td><td><code>"action": "SELL"</code></td></tr>
+      </tbody>
+    </table>
+
+    <h3>Manual Test Trigger</h3>
+    <div class="code-block">{
+  <span class="code-key">"secret"</span>:    <span class="code-val">"tac_com_alpha_9"</span>,
+  <span class="code-key">"model_id"</span>:  <span class="code-val">"8AM-RSM-MNQ-V1"</span>,
+  <span class="code-key">"action"</span>:    <span class="code-val">"TEST"</span>,
+  <span class="code-key">"metadata"</span>: {
+    <span class="code-key">"note"</span>:      <span class="code-val">"MANUAL_TRIGGER"</span>,
+    <span class="code-key">"timestamp"</span>: <span class="code-val">1747875600000</span>
+  }
+}</div>
+    <p>Toggle <strong>FORCE MANUAL TRIGGER</strong> in the Testing input group and set the alert to "Once Per Bar" to fire the test payload to your NIGHTHAWK endpoint.</p>
+  </div>
+
+  <!-- SENTINEL DB -->
+  <div class="section">
+    <h2>Sentinel DB Registration</h2>
+    <table>
+      <thead>
+        <tr><th>Field</th><th>Value</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>model_id</td><td><code>8AM-RSM-MNQ-V1</code></td></tr>
+        <tr><td>status</td><td><code>OBSERVATION</code></td></tr>
+        <tr><td>Migration</td><td>v1.5 — 2026-05-21</td></tr>
+        <tr><td>tier field</td><td><code>8AM_SWEEP_REVERSAL</code></td></tr>
+      </tbody>
+    </table>
+    <div class="callout callout-blue">
+      <strong>OBSERVATION Status</strong>
+      The model is registered in Sentinel but not yet routing live orders. Run the backtest on MNQ1!
+      at the 1m or 5m timeframe across at least 3 months of data before promoting to LIVE.
+      Verify that the SL and TP fields in the payload match what the strategy executes internally.
+    </div>
+  </div>
+
+  <!-- SETUP -->
+  <div class="section">
+    <h2>TradingView Setup</h2>
+    <ol class="steps">
+      <li>Open a <strong>1m or 5m chart on MNQ1!</strong> (Micro Nasdaq Futures — continuous contract). Ensure the chart is set to <strong>New York session</strong> timezone so the 8AM hour displays correctly.</li>
+      <li>Open Pine Editor (<code>Alt+P</code>), paste <code>8am_range_sweep_mnq.pine</code>, click <strong>Add to chart</strong>.</li>
+      <li>Verify the aqua/yellow dashed range lines appear at the correct 8AM price levels. Check that the background tint activates at 9AM.</li>
+      <li>Run the <strong>Strategy Tester</strong>. Review individual trades to confirm sweep → IFVG → OB logic is firing correctly before relying on the aggregated stats.</li>
+      <li>To set up granular alerts: hover over the indicator → <strong>···</strong> → <strong>Add alert on 8AM-RSM-MNQ</strong>. Configure separate alerts for each of the 6 alertconditions.</li>
+      <li>Set <strong>Webhook URL</strong> to your NIGHTHAWK endpoint. The full SL and TP are embedded in the BUY/SELL payload.</li>
+      <li>Toggle <strong>FORCE MANUAL TRIGGER</strong> to ON, set the alert to "Once Per Bar", and verify the TEST payload arrives at your endpoint before enabling live signal alerts.</li>
+    </ol>
+
+    <div class="callout callout-amber">
+      <strong>Backtest Limitation — Intraday Range</strong>
+      TradingView's Strategy Tester on 1m bars may not replay the exact bar sequence for 8AM
+      range formation on historical data. Use 5m bars for the initial backtest to reduce bar-replay
+      artifacts, then validate on 1m in forward-testing (paper trade) mode.
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="footer">
+    <span>8AM-RSM-MNQ-V1 · ICT/SMC Range Sweep · Pine Script v6 · 8am_range_sweep_mnq.pine</span>
+    <span>Iron Sight System · project_black_box/iron_sight · May 2026</span>
+  </div>
+
+</div>
+</body>
+</html>
