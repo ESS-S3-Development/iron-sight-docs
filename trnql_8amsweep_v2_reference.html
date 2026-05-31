@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TRNQL_8AMsweep.v2 — Reference Guide</title>
+  <link rel="icon" type="image/png" href="https://static.wixstatic.com/media/b8ecbb_c254c40181bc4637be4f42d42eb682f0~mv2.png" />
+  <style>
+    @media print {
+      .no-print { display: none; }
+      body { font-size: 11pt; }
+      h1 { font-size: 18pt; }
+      h2 { font-size: 14pt; }
+      h3 { font-size: 12pt; }
+      table { page-break-inside: avoid; }
+      .section { page-break-inside: avoid; }
+      .page-break { page-break-before: always; }
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #f4f6f9;
+      color: #1a1a2e;
+      line-height: 1.6;
+    }
+
+    .container {
+      max-width: 860px;
+      margin: 0 auto;
+      background: #fff;
+      padding: 48px 56px;
+      box-shadow: 0 2px 24px rgba(0,0,0,0.08);
+    }
+
+    /* ── Header ── */
+    .header {
+      border-bottom: 3px solid #1565c0;
+      padding-bottom: 24px;
+      margin-bottom: 32px;
+    }
+    .header-top { display: flex; justify-content: space-between; align-items: flex-start; }
+    .badge {
+      background: #1565c0;
+      color: #fff;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      padding: 4px 10px;
+      border-radius: 3px;
+      text-transform: uppercase;
+    }
+    .version-tag {
+      background: #e3f2fd;
+      color: #1565c0;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 3px;
+      border: 1px solid #1565c0;
+      text-transform: uppercase;
+    }
+    .header h1 {
+      font-size: 28px;
+      font-weight: 900;
+      color: #0d1117;
+      margin: 16px 0 6px;
+      letter-spacing: -0.5px;
+    }
+    .header .subtitle {
+      font-size: 14px;
+      color: #555;
+      margin-bottom: 16px;
+    }
+    .meta-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      font-size: 12px;
+      color: #666;
+    }
+    .meta-row span strong { color: #1a1a2e; }
+
+    /* ── Nav ── */
+    .nav-bar {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 36px;
+      flex-wrap: wrap;
+    }
+    .nav-bar a {
+      font-size: 12px;
+      font-weight: 600;
+      color: #1565c0;
+      text-decoration: none;
+      padding: 6px 14px;
+      border: 1px solid #1565c0;
+      border-radius: 4px;
+      transition: background 0.15s;
+    }
+    .nav-bar a:hover { background: #e3f2fd; }
+
+    /* ── Sections ── */
+    .section { margin-bottom: 40px; }
+    .section h2 {
+      font-size: 16px;
+      font-weight: 800;
+      color: #1565c0;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      border-bottom: 2px solid #e3f2fd;
+      padding-bottom: 8px;
+      margin-bottom: 16px;
+    }
+    .section h3 {
+      font-size: 13px;
+      font-weight: 700;
+      color: #1a1a2e;
+      margin: 20px 0 8px;
+    }
+    .section p { font-size: 13px; color: #444; margin-bottom: 12px; }
+    .section ul, .section ol {
+      padding-left: 20px;
+      font-size: 13px;
+      color: #444;
+    }
+    .section li { margin-bottom: 6px; }
+
+    /* ── Tables ── */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+      margin-top: 12px;
+    }
+    th {
+      background: #e3f2fd;
+      color: #1565c0;
+      font-weight: 700;
+      text-align: left;
+      padding: 10px 12px;
+      border: 1px solid #bbdefb;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      font-size: 11px;
+    }
+    td {
+      padding: 9px 12px;
+      border: 1px solid #e0e0e0;
+      color: #333;
+      vertical-align: top;
+    }
+    tr:nth-child(even) td { background: #f8f9ff; }
+
+    /* ── Alert / note boxes ── */
+    .note {
+      background: #e3f2fd;
+      border-left: 4px solid #1565c0;
+      padding: 12px 16px;
+      border-radius: 4px;
+      font-size: 12px;
+      color: #1a237e;
+      margin-bottom: 16px;
+    }
+    .warn {
+      background: #fff8e1;
+      border-left: 4px solid #f9a825;
+      padding: 12px 16px;
+      border-radius: 4px;
+      font-size: 12px;
+      color: #5d4037;
+      margin-bottom: 16px;
+    }
+    .disc {
+      background: #fce4ec;
+      border-left: 4px solid #c62828;
+      padding: 12px 16px;
+      border-radius: 4px;
+      font-size: 12px;
+      color: #b71c1c;
+      margin-bottom: 16px;
+    }
+
+    /* ── Signal badges ── */
+    .sig {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 3px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .sig-buy      { background: #fff9c4; color: #827717; border: 1px solid #f9a825; }
+    .sig-sell     { background: #fff9c4; color: #827717; border: 1px solid #f9a825; }
+    .sig-buy-cont { background: #e8f5e9; color: #2e7d32; border: 1px solid #388e3c; }
+    .sig-sell-cont{ background: #ffebee; color: #c62828; border: 1px solid #e53935; }
+    .sig-obs      { background: #e3f2fd; color: #1565c0; border: 1px solid #1565c0; }
+
+    /* ── Code block ── */
+    .code-block {
+      background: #0d1117;
+      color: #e6edf3;
+      font-family: 'Cascadia Code', 'Courier New', monospace;
+      font-size: 11px;
+      padding: 16px 20px;
+      border-radius: 6px;
+      overflow-x: auto;
+      white-space: pre;
+      margin-top: 12px;
+      line-height: 1.6;
+    }
+
+    /* ── Footer ── */
+    .doc-footer {
+      margin-top: 48px;
+      padding-top: 20px;
+      border-top: 1px solid #e0e0e0;
+      font-size: 11px;
+      color: #999;
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="header-top">
+      <span class="badge">ICT / SMC &middot; Futures</span>
+      <span class="version-tag">v2 &middot; OBSERVATION</span>
+    </div>
+    <h1>TRNQL_8AMsweep.v2</h1>
+    <p class="subtitle">NQ Sig Levels on MNQ — Multi-Timeframe Key Level Map + 8AM Range Sweep Signal Engine</p>
+    <div class="meta-row">
+      <span><strong>model_id:</strong> TRNQL_8AMsweep.v2</span>
+      <span><strong>Instrument:</strong> MNQ1!</span>
+      <span><strong>Recommended TF:</strong> 5m</span>
+      <span><strong>Signal Window:</strong> 9:30 AM – 12:00 PM NY</span>
+      <span><strong>Pine Version:</strong> v6</span>
+      <span><strong>Developer:</strong> Christopher Casella &middot; S3 Dev</span>
+      <span><strong>Status:</strong> <span class="sig sig-obs">OBSERVATION</span></span>
+    </div>
+  </div>
+
+  <!-- Nav -->
+  <div class="nav-bar no-print">
+    <a href="#overview">Overview</a>
+    <a href="#levels">Key Levels</a>
+    <a href="#signals">Signal Engine</a>
+    <a href="#risk">TP / SL / Risk</a>
+    <a href="#filters">Filters</a>
+    <a href="#alerts">Alerts &amp; Webhook</a>
+    <a href="#inputs">Input Reference</a>
+    <a href="index.html">&larr; Index</a>
+  </div>
+
+  <!-- 1. Overview -->
+  <div class="section" id="overview">
+    <h2>1. Overview</h2>
+    <p>
+      <strong>TRNQL_8AMsweep.v2</strong> is a TradingView Pine Script v6 overlay indicator for
+      <strong>MNQ1! (Micro Nasdaq Futures)</strong> on the 5-minute chart. It serves two functions:
+    </p>
+    <ol>
+      <li><strong>Key Level Map</strong> — draws and merges Monthly, Weekly, Daily, and 4-Hour High/Low/50% levels sourced directly from the NQ1! contract, updated live on every bar.</li>
+      <li><strong>8AM Range Sweep Engine</strong> — detects liquidity sweeps of the 8:00–9:00 AM NY range using 1-minute intrabar data and fires BUY/SELL/CONTINUATION signals during the 9:30 AM–12:00 PM NY signal window.</li>
+    </ol>
+    <div class="note">
+      <strong>Sentinel Status: OBSERVATION.</strong> All signals require manual review before execution. No automated order routing is active in this version.
+    </div>
+    <table>
+      <thead><tr><th>Parameter</th><th>Value</th></tr></thead>
+      <tbody>
+        <tr><td>Indicator Name</td><td>NQ Sig Levels on MNQ</td></tr>
+        <tr><td>model_id</td><td>TRNQL_8AMsweep.v2</td></tr>
+        <tr><td>Instrument</td><td>MNQ1! — Micro Nasdaq Futures</td></tr>
+        <tr><td>Tick Size</td><td>0.25 NQ points</td></tr>
+        <tr><td>Tick Value</td><td>$0.50 per tick / per contract</td></tr>
+        <tr><td>Recommended Timeframe</td><td>5m (chart TF must be &gt;1m for alert eval)</td></tr>
+        <tr><td>Signal Window</td><td>9:30 AM – 12:00 PM New York</td></tr>
+        <tr><td>Data Source</td><td>NQ1! via <code>request.security</code>; 1-min intrabars via <code>request.security_lower_tf</code></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 2. Key Level Map -->
+  <div class="section" id="levels">
+    <h2>2. Key Level Map</h2>
+    <p>
+      The indicator plots up to 15 structural levels sourced from NQ1! across four timeframes. Levels within a configurable
+      <strong>Merge Threshold</strong> (default: 5 NQ points) are merged into a single averaged line to reduce clutter.
+    </p>
+
+    <h3>Timeframe Coverage</h3>
+    <table>
+      <thead><tr><th>Timeframe</th><th>Levels Drawn</th><th>Default Color</th><th>Line Width</th></tr></thead>
+      <tbody>
+        <tr><td>Monthly</td><td>High, Low, 50% (Equilibrium)</td><td>#9C27B0 / #CE93D8</td><td>3</td></tr>
+        <tr><td>Weekly</td><td>High, Low, 50%</td><td>#FF9800 / #FFB74D</td><td>2</td></tr>
+        <tr><td>Daily</td><td>High, Low, 50%</td><td>#2196F3 / #64B5F6</td><td>2</td></tr>
+        <tr><td>4-Hour</td><td>High, Low, 50%</td><td>#FFEB3B / #FFF176</td><td>1</td></tr>
+        <tr><td>8AM Range</td><td>High, Low (box + extended lines)</td><td>#00E5FF</td><td>2</td></tr>
+        <tr><td>7AM Pool</td><td>High, Low (dotted)</td><td>#FF6D00</td><td>1</td></tr>
+      </tbody>
+    </table>
+
+    <h3>7AM Liquidity Pool</h3>
+    <p>
+      The indicator tracks the high and low of the 7:00–7:59 AM New York hour each day as a <strong>take-profit reference level</strong>.
+      BUY signals target the 7AM Pool High; SELL signals target the 7AM Pool Low.
+      If the pool is not yet formed at signal time, the opposite end of the 8AM range is used as a fallback TP.
+    </p>
+
+    <h3>8AM Range Box</h3>
+    <p>
+      The 8:00–9:00 AM NY session is captured using 1-minute intrabar data (<code>request.security_lower_tf</code>).
+      The resulting high/low is displayed as a shaded box extended 2 hours post-range close to provide a visible
+      manipulation zone reference throughout the signal window.
+    </p>
+
+    <h3>Merge Engine</h3>
+    <p>
+      All structural levels are collected into sorted arrays and grouped by proximity.
+      Any levels within the <strong>Merge Threshold</strong> (default 5 pts) are averaged into one line
+      with a combined label showing all contributing levels. The highest-priority timeframe determines the merged line's color.
+    </p>
+  </div>
+
+  <!-- 3. Signal Engine -->
+  <div class="section" id="signals">
+    <h2>3. Signal Engine</h2>
+    <p>
+      All four signals are evaluated on 1-minute intrabars so they fire on any chart timeframe at or above 1m.
+      The signal window is strictly <strong>9:30 AM – 12:00 PM New York</strong>. Each signal type fires at most
+      once per session (reset at each new 8AM candle).
+    </p>
+
+    <div class="note">
+      <strong>Priority order (overlap prevention):</strong> BUY (1) &gt; SELL (2) &gt; BUY CONT. (3) &gt; SELL CONT. (4).
+      Only the highest-priority signal is displayed when multiple conditions trigger on the same bar.
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Signal</th>
+          <th>Trigger Condition</th>
+          <th>Shape</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="sig sig-buy">8AM BUY</span></td>
+          <td>1-min low sweeps <em>below</em> 8AM range low AND 1-min close returns <em>above</em> 8AM range low</td>
+          <td>Triangle Up (below bar)</td>
+          <td>Long entry</td>
+        </tr>
+        <tr>
+          <td><span class="sig sig-sell">8AM SELL</span></td>
+          <td>1-min high sweeps <em>above</em> 8AM range high AND 1-min close returns <em>below</em> 8AM range high</td>
+          <td>Triangle Down (above bar)</td>
+          <td>Short entry</td>
+        </tr>
+        <tr>
+          <td><span class="sig sig-buy-cont">8AM BUY CONT.</span></td>
+          <td>After a valid BUY: price pulls back below 8AM high, then 1-min close reclaims above 8AM high within 30 bars</td>
+          <td>Diamond (below bar)</td>
+          <td>Continuation long — DISCRETIONARY</td>
+        </tr>
+        <tr>
+          <td><span class="sig sig-sell-cont">8AM SELL CONT.</span></td>
+          <td>After a valid SELL: price pulls back above 8AM low, then 1-min close breaks back below 8AM low within 30 bars</td>
+          <td>Diamond (above bar)</td>
+          <td>Continuation short — DISCRETIONARY</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="disc">
+      <strong>[DISC] — Discretionary flag:</strong> BUY CONT. and SELL CONT. signals require manual confirmation before acting.
+      They are not included in backtested performance metrics.
+    </div>
+
+    <h3>Previous Session Signals</h3>
+    <p>
+      When <strong>Show Previous Session Signals</strong> is enabled (default ON), prior-day BUY and SELL signals
+      are re-plotted at their original bar and price using faded labels. This provides a visual audit trail without
+      cluttering the current session.
+    </p>
+  </div>
+
+  <!-- 4. TP / SL / Risk -->
+  <div class="section" id="risk">
+    <h2>4. TP / SL / Risk Management</h2>
+    <p>
+      The indicator calculates and displays TP and SL levels on the signal label at the time of each BUY or SELL fire.
+    </p>
+
+    <table>
+      <thead><tr><th>Parameter</th><th>BUY</th><th>SELL</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><strong>Take Profit (primary)</strong></td>
+          <td>7AM Pool High (<code>sevenH</code>)</td>
+          <td>7AM Pool Low (<code>sevenL</code>)</td>
+        </tr>
+        <tr>
+          <td><strong>Take Profit (fallback)</strong></td>
+          <td>8AM Range High (<code>eightH</code>)</td>
+          <td>8AM Range Low (<code>eightL</code>)</td>
+        </tr>
+        <tr>
+          <td><strong>Stop Loss</strong></td>
+          <td>Sweep wick low &minus; 1 tick (<code>sigBuySL</code>)</td>
+          <td>Sweep wick high + 1 tick (<code>sigSellSL</code>)</td>
+        </tr>
+        <tr>
+          <td><strong>R:R displayed</strong></td>
+          <td colspan="2">Calculated live: <code>(TP &minus; close) / (close &minus; SL)</code></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="warn">
+      <strong>TP Fallback:</strong> The 7AM liquidity pool is used as TP only if it is fully formed (session ended) and
+      the pool level is on the opposing side of the current price. If not, the script falls back to the opposite
+      8AM range boundary.
+    </div>
+  </div>
+
+  <!-- 5. Filters -->
+  <div class="section" id="filters">
+    <h2>5. Macro No-Trade Filter</h2>
+    <p>
+      A 2-layer gate suppresses all signals on high-impact macro days. When <code>noTradeDay = true</code>,
+      no BUY, SELL, or CONT. signals fire and a visual warning is displayed.
+    </p>
+
+    <table>
+      <thead><tr><th>Layer</th><th>Method</th><th>Status</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>Layer 1 — Manual Blocklist</td>
+          <td>Hardcoded date match in script source. Update monthly by the developer.</td>
+          <td>Active (empty by default — no dates currently blocked)</td>
+        </tr>
+        <tr>
+          <td>Layer 2 — Range Expansion Proxy</td>
+          <td>Auto-detect if 8AM range &gt; 2x rolling average (macro event proxy).</td>
+          <td>Deferred — re-enabled after baseline alert testing passes</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3>Signal Window Filter</h3>
+    <p>
+      All signals are gated to the <strong>9:30 AM – 12:00 PM New York</strong> window via
+      <code>time(timeframe.period, "0930-1200", "America/New_York")</code>.
+      No signals fire outside this window regardless of filter state.
+    </p>
+  </div>
+
+  <!-- 6. Alerts & Webhook -->
+  <div class="section" id="alerts">
+    <h2>6. Alerts &amp; Webhook</h2>
+    <p>
+      The script fires dynamic JSON payloads via <code>alert()</code> at <code>alert.freq_once_per_bar_close</code>
+      on confirmed bars. Payloads are structured for Phantom / Vanguard receiver compatibility.
+    </p>
+
+    <h3>BUY Payload</h3>
+    <div class="code-block">{"secret":"tac_com_alpha_9","model_id":"TRNQL_8AMsweep.v2","ticker":"MNQ1!","action":"BUY","price":&lt;close&gt;,
+  "metadata":{"sl":&lt;sl&gt;,"tp":&lt;tp&gt;,"tier":"8AM_SWEEP_REVERSAL",
+  "note":"8AM low swept — 7AM pool TP","timestamp":&lt;timenow&gt;}}</div>
+
+    <h3>SELL Payload</h3>
+    <div class="code-block">{"secret":"tac_com_alpha_9","model_id":"TRNQL_8AMsweep.v2","ticker":"MNQ1!","action":"SELL","price":&lt;close&gt;,
+  "metadata":{"sl":&lt;sl&gt;,"tp":&lt;tp&gt;,"tier":"8AM_SWEEP_REVERSAL",
+  "note":"8AM high swept — 7AM pool TP","timestamp":&lt;timenow&gt;}}</div>
+
+    <h3>CONT. Payload (BUY &amp; SELL)</h3>
+    <div class="code-block">{"secret":"tac_com_alpha_9","model_id":"TRNQL_8AMsweep.v2","ticker":"MNQ1!","action":"BUY_CONT","price":&lt;close&gt;,
+  "metadata":{"tier":"8AM_CONTINUATION",
+  "note":"DISCRETIONARY — manual confirm required","timestamp":&lt;timenow&gt;}}</div>
+
+    <h3>Alert Conditions (TradingView UI)</h3>
+    <table>
+      <thead><tr><th>Alert Name</th><th>Trigger</th></tr></thead>
+      <tbody>
+        <tr><td>8AM BUY Signal</td><td>BUY condition confirmed</td></tr>
+        <tr><td>8AM SELL Signal</td><td>SELL condition confirmed</td></tr>
+        <tr><td>8AM BUY CONT. Signal</td><td>BUY CONT. [DISC] confirmed</td></tr>
+        <tr><td>8AM SELL CONT. Signal</td><td>SELL CONT. [DISC] confirmed</td></tr>
+        <tr><td>Tap Monthly High/Low/50%</td><td>Price bar touches NQ monthly level</td></tr>
+        <tr><td>Tap Weekly High/Low/50%</td><td>Price bar touches NQ weekly level</td></tr>
+        <tr><td>Tap Daily High/Low/50%</td><td>Price bar touches NQ daily level</td></tr>
+        <tr><td>Tap 4H High/Low/50%</td><td>Price bar touches NQ 4H level</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Manual Test Trigger</h3>
+    <p>
+      Enable <strong>FORCE MANUAL TRIGGER</strong> in Inputs &gt; Testing and set the TradingView alert to
+      <em>Once Per Bar</em> to fire a test webhook payload to Phantom/Vanguard without waiting for a live signal.
+    </p>
+  </div>
+
+  <!-- 7. Input Reference -->
+  <div class="section" id="inputs">
+    <h2>7. Input Reference</h2>
+
+    <h3>Source</h3>
+    <table>
+      <thead><tr><th>Input</th><th>Default</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td>NQ Symbol</td><td>NQ1!</td><td>Futures contract to source level data from</td></tr>
+        <tr><td>Merge Threshold (points)</td><td>5.0</td><td>Levels within this NQ point distance are merged into one line</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Timeframes</h3>
+    <table>
+      <thead><tr><th>Input</th><th>Default</th></tr></thead>
+      <tbody>
+        <tr><td>Monthly Levels</td><td>ON</td></tr>
+        <tr><td>Weekly Levels</td><td>ON</td></tr>
+        <tr><td>Daily Levels</td><td>ON</td></tr>
+        <tr><td>4-Hour Levels</td><td>ON</td></tr>
+        <tr><td>8AM NY Range</td><td>ON</td></tr>
+        <tr><td>7AM Liquidity Pool (TP Reference)</td><td>ON</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Signal Groups</h3>
+    <table>
+      <thead><tr><th>Group</th><th>Inputs</th></tr></thead>
+      <tbody>
+        <tr><td>8AM BUY</td><td>Show toggle, color, alert enable</td></tr>
+        <tr><td>8AM SELL</td><td>Show toggle, color, alert enable</td></tr>
+        <tr><td>8AM BUY CONT.</td><td>Show toggle, color (#00E676), alert enable</td></tr>
+        <tr><td>8AM SELL CONT.</td><td>Show toggle, color (#FF1744), alert enable</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Signal Display</h3>
+    <table>
+      <thead><tr><th>Input</th><th>Default</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td>Signal Distance From Candle</td><td>2</td><td>ATR offset multiplier to prevent labels overlapping candles</td></tr>
+        <tr><td>Show Previous Session Signals</td><td>ON</td><td>Re-plots prior session BUY/SELL at their original candle in faded color</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Webhook</h3>
+    <table>
+      <thead><tr><th>Input</th><th>Default</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td>Webhook Secret</td><td>tac_com_alpha_9</td><td>Must match Phantom/Vanguard receiver key</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Testing</h3>
+    <table>
+      <thead><tr><th>Input</th><th>Default</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td>FORCE MANUAL TRIGGER</td><td>OFF</td><td>Toggle ON + set alert to Once Per Bar to fire a test webhook</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Footer -->
+  <div class="doc-footer no-print">
+    <span>TRNQL_8AMsweep.v2 &middot; S3 Development &middot; Executive Special Service, Inc.</span>
+    <span>Pine Script v6 &middot; TradingView &middot; Internal Use Only</span>
+  </div>
+
+</div>
+</body>
+</html>
