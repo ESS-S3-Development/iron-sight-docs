@@ -1,0 +1,831 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PHANTOM-MNQ | Signal Execution Architecture | S3 Development</title>
+  <style>
+    /* ── Design tokens (matches iron-sight-docs system) ── */
+    :root {
+      --bg:       #0d0f14;
+      --surface:  #13161e;
+      --card:     #1a1e2a;
+      --border:   #2a2f40;
+      --accent:   #00c2ff;
+      --green:    #22d35e;
+      --red:      #ff4560;
+      --yellow:   #ffc107;
+      --purple:   #9b59b6;
+      --text:     #cdd3e0;
+      --muted:    #7a849a;
+      --white:    #ffffff;
+      --code-bg:  #0a0c12;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      font-size: 15px;
+      line-height: 1.7;
+    }
+
+    /* ── Header ── */
+    header {
+      background: linear-gradient(135deg, #0d0f14 0%, #13161e 60%, #1a1e2a 100%);
+      border-bottom: 1px solid var(--border);
+      padding: 36px 48px;
+      display: flex;
+      align-items: center;
+      gap: 24px;
+    }
+    .logo-badge {
+      background: var(--purple);
+      color: #fff;
+      font-weight: 800;
+      font-size: 15px;
+      letter-spacing: 1px;
+      padding: 8px 14px;
+      border-radius: 6px;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    header h1 { font-size: 22px; font-weight: 700; color: var(--white); }
+    header p  { color: var(--muted); font-size: 13px; margin-top: 4px; }
+    .header-tag {
+      margin-left: auto;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 8px 16px;
+      font-size: 11px;
+      color: var(--muted);
+      letter-spacing: 1px;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .header-tag span { color: var(--accent); }
+
+    /* ── Two-panel layout ── */
+    .layout {
+      display: flex;
+      align-items: flex-start;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    /* ── Sidebar ── */
+    .sidebar {
+      width: 220px;
+      flex-shrink: 0;
+      position: sticky;
+      top: 32px;
+      padding: 40px 0 80px;
+    }
+    .sidebar-label {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      color: var(--muted);
+      text-transform: uppercase;
+      margin-bottom: 12px;
+      padding-left: 12px;
+    }
+    .sidebar nav a {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 12px;
+      border-radius: 6px;
+      font-size: 13px;
+      color: var(--muted);
+      text-decoration: none;
+      transition: background .15s, color .15s;
+      margin-bottom: 2px;
+    }
+    .sidebar nav a:hover { background: var(--card); color: var(--white); }
+    .sidebar nav a.active { background: var(--card); color: var(--white); }
+    .sidebar nav a .dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .dot-cyan   { background: var(--accent); }
+    .dot-yellow { background: var(--yellow); }
+    .dot-purple { background: var(--purple); }
+    .dot-green  { background: var(--green); }
+    .dot-red    { background: var(--red); }
+    .dot-white  { background: #555; }
+
+    /* ── Main content ── */
+    .main {
+      flex: 1;
+      min-width: 0;
+      padding: 48px 0 80px 48px;
+    }
+
+    /* ── Section headers ── */
+    .section-label {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 64px;
+      margin-bottom: 20px;
+    }
+    .section-label:first-child { margin-top: 0; }
+    .section-label .num {
+      background: var(--accent);
+      color: #000;
+      font-weight: 800;
+      font-size: 11px;
+      width: 26px; height: 26px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .section-label h2 { font-size: 18px; font-weight: 700; color: var(--white); }
+
+    /* ── Cards ── */
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 22px 26px;
+      margin-bottom: 14px;
+    }
+    .card h3 {
+      font-size: 13px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: .8px;
+      margin-bottom: 8px;
+    }
+    .card p { color: var(--text); margin-bottom: 6px; }
+    .card p:last-child { margin-bottom: 0; }
+
+    /* ── Two-col grid ── */
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    @media (max-width: 760px) { .two-col { grid-template-columns: 1fr; } }
+
+    /* ── Pills ── */
+    .pill {
+      display: inline-block;
+      padding: 2px 10px; border-radius: 20px;
+      font-size: 11px; font-weight: 700; letter-spacing: .4px;
+      margin: 2px 3px;
+    }
+    .pill-cyan   { background: rgba(0,194,255,.12);  color: var(--accent); border: 1px solid rgba(0,194,255,.3); }
+    .pill-yellow { background: rgba(255,193,7,.12);  color: var(--yellow); border: 1px solid rgba(255,193,7,.3); }
+    .pill-green  { background: rgba(34,211,94,.12);  color: var(--green);  border: 1px solid rgba(34,211,94,.3); }
+    .pill-red    { background: rgba(255,69,96,.12);  color: var(--red);    border: 1px solid rgba(255,69,96,.3); }
+    .pill-purple { background: rgba(155,89,182,.12); color: var(--purple); border: 1px solid rgba(155,89,182,.3); }
+
+    /* ── Infrastructure Zone diagram ── */
+    .zone-diagram {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      margin: 8px 0 24px;
+    }
+    .zone {
+      border: 1px dashed;
+      border-radius: 10px;
+      padding: 18px 22px;
+    }
+    .zone-tv  { border-color: rgba(0,194,255,.4);  background: rgba(0,194,255,.03); }
+    .zone-gcp { border-color: rgba(255,193,7,.4);  background: rgba(255,193,7,.03); }
+    .zone-win { border-color: rgba(34,211,94,.4);  background: rgba(34,211,94,.03); }
+    .zone-label {
+      font-size: 11px; font-weight: 700; letter-spacing: 1.2px;
+      text-transform: uppercase; margin-bottom: 12px;
+    }
+    .zone-tv  .zone-label { color: var(--accent); }
+    .zone-gcp .zone-label { color: var(--yellow); }
+    .zone-win .zone-label { color: var(--green); }
+    .zone-components { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+    .zone-node {
+      border: 1px solid;
+      border-radius: 6px;
+      padding: 6px 14px;
+      font-size: 12px; font-weight: 700;
+    }
+    .zn-cyan   { border-color: var(--accent); color: var(--accent); background: rgba(0,194,255,.08); }
+    .zn-yellow { border-color: var(--yellow); color: var(--yellow); background: rgba(255,193,7,.08); }
+    .zn-purple { border-color: var(--purple); color: var(--purple); background: rgba(155,89,182,.08); border-width: 2px; }
+    .zn-green  { border-color: var(--green);  color: var(--green);  background: rgba(34,211,94,.08); }
+    .zn-red    { border-color: var(--red);    color: var(--red);    background: rgba(255,69,96,.08); }
+    .zn-sub    { font-size: 10px; font-weight: 400; color: var(--muted); display: block; margin-top: 1px; }
+    .zone-arrow {
+      display: flex; align-items: center; gap: 10px;
+      padding: 8px 22px; color: var(--muted); font-size: 12px;
+    }
+    .zone-arrow .arr-line {
+      flex: 1; height: 1px; background: var(--border);
+    }
+    .zone-arrow .arr-label {
+      font-size: 11px; font-style: italic; color: var(--muted); white-space: nowrap;
+    }
+
+    /* ── Signal flow steps ── */
+    .flow-step {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 12px;
+      align-items: flex-start;
+    }
+    .flow-num {
+      width: 28px; height: 28px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 800; flex-shrink: 0;
+      margin-top: 14px;
+    }
+    .flow-body {
+      flex: 1;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px 18px;
+    }
+    .flow-body .flow-title {
+      font-size: 13px; font-weight: 700; color: var(--white);
+      margin-bottom: 4px;
+    }
+    .flow-body p { font-size: 13px; color: var(--text); margin: 0; }
+    .flow-passes {
+      margin-top: 8px; padding-top: 8px;
+      border-top: 1px solid var(--border);
+      font-size: 11px; color: var(--muted);
+      font-family: 'Cascadia Code', 'Fira Code', monospace;
+    }
+
+    /* ── Component table ── */
+    .comp-table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+    .comp-table th {
+      text-align: left; padding: 8px 12px;
+      font-size: 11px; font-weight: 700; letter-spacing: .8px;
+      text-transform: uppercase; color: var(--muted);
+      border-bottom: 1px solid var(--border);
+    }
+    .comp-table td {
+      padding: 10px 12px; font-size: 13px;
+      border-bottom: 1px solid rgba(42,47,64,.5);
+      vertical-align: top;
+    }
+    .comp-table tr:last-child td { border-bottom: none; }
+    .comp-table td:first-child { color: var(--muted); width: 140px; }
+    .comp-table td code {
+      font-family: 'Cascadia Code', 'Fira Code', monospace;
+      font-size: 12px; background: var(--code-bg);
+      padding: 1px 6px; border-radius: 4px;
+      color: var(--accent);
+    }
+
+    /* ── Quorum viz ── */
+    .quorum-grid {
+      display: grid;
+      grid-template-columns: repeat(10, 1fr);
+      gap: 6px;
+      margin: 14px 0;
+    }
+    .quorum-agent {
+      aspect-ratio: 1;
+      border-radius: 6px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 10px; font-weight: 800; color: #000;
+    }
+    .qa-confirm { background: var(--green); }
+    .qa-hold    { background: var(--border); color: var(--muted); }
+    .quorum-legend {
+      display: flex; gap: 16px; font-size: 12px; color: var(--muted); margin-top: 8px;
+      flex-wrap: wrap;
+    }
+    .quorum-legend span { display: flex; align-items: center; gap: 6px; }
+    .ql-dot { width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; }
+
+    /* ── ATI command block ── */
+    .ati-block {
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--green);
+      border-radius: 8px;
+      overflow-x: auto;
+      margin: 12px 0;
+    }
+    .ati-block .ati-header {
+      background: #0d1012;
+      padding: 6px 14px;
+      font-size: 10px; font-weight: 700;
+      color: var(--muted); letter-spacing: 1px;
+      text-transform: uppercase;
+      border-bottom: 1px solid var(--border);
+    }
+    .ati-block pre {
+      padding: 14px 18px;
+      font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+      font-size: 12px; line-height: 1.9;
+      white-space: pre;
+    }
+    .ati-entry { color: var(--accent); }
+    .ati-sl    { color: var(--red); }
+    .ati-tp    { color: var(--green); }
+    .ati-acct  { color: var(--yellow); }
+    .ati-muted { color: #444; }
+
+    /* ── Infra map tables ── */
+    .infra-table { width: 100%; border-collapse: collapse; }
+    .infra-table th {
+      text-align: left; padding: 10px 14px;
+      font-size: 12px; font-weight: 700;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--white);
+    }
+    .infra-table td {
+      padding: 9px 14px; font-size: 13px;
+      border: 1px solid var(--border);
+      vertical-align: top;
+    }
+    .infra-table td:first-child {
+      color: var(--muted); font-size: 12px; width: 160px;
+      background: rgba(19,22,30,.5);
+    }
+    .infra-table td code {
+      font-family: 'Cascadia Code', 'Fira Code', monospace;
+      font-size: 12px; color: var(--accent);
+    }
+    .pm2-row {
+      display: flex; align-items: center; gap: 8px;
+      font-size: 12px; font-family: monospace; margin-bottom: 4px;
+    }
+    .pm2-badge {
+      background: rgba(34,211,94,.15); color: var(--green);
+      border: 1px solid rgba(34,211,94,.3);
+      border-radius: 4px; padding: 1px 7px; font-size: 10px;
+      flex-shrink: 0;
+    }
+
+    hr { border: none; border-top: 1px solid var(--border); margin: 48px 0; }
+    footer {
+      border-top: 1px solid var(--border);
+      text-align: center; padding: 24px;
+      color: var(--muted); font-size: 11px; letter-spacing: .5px;
+    }
+    .back-btn {
+      position: fixed; top: 20px; left: 20px;
+      background: var(--card); color: var(--accent);
+      border: 1px solid var(--border);
+      padding: 8px 16px; border-radius: 6px;
+      font-size: 12px; font-weight: 700;
+      cursor: pointer; text-decoration: none; z-index: 100;
+      transition: border-color .15s;
+    }
+    .back-btn:hover { border-color: var(--accent); }
+
+    @media (max-width: 900px) {
+      .layout { flex-direction: column; }
+      .sidebar { position: static; width: 100%; padding: 24px 0 0; }
+      .main { padding: 32px 0; }
+      header { flex-wrap: wrap; padding: 24px; }
+      .header-tag { margin-left: 0; }
+    }
+  </style>
+</head>
+<body>
+
+<a class="back-btn" href="index.html">&larr; Library</a>
+
+<header>
+  <div class="logo-badge">PHANTOM</div>
+  <div>
+    <h1>Signal Execution Architecture</h1>
+    <p>Project Black-Box &mdash; Iron Sight &rarr; NIGHTHAWK &rarr; AI Quorum &rarr; NT8 ATI &mdash; S3 Development</p>
+  </div>
+  <div class="header-tag"><span>GCP</span> + Windows + Cloudflare</div>
+</header>
+
+<div class="layout">
+
+  <!-- ── Sidebar ── -->
+  <aside class="sidebar">
+    <div class="sidebar-label">Sections</div>
+    <nav id="sidenav">
+      <a href="#overview"    class="active"><span class="dot dot-white"></span>Overview</a>
+      <a href="#zones">      <span class="dot dot-yellow"></span>Infrastructure Zones</a>
+      <a href="#flow">       <span class="dot dot-cyan"></span>Signal Flow</a>
+      <a href="#ironsight">  <span class="dot dot-cyan"></span>Iron Sight</a>
+      <a href="#nighthawk">  <span class="dot dot-yellow"></span>NIGHTHAWK</a>
+      <a href="#sentinel">   <span class="dot dot-yellow"></span>SENTINEL</a>
+      <a href="#phantom">    <span class="dot dot-purple"></span>PHANTOM Engine</a>
+      <a href="#bridge">     <span class="dot dot-green"></span>Bridge Service</a>
+      <a href="#nt8apex">    <span class="dot dot-red"></span>NT8 / Apex</a>
+      <a href="#inframap">   <span class="dot dot-white"></span>Infrastructure Map</a>
+    </nav>
+  </aside>
+
+  <!-- ── Main content ── -->
+  <main class="main">
+
+    <!-- OVERVIEW -->
+    <div id="overview" class="section-label" style="margin-top:0">
+      <span class="num" style="background:var(--purple);color:#fff">&#9670;</span>
+      <h2>Overview</h2>
+    </div>
+
+    <div class="card">
+      <p>
+        <strong style="color:var(--white)">PHANTOM-MNQ</strong> is a 10-agent AI execution system for MNQ futures.
+        When the <strong style="color:var(--accent)">Iron Sight</strong> Pine Script strategy detects the 8AM range sweep on a 5-minute MNQ chart,
+        it fires a webhook alert to <strong style="color:var(--yellow)">NIGHTHAWK</strong> on the GCP VM.
+        NIGHTHAWK logs the signal to <strong style="color:var(--yellow)">SENTINEL</strong> (PostgreSQL) and forwards it to
+        <strong style="color:var(--purple)">PHANTOM-MNQ</strong>, which fans the signal to 10 independent AI agents.
+        Each agent scores the signal with an LSTM model and a Claude verdict. If 6 or more agents return
+        <span class="pill pill-green">CONFIRM</span>, the quorum is met and the
+        <strong style="color:var(--green)">Bridge Service</strong> on the Windows home machine fires a bracket order
+        to NinjaTrader 8 via TCP ATI, routing through Tradovate to the Apex Trader Funding eval account.
+      </p>
+    </div>
+
+    <div class="card">
+      <p>
+        The system is intentionally split across three environments.
+        <strong style="color:var(--accent)">TradingView</strong> detects and alerts &mdash; it does <em>not</em> execute
+        (<code>autoExec = OFF</code>).
+        <strong style="color:var(--yellow)">GCP</strong> runs the always-on server stack: webhook ingestion, signal logging, and the AI quorum.
+        The <strong style="color:var(--green)">Windows home machine</strong> runs the Bridge and NinjaTrader 8 &mdash; NT8&apos;s ATI is a
+        local TCP server on <code>localhost:36973</code>
+        that cannot be reached from the internet. A Cloudflare Tunnel bridges the GCP executor to the Windows Bridge securely.
+        Interactive Brokers paper trading runs in parallel on GCP as a separate training-data layer &mdash; it is not the Apex execution path.
+      </p>
+    </div>
+
+    <!-- INFRASTRUCTURE ZONES -->
+    <div id="zones" class="section-label">
+      <span class="num">1</span>
+      <h2>Infrastructure Zones</h2>
+    </div>
+
+    <div class="zone-diagram">
+
+      <div class="zone zone-tv">
+        <div class="zone-label">&#9729; TradingView Cloud</div>
+        <div class="zone-components">
+          <div class="zone-node zn-cyan">
+            TRNQL_8AMsweep.v3
+            <span class="zn-sub">Pine Script v6 Strategy &mdash; autoExec OFF</span>
+          </div>
+          <div style="color:var(--muted);font-size:12px;margin-left:8px">Fires JSON webhook alert on BUY / SELL signal</div>
+        </div>
+      </div>
+
+      <div class="zone-arrow">
+        <div class="arr-line"></div>
+        <div class="arr-label">&#9660; HTTPS webhook &rarr; GCP VM port 8080</div>
+        <div class="arr-line"></div>
+      </div>
+
+      <div class="zone zone-gcp">
+        <div class="zone-label">&#9881; GCP VM &mdash; project-black-box-vm (us-east4-b)</div>
+        <div class="zone-components">
+          <div class="zone-node zn-yellow">
+            NIGHTHAWK
+            <span class="zn-sub">Node.js / Express &mdash; :8080</span>
+          </div>
+          <div class="zone-node zn-yellow">
+            SENTINEL
+            <span class="zn-sub">PostgreSQL &mdash; :5432</span>
+          </div>
+          <div class="zone-node zn-purple">
+            PHANTOM-MNQ
+            <span class="zn-sub">FastAPI &mdash; :8081 &mdash; 10 agents</span>
+          </div>
+          <div class="zone-node zn-yellow" style="opacity:.55">
+            IB Gateway
+            <span class="zn-sub">Paper trading &mdash; :4002 (parallel)</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="zone-arrow">
+        <div class="arr-line"></div>
+        <div class="arr-label">&#9660; Cloudflare Tunnel &mdash; phantom-bridge.S-3.us</div>
+        <div class="arr-line"></div>
+      </div>
+
+      <div class="zone zone-win">
+        <div class="zone-label">&#128421; Windows Home Machine</div>
+        <div class="zone-components">
+          <div class="zone-node zn-green">
+            Bridge Service
+            <span class="zn-sub">Flask &mdash; :8082</span>
+          </div>
+          <div class="zone-node zn-green">
+            NT8 ATI Server
+            <span class="zn-sub">TCP &mdash; localhost:36973</span>
+          </div>
+          <div class="zone-node zn-red">
+            Tradovate &rarr; Apex Eval
+            <span class="zn-sub">APEX6056270000001</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- SIGNAL FLOW -->
+    <div id="flow" class="section-label">
+      <span class="num">2</span>
+      <h2>Signal Flow</h2>
+    </div>
+
+    <div style="color:var(--muted);font-size:13px;margin-bottom:20px">Step-by-step: from the moment Iron Sight fires to NT8 submitting the bracket order.</div>
+
+    <div class="flow-step">
+      <div class="flow-num" style="background:var(--accent);color:#000">1</div>
+      <div class="flow-body">
+        <div class="flow-title"><span class="pill pill-cyan">Iron Sight</span> Sweep Detected</div>
+        <p>8AM range forms on MNQ1! 5-minute chart. Price sweeps the low (BUY) or high (SELL). Macro filter passes (range expansion check). BUY or SELL condition evaluates true on bar close.</p>
+        <div class="flow-passes">Fires &rarr; POST /webhook &nbsp;{action, price, sl, tp, range_high, range_low, sweep_direction, model_id}</div>
+      </div>
+    </div>
+
+    <div class="flow-step">
+      <div class="flow-num" style="background:var(--yellow);color:#000">2</div>
+      <div class="flow-body">
+        <div class="flow-title"><span class="pill pill-yellow">NIGHTHAWK</span> Receives &amp; Validates</div>
+        <p>Validates <code>TV_SECRET</code>. Detects MNQ signal via <code>ticker.includes('MNQ')</code> or <code>model_id.includes('MNQ')</code>. Writes raw signal to SENTINEL. Forwards to PHANTOM on <code>127.0.0.1:8081</code>.</p>
+        <div class="flow-passes">Forwards &rarr; POST :8081/signal &nbsp;{action, price, sl, tp, fvg_size, sweep_direction, ...}</div>
+      </div>
+    </div>
+
+    <div class="flow-step">
+      <div class="flow-num" style="background:var(--yellow);color:#000">3</div>
+      <div class="flow-body">
+        <div class="flow-title"><span class="pill pill-yellow">SENTINEL</span> Logs Signal</div>
+        <p>Writes immutable row to <code>signals_processed</code>. Every signal is logged regardless of what the AI decides. <code>quorum_count</code> and <code>bridge_status</code> columns are updated after quorum resolves.</p>
+        <div class="flow-passes">Persists &rarr; signal_id, action, price, sl, tp, timestamp</div>
+      </div>
+    </div>
+
+    <div class="flow-step">
+      <div class="flow-num" style="background:var(--purple);color:#fff">4</div>
+      <div class="flow-body">
+        <div class="flow-title"><span class="pill pill-purple">PHANTOM</span> Fans to 10 Agents</div>
+        <p><code>asyncio.gather()</code> runs all 10 agent pipelines concurrently. Each agent independently: scores the signal with its LSTM model, passes through the gatekeeper (regime / risk gate), then calls Claude for a verdict.</p>
+        <div class="flow-passes">Each agent returns &rarr; PipelineResult{agent_id, outcome, claude_verdict, lstm_score}</div>
+      </div>
+    </div>
+
+    <div class="flow-step">
+      <div class="flow-num" style="background:var(--purple);color:#fff">5</div>
+      <div class="flow-body">
+        <div class="flow-title"><span class="pill pill-purple">PHANTOM</span> Quorum Evaluation</div>
+        <p>Counts <code>claude_verdict == "CONFIRM"</code> across all 10 results. Threshold: 6 / 10. <code>OVERRIDE</code> and <code>HOLD</code> do not count. Result: <span class="pill pill-green">SENT</span> / <span class="pill pill-yellow">SKIPPED</span> / <span class="pill pill-red">FAILED</span>.</p>
+        <div class="flow-passes">If CONFIRM &ge; 6 &rarr; calls executor.execute(signal_id, action, sl, tp, quorum_count)</div>
+      </div>
+    </div>
+
+    <div class="flow-step">
+      <div class="flow-num" style="background:var(--green);color:#000">6</div>
+      <div class="flow-body">
+        <div class="flow-title"><span class="pill pill-green">Bridge</span> Receives Execution Request</div>
+        <p>PHANTOM&apos;s executor POSTs to <code>https://phantom-bridge.S-3.us/execute</code> via Cloudflare Tunnel. Bridge validates <code>X-Bridge-Secret</code> header. Fails closed (503) if NT8 is unreachable.</p>
+        <div class="flow-passes">Authenticates &rarr; {signal_id, action, contracts, sl, tp, quorum_count}</div>
+      </div>
+    </div>
+
+    <div class="flow-step">
+      <div class="flow-num" style="background:var(--green);color:#000">7</div>
+      <div class="flow-body">
+        <div class="flow-title"><span class="pill pill-green">Bridge</span> Sends ATI Bracket to NT8</div>
+        <p>Opens TCP socket to <code>localhost:36973</code>. Sends 3 commands in sequence: MARKET entry, then STOP MARKET SL and LIMIT TP cross-linked as OCO. NT8 auto-cancels the surviving order when one fills.</p>
+        <div class="flow-passes">Sends &rarr; 3&times; PLACE commands via sendall() &nbsp;|&nbsp; returns order_id to PHANTOM</div>
+      </div>
+    </div>
+
+    <div class="flow-step">
+      <div class="flow-num" style="background:var(--red);color:#fff">8</div>
+      <div class="flow-body">
+        <div class="flow-title"><span class="pill pill-red">NT8 &rarr; Apex</span> Order Submission</div>
+        <p>NinjaTrader 8 processes the ATI commands, submits the bracket order via Tradovate to <code>APEX6056270000001</code>. SENTINEL records final <code>bridge_status = 'SENT'</code> and <code>quorum_count</code>.</p>
+        <div class="flow-passes">Result &rarr; OCO bracket live on Apex eval account</div>
+      </div>
+    </div>
+
+    <hr>
+
+    <!-- IRON SIGHT -->
+    <div id="ironsight" class="section-label">
+      <span class="num" style="background:var(--accent);color:#000">3</span>
+      <h2>Iron Sight <span style="color:var(--muted);font-weight:400;font-size:14px">&mdash; TradingView Cloud</span></h2>
+    </div>
+    <div class="card">
+      <table class="comp-table">
+        <tr><th>Property</th><th>Detail</th></tr>
+        <tr><td>Role</td><td>Detects the 8AM range sweep setup on MNQ1! 5-minute chart and fires webhook alerts</td></tr>
+        <tr><td>Script</td><td><code>TRNQL_8AMsweep.v3</code> &mdash; Pine Script v6, <code>strategy()</code> declaration</td></tr>
+        <tr><td>Input</td><td>MNQ1! OHLCV real-time data (TradingView feed)</td></tr>
+        <tr><td>Output</td><td>JSON webhook POST to NIGHTHAWK <code>/webhook</code></td></tr>
+        <tr><td>Key detail</td><td><code>autoExec = OFF</code> &mdash; the strategy does <strong>not</strong> place orders natively via Tradovate. It fires alerts only. PHANTOM controls execution.</td></tr>
+        <tr><td>Macro filter</td><td>Layer 2 rolling range expansion filter suppresses signals on abnormal range days. <code>todayRange &gt; rangeExpMult &times; rollingAvg</code></td></tr>
+        <tr><td>Zone</td><td><span class="pill pill-cyan">TradingView Cloud</span></td></tr>
+      </table>
+    </div>
+
+    <!-- NIGHTHAWK -->
+    <div id="nighthawk" class="section-label">
+      <span class="num" style="background:var(--yellow);color:#000">4</span>
+      <h2>NIGHTHAWK <span style="color:var(--muted);font-weight:400;font-size:14px">&mdash; GCP VM</span></h2>
+    </div>
+    <div class="card">
+      <table class="comp-table">
+        <tr><th>Property</th><th>Detail</th></tr>
+        <tr><td>Role</td><td>Public webhook endpoint &mdash; signal ingestion, validation, logging, and PHANTOM forwarding</td></tr>
+        <tr><td>Runtime</td><td>Node.js / Express.js, PM2 process manager, GCP VM port 8080</td></tr>
+        <tr><td>Input</td><td>TradingView POST <code>/webhook</code> with <code>TV_SECRET</code> in body</td></tr>
+        <tr><td>Output</td><td>DB write to SENTINEL + HTTP forward to PHANTOM <code>127.0.0.1:8081</code></td></tr>
+        <tr><td>MNQ detection</td><td>Matches <code>ticker.includes('MNQ')</code> or <code>model_id.includes('MNQ')</code>. Non-MNQ signals are logged only, not forwarded.</td></tr>
+        <tr><td>Resilience</td><td>PHANTOM forward errors are caught and logged &mdash; a PHANTOM outage does not cause a 500 back to TradingView. Webhook always returns 200 after SENTINEL write.</td></tr>
+        <tr><td>Zone</td><td><span class="pill pill-yellow">GCP VM</span></td></tr>
+      </table>
+    </div>
+
+    <!-- SENTINEL -->
+    <div id="sentinel" class="section-label">
+      <span class="num" style="background:var(--yellow);color:#000">5</span>
+      <h2>SENTINEL <span style="color:var(--muted);font-weight:400;font-size:14px">&mdash; GCP VM</span></h2>
+    </div>
+    <div class="card">
+      <table class="comp-table">
+        <tr><th>Property</th><th>Detail</th></tr>
+        <tr><td>Role</td><td>Immutable signal audit log &mdash; every signal recorded regardless of AI decision or execution outcome</td></tr>
+        <tr><td>Runtime</td><td>PostgreSQL <code>sentinel_db</code>, <code>127.0.0.1:5432</code>, GCP VM</td></tr>
+        <tr><td>Key table</td><td><code>signals_processed</code> &mdash; per-agent results, <code>quorum_count</code>, <code>bridge_status</code> (SENT / SKIPPED / FAILED)</td></tr>
+        <tr><td>Other tables</td><td><code>models</code> &mdash; registered strategies &nbsp;|&nbsp; <code>council_state</code> &mdash; REAPER daily risk report &nbsp;|&nbsp; <code>agent_accounts</code>, <code>pnl_history</code></td></tr>
+        <tr><td>Audit use</td><td>Query <code>bridge_status</code> to measure quorum hit rate and bridge reliability over time.</td></tr>
+        <tr><td>Zone</td><td><span class="pill pill-yellow">GCP VM</span></td></tr>
+      </table>
+    </div>
+
+    <!-- PHANTOM ENGINE -->
+    <div id="phantom" class="section-label">
+      <span class="num" style="background:var(--purple);color:#fff">6</span>
+      <h2>PHANTOM Engine <span style="color:var(--muted);font-weight:400;font-size:14px">&mdash; GCP VM</span></h2>
+    </div>
+    <div class="card">
+      <table class="comp-table">
+        <tr><th>Property</th><th>Detail</th></tr>
+        <tr><td>Role</td><td>10-agent AI quorum &mdash; the decision layer between signal ingestion and order execution</td></tr>
+        <tr><td>Runtime</td><td>Python 3.11 / FastAPI, PM2 process, GCP VM port 8081</td></tr>
+        <tr><td>Agent pipeline</td><td>LSTM model score &rarr; gatekeeper (risk/regime gate) &rarr; Claude claude-sonnet-4-6 verdict</td></tr>
+        <tr><td>Quorum rule</td><td><code>claude_verdict == "CONFIRM"</code> counts. <code>OVERRIDE</code> and <code>HOLD</code> do <strong>not</strong> count. Threshold: 6 / 10.</td></tr>
+        <tr><td>REAPER agent</td><td>Runs daily at 21:00 UTC. Evaluates session performance, writes to <code>council_state</code>. Can halt trading for the session.</td></tr>
+        <tr><td>IB parallel layer</td><td>IB Gateway (paper, port 4002) runs alongside PHANTOM as a training data layer. It is <strong>not</strong> the Apex execution path.</td></tr>
+        <tr><td>Zone</td><td><span class="pill pill-purple">GCP VM &mdash; PHANTOM</span></td></tr>
+      </table>
+    </div>
+
+    <div class="card" style="margin-top:0">
+      <h3 style="color:var(--purple)">Quorum Visualiser &mdash; Example: 7/10 CONFIRM</h3>
+      <div class="quorum-grid">
+        <div class="quorum-agent qa-confirm">&#10003;</div>
+        <div class="quorum-agent qa-confirm">&#10003;</div>
+        <div class="quorum-agent qa-confirm">&#10003;</div>
+        <div class="quorum-agent qa-confirm">&#10003;</div>
+        <div class="quorum-agent qa-confirm">&#10003;</div>
+        <div class="quorum-agent qa-confirm">&#10003;</div>
+        <div class="quorum-agent qa-confirm">&#10003;</div>
+        <div class="quorum-agent qa-hold">&mdash;</div>
+        <div class="quorum-agent qa-hold">&mdash;</div>
+        <div class="quorum-agent qa-hold">&mdash;</div>
+      </div>
+      <div class="quorum-legend">
+        <span><span class="ql-dot" style="background:var(--green)"></span>CONFIRM (counts toward quorum)</span>
+        <span><span class="ql-dot" style="background:var(--border)"></span>HOLD / OVERRIDE (does not count)</span>
+        <span style="color:var(--green);font-weight:700">7 &ge; 6 threshold &rarr; QUORUM MET &rarr; Bridge fires</span>
+      </div>
+    </div>
+
+    <!-- BRIDGE SERVICE -->
+    <div id="bridge" class="section-label">
+      <span class="num" style="background:var(--green);color:#000">7</span>
+      <h2>Bridge Service <span style="color:var(--muted);font-weight:400;font-size:14px">&mdash; Windows Home Machine</span></h2>
+    </div>
+    <div class="card">
+      <table class="comp-table">
+        <tr><th>Property</th><th>Detail</th></tr>
+        <tr><td>Role</td><td>Translates PHANTOM execution requests into NT8 ATI TCP bracket commands</td></tr>
+        <tr><td>Runtime</td><td>Python / Flask, Windows home machine, port 8082</td></tr>
+        <tr><td>Reachable via</td><td>Cloudflare Tunnel &mdash; <code>phantom-bridge.S-3.us</code> &rarr; <code>localhost:8082</code></td></tr>
+        <tr><td>Auth</td><td><code>X-Bridge-Secret</code> header &mdash; shared secret between PHANTOM executor and Bridge</td></tr>
+        <tr><td>OCO linking</td><td>SL command references TP order ID in OCO field. TP command references SL order ID. NT8 auto-cancels the other when one fills.</td></tr>
+        <tr><td>Fail-closed</td><td>Returns 503 if NT8 ATI is unreachable. PHANTOM logs <code>bridge_status = 'FAILED'</code>. No silent failures.</td></tr>
+        <tr><td>Zone</td><td><span class="pill pill-green">Windows Home Machine</span></td></tr>
+      </table>
+    </div>
+
+    <div class="card" style="margin-top:0">
+      <h3 style="color:var(--green)">ATI Bracket Command Format</h3>
+      <div class="ati-block">
+        <div class="ati-header">NT8 ATI &mdash; 3-command OCO bracket (sent over TCP :36973)</div>
+        <pre><span class="ati-entry">PLACE;<span class="ati-acct">APEX6056270000001</span>;MNQ 09-26;BUY;1;MARKET;GTC;0;0;0;PHANTOM_&lt;id&gt;;;    </span><span class="ati-muted">&larr; entry</span>
+<span class="ati-sl">PLACE;<span class="ati-acct">APEX6056270000001</span>;MNQ 09-26;SELL;1;STOP MARKET;GTC;0;19975.00;0;PHANTOM_&lt;id&gt;_SL;PHANTOM_&lt;id&gt;_TP;</span><span class="ati-muted"> &larr; SL (OCO&rarr;TP)</span>
+<span class="ati-tp">PLACE;<span class="ati-acct">APEX6056270000001</span>;MNQ 09-26;SELL;1;LIMIT;GTC;20100.00;0;0;PHANTOM_&lt;id&gt;_TP;PHANTOM_&lt;id&gt;_SL;    </span><span class="ati-muted">&larr; TP (OCO&rarr;SL)</span></pre>
+      </div>
+    </div>
+
+    <!-- NT8 / APEX -->
+    <div id="nt8apex" class="section-label">
+      <span class="num" style="background:var(--red);color:#fff">8</span>
+      <h2>NT8 / Apex <span style="color:var(--muted);font-weight:400;font-size:14px">&mdash; Windows Home Machine</span></h2>
+    </div>
+    <div class="card">
+      <table class="comp-table">
+        <tr><th>Property</th><th>Detail</th></tr>
+        <tr><td>Role</td><td>Order execution endpoint &mdash; routes bracket order to Apex Trader Funding eval account via Tradovate</td></tr>
+        <tr><td>Runtime</td><td>NinjaTrader 8, Windows home machine. ATI server: TCP <code>localhost:36973</code></td></tr>
+        <tr><td>Account</td><td><code>APEX6056270000001</code> &mdash; Apex Trader Funding $50K eval account</td></tr>
+        <tr><td>Contract</td><td><code>MNQ 09-26</code> &mdash; Micro E-mini Nasdaq September 2026</td></tr>
+        <tr><td>Pre-session</td><td>NT8 must be open with ATI enabled before each trading session. Bridge <code>/health</code> endpoint confirms NT8 reachability. If <code>nt8_reachable: false</code>, do not trade via PHANTOM.</td></tr>
+        <tr><td>Zone</td><td><span class="pill pill-red">Windows Home Machine &rarr; Apex</span></td></tr>
+      </table>
+    </div>
+
+    <hr>
+
+    <!-- INFRASTRUCTURE MAP -->
+    <div id="inframap" class="section-label">
+      <span class="num">9</span>
+      <h2>Infrastructure Map</h2>
+    </div>
+
+    <div class="two-col">
+      <div>
+        <div style="font-size:11px;font-weight:700;letter-spacing:1px;color:var(--yellow);text-transform:uppercase;margin-bottom:10px">&#9881; GCP VM</div>
+        <table class="infra-table">
+          <tr><th>Property</th><th>Value</th></tr>
+          <tr><td>Name</td><td><code>project-black-box-vm</code></td></tr>
+          <tr><td>Zone</td><td><code>us-east4-b</code></td></tr>
+          <tr><td>Machine</td><td>e2-small, Debian 12 (Bookworm)</td></tr>
+          <tr><td>SSH user</td><td><code>vcwor</code> (gcloud compute ssh)</td></tr>
+          <tr><td>Process mgr</td><td>PM2 (run as <code>neo</code>)</td></tr>
+          <tr><td>PM2 processes</td><td>
+            <div class="pm2-row"><span class="pm2-badge">online</span><code>NIGHTHAWK</code> :8080</div>
+            <div class="pm2-row"><span class="pm2-badge">online</span><code>PHANTOM-MNQ</code> :8081</div>
+            <div class="pm2-row"><span class="pm2-badge">online</span><code>IB_GATEWAY</code> :4002</div>
+            <div class="pm2-row"><span class="pm2-badge">online</span><code>NOVNC</code> / <code>X11VNC</code></div>
+          </td></tr>
+          <tr><td>Database</td><td><code>sentinel_db</code> &mdash; PostgreSQL <code>127.0.0.1:5432</code></td></tr>
+          <tr><td>App files</td><td><code>/home/neo/phantom_mnq/</code></td></tr>
+          <tr><td>Venv</td><td><code>/home/neo/phantom_venv/</code></td></tr>
+        </table>
+      </div>
+      <div>
+        <div style="font-size:11px;font-weight:700;letter-spacing:1px;color:var(--green);text-transform:uppercase;margin-bottom:10px">&#128421; Windows Home Machine</div>
+        <table class="infra-table">
+          <tr><th>Property</th><th>Value</th></tr>
+          <tr><td>Bridge port</td><td><code>8082</code> (Flask)</td></tr>
+          <tr><td>CF tunnel</td><td><code>phantom-bridge.S-3.us</code></td></tr>
+          <tr><td>NT8 ATI port</td><td><code>localhost:36973</code> (TCP)</td></tr>
+          <tr><td>Apex account</td><td><code>APEX6056270000001</code></td></tr>
+          <tr><td>MNQ contract</td><td><code>MNQ 09-26</code></td></tr>
+          <tr><td>Bridge files</td><td><code>bridge/bridge.py</code> + <code>config.env</code></td></tr>
+          <tr><td>Health check</td><td><code>GET /health</code> &rarr; <code>nt8_reachable: true</code></td></tr>
+        </table>
+
+        <div style="margin-top:16px;font-size:11px;font-weight:700;letter-spacing:1px;color:var(--accent);text-transform:uppercase;margin-bottom:10px">&#9729; TradingView</div>
+        <table class="infra-table">
+          <tr><th>Property</th><th>Value</th></tr>
+          <tr><td>Strategy</td><td><code>TRNQL_8AMsweep.v3</code></td></tr>
+          <tr><td>Chart</td><td>MNQ1! 5-minute</td></tr>
+          <tr><td>Webhook secret</td><td><code>TV_SECRET</code></td></tr>
+          <tr><td>model_id</td><td><code>TRNQL_8AMsweep.v3</code></td></tr>
+          <tr><td>autoExec</td><td><code>OFF</code> &mdash; execution via PHANTOM only</td></tr>
+        </table>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<footer>
+  // S3 Development &mdash; Project Black-Box &mdash; Internal Reference &mdash; Not For Distribution //
+  &nbsp;&nbsp;|&nbsp;&nbsp; Built <span id="bd"></span>
+  <script>document.getElementById('bd').textContent = new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});</script>
+</footer>
+
+<script>
+  const sections = document.querySelectorAll('[id]');
+  const navLinks = document.querySelectorAll('#sidenav a');
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        navLinks.forEach(l => l.classList.remove('active'));
+        const active = document.querySelector('#sidenav a[href="#' + e.target.id + '"]');
+        if (active) active.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-20% 0px -70% 0px' });
+  sections.forEach(s => observer.observe(s));
+</script>
+
+</body>
+</html>
