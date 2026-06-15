@@ -444,6 +444,59 @@ body.night-ops{
 
 /* ── Separator ───────────────────────────────────── */
 .sep{height:1px;background:var(--border);margin:16px 0;}
+
+/* ── Market Price Ticker Bar ─────────────────────── */
+.mkt-ticker-bar{
+  height:26px;background:rgba(0,10,20,.95);border-bottom:1px solid rgba(0,180,255,.14);
+  overflow:hidden;display:flex;align-items:center;flex-shrink:0;
+  font-family:var(--mono);font-size:11px;position:relative;
+}
+.mkt-ticker-track{display:flex;align-items:center;white-space:nowrap;
+  animation:mktScroll 50s linear infinite;will-change:transform;}
+.mkt-ticker-track:hover{animation-play-state:paused;}
+@keyframes mktScroll{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+.mkt-tick-item{display:inline-flex;align-items:center;gap:5px;padding:0 20px;
+  border-right:1px solid rgba(0,180,255,.10);}
+.mkt-tick-sym{color:#c8d8ec;font-weight:700;font-size:11px;}
+.mkt-tick-px{color:var(--accent);}
+.mkt-tick-up{color:#22c55e;}.mkt-tick-dn{color:var(--danger);}
+.mkt-tick-label{font-size:9px;color:var(--muted);letter-spacing:.12em;padding:0 14px;border-right:1px solid rgba(0,180,255,.10);}
+
+/* ── Radial Visualizer ───────────────────────────── */
+.radial-wrap{display:flex;flex-direction:column;align-items:center;gap:6px;margin-bottom:10px;}
+#radialCanvas{border-radius:50%;background:rgba(0,8,18,.7);display:block;}
+
+/* ── DSP Controls ────────────────────────────────── */
+.dsp-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:6px;}
+.dsp-lbl{font-family:var(--mono);font-size:9px;color:var(--muted);min-width:44px;text-align:right;letter-spacing:.12em;}
+.dsp-val{font-family:var(--mono);font-size:11px;color:var(--warn);min-width:40px;text-align:right;}
+
+/* ── Playlist ────────────────────────────────────── */
+.playlist-wrap{max-height:160px;overflow-y:auto;margin-top:6px;}
+.pl-item{display:flex;align-items:center;gap:8px;padding:5px 8px;border-radius:4px;
+  cursor:pointer;border:1px solid transparent;transition:background .15s;}
+.pl-item:hover{background:rgba(0,180,255,.07);}
+.pl-item.active{background:rgba(0,180,255,.12);border-color:rgba(0,180,255,.25);}
+.pl-num{font-family:var(--mono);font-size:10px;color:var(--muted);min-width:18px;}
+.pl-name{font-family:var(--mono);font-size:11px;color:var(--bright);flex:1;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.pl-rm{font-size:14px;color:var(--muted);cursor:pointer;line-height:1;padding:0 2px;}
+.pl-rm:hover{color:var(--danger);}
+.pl-empty{font-family:var(--mono);font-size:11px;color:var(--muted);padding:14px 8px;text-align:center;}
+.pl-count{font-family:var(--mono);font-size:9px;color:var(--muted);
+  margin:10px 0 6px;border-top:1px solid var(--border);padding-top:10px;letter-spacing:.14em;}
+
+/* ── Market Data Page ────────────────────────────── */
+.mkt-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(175px,1fr));gap:14px;margin-bottom:20px;}
+.mkt-card{background:var(--panel);border:1px solid var(--border);border-radius:6px;
+  padding:16px 18px;position:relative;transition:border-color .2s;}
+.mkt-card:hover{border-color:rgba(0,180,255,.35);}
+.mkt-card-sym{font-family:var(--mono);font-size:13px;color:var(--bright);font-weight:700;margin-bottom:4px;letter-spacing:.1em;}
+.mkt-card-px{font-family:var(--display);font-size:24px;color:var(--accent);margin-bottom:2px;font-weight:700;}
+.mkt-card-chg{font-family:var(--mono);font-size:12px;}
+.mkt-card-chg.up{color:#22c55e;}.mkt-card-chg.dn{color:var(--danger);}
+.mkt-card-ts{font-family:var(--mono);font-size:9px;color:var(--muted);margin-top:6px;}
+.mkt-refresh-row{display:flex;gap:10px;align-items:center;margin-bottom:16px;}
 </style>
 </head>
 <body>
@@ -522,6 +575,14 @@ body.night-ops{
     </div>
   </div>
 
+  <!-- MARKET TICKER BAR -->
+  <div class="mkt-ticker-bar" id="mktTickerBar">
+    <span class="mkt-tick-label">MARKET</span>
+    <div class="mkt-ticker-track" id="mktTickerTrack">
+      <span class="mkt-tick-item"><span class="mkt-tick-sym">—</span><span class="mkt-tick-px">Loading…</span></span>
+    </div>
+  </div>
+
   <!-- BODY -->
   <div class="body-wrap">
 
@@ -556,6 +617,9 @@ body.night-ops{
         <div class="nav-section">STUDIO</div>
         <div class="nav-item" onclick="showPage('clocks')">
           <span class="nav-icon">◕</span> CLOCK CENTER
+        </div>
+        <div class="nav-item" onclick="showPage('market')">
+          <span class="nav-icon">◉</span> MARKET DATA
         </div>
         <div class="nav-item" onclick="showPage('av')">
           <span class="nav-icon">◈</span> AV STUDIO
@@ -960,44 +1024,77 @@ body.night-ops{
       <div class="page" id="page-av">
         <div class="page-eyebrow">S3 TRADING LAB // AUDIO-VISUAL</div>
         <div class="page-title">AV STUDIO</div>
+
+        <!-- hidden audio element for DSP chain -->
+        <audio id="avMediaEl" crossorigin="anonymous" style="display:none"></audio>
+
         <div class="grid-2">
-          <!-- MUSIC VISUALIZER -->
+          <!-- MUSIC ENGINE (DSP) -->
           <div class="panel">
-            <div class="panel-header"><span class="panel-title">MUSIC VISUALIZER</span></div>
+            <div class="panel-header">
+              <span class="panel-title">MUSIC ENGINE</span>
+              <button class="btn sm" onclick="document.getElementById('avFileInput').click()">+ ADD TRACKS</button>
+              <input type="file" id="avFileInput" accept="audio/*" multiple style="display:none" onchange="avAddTracks(this.files)">
+            </div>
             <div class="panel-body">
-              <div class="vwrap">
-                <canvas id="vCanvas"></canvas>
-                <div class="vhud"><span id="vHz">-- Hz</span> · <span id="vDb">-- dB</span></div>
+
+              <!-- Radial FFT visualizer -->
+              <div class="radial-wrap">
+                <canvas id="radialCanvas" width="160" height="160"></canvas>
+                <div style="font-family:var(--mono);font-size:10px;color:var(--muted);">
+                  <span id="avHz">-- Hz</span> · <span id="avDb">-- dB</span>
+                </div>
               </div>
-              <div style="display:flex;gap:10px;align-items:center;margin-bottom:10px;flex-wrap:wrap;">
-                <label style="font-family:var(--mono);font-size:10px;color:var(--muted);">SOURCE</label>
-                <select id="aSrc" class="form-select" style="flex:1;max-width:160px;padding:5px 9px;font-size:12px;" onchange="onSrcChange()">
-                  <option value="osc">Oscillator</option>
-                  <option value="mic">Microphone</option>
-                  <option value="file">Audio File</option>
-                </select>
-                <select id="vMode" class="form-select" style="flex:1;max-width:120px;padding:5px 9px;font-size:12px;">
-                  <option value="bars">Bars</option>
-                  <option value="wave">Wave</option>
-                  <option value="ring">Ring</option>
-                </select>
-                <input type="file" id="aFile" accept="audio/*" style="display:none" onchange="onFileSelect()">
+
+              <!-- Now playing -->
+              <div id="avNowPlaying" style="font-family:var(--mono);font-size:11px;color:var(--accent);
+                   text-align:center;margin-bottom:10px;overflow:hidden;
+                   text-overflow:ellipsis;white-space:nowrap;">NO TRACK LOADED</div>
+
+              <!-- Transport controls -->
+              <div style="display:flex;gap:8px;align-items:center;justify-content:center;margin-bottom:12px;flex-wrap:wrap;">
+                <button class="btn" onclick="avPrev()">⏮</button>
+                <button class="btn primary" id="avPlayBtn" onclick="avPlayPause()">▶ PLAY</button>
+                <button class="btn" onclick="avNext()">⏭</button>
+                <button class="btn" id="avLoopBtn" onclick="avToggleLoop()">↩ LOOP</button>
               </div>
-              <div id="oscRow" style="display:flex;gap:10px;align-items:center;margin-bottom:10px;flex-wrap:wrap;">
-                <label style="font-family:var(--mono);font-size:10px;color:var(--muted);">WAVE</label>
-                <select id="oscW" class="form-select" style="max-width:110px;padding:5px 8px;font-size:12px;">
-                  <option value="sine">Sine</option><option value="square">Square</option>
-                  <option value="sawtooth">Sawtooth</option><option value="triangle">Triangle</option>
-                </select>
-                <label style="font-family:var(--mono);font-size:10px;color:var(--muted);">FREQ</label>
-                <input type="range" id="oscF" min="20" max="2000" value="440"
-                       style="flex:1;accent-color:var(--accent);" oninput="onFreqChange()">
-                <span id="oscFv" style="font-family:var(--mono);font-size:11px;color:var(--warn);min-width:55px;">440 Hz</span>
+
+              <!-- DSP Sliders -->
+              <div class="dsp-row">
+                <span class="dsp-lbl">BASS</span>
+                <input type="range" class="form-range" min="-18" max="18" step="1" value="0"
+                       id="dspBass" style="flex:1;accent-color:var(--accent);" oninput="dspUpdate()">
+                <span class="dsp-val" id="dspBassV">0 dB</span>
               </div>
-              <div style="display:flex;gap:8px;flex-wrap:wrap;">
-                <button class="btn primary" id="btnAS" onclick="startAudio()">▶ START</button>
-                <button class="btn" id="btnAX" onclick="stopAudio()" disabled>■ STOP</button>
-                <button class="btn" id="btnFile" style="display:none" onclick="document.getElementById('aFile').click()">CHOOSE FILE</button>
+              <div class="dsp-row">
+                <span class="dsp-lbl">TREBLE</span>
+                <input type="range" class="form-range" min="-18" max="18" step="1" value="0"
+                       id="dspTreble" style="flex:1;accent-color:var(--accent);" oninput="dspUpdate()">
+                <span class="dsp-val" id="dspTrebleV">0 dB</span>
+              </div>
+              <div class="dsp-row">
+                <span class="dsp-lbl">COMP</span>
+                <input type="range" class="form-range" min="-60" max="0" step="1" value="-24"
+                       id="dspComp" style="flex:1;accent-color:var(--accent);" oninput="dspUpdate()">
+                <span class="dsp-val" id="dspCompV">-24 dB</span>
+              </div>
+              <div class="dsp-row">
+                <span class="dsp-lbl">PAN</span>
+                <input type="range" class="form-range" min="-1" max="1" step="0.05" value="0"
+                       id="dspPan" style="flex:1;accent-color:var(--accent);" oninput="dspUpdate()">
+                <span class="dsp-val" id="dspPanV">C</span>
+              </div>
+              <div class="dsp-row">
+                <span class="dsp-lbl">VOL</span>
+                <input type="range" class="form-range" min="0" max="1" step="0.02" value="0.85"
+                       id="dspVol" style="flex:1;accent-color:var(--accent);" oninput="dspUpdate()">
+                <span class="dsp-val" id="dspVolV">85%</span>
+              </div>
+
+              <!-- Playlist -->
+              <div class="pl-count" id="plCountLabel">PLAYLIST — 0 / 12</div>
+              <div class="playlist-wrap" id="playlistWrap">
+                <div class="pl-empty">Click "+ ADD TRACKS" to load audio files.</div>
               </div>
             </div>
           </div>
@@ -1028,6 +1125,32 @@ body.night-ops{
                 <button class="btn" onclick="pauseNarration()">⏸ PAUSE</button>
                 <button class="btn" onclick="stopNarration()">■ STOP</button>
               </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── MARKET DATA ── -->
+      <div class="page" id="page-market">
+        <div class="page-eyebrow">S3 TRADING LAB // MARKETS</div>
+        <div class="page-title">MARKET DATA</div>
+        <div class="mkt-refresh-row">
+          <button class="btn primary" onclick="refreshMarketData()">⟳ REFRESH QUOTES</button>
+          <span id="mktLastUpdate" style="font-family:var(--mono);font-size:10px;color:var(--muted);">Last update: —</span>
+        </div>
+        <div class="mkt-grid" id="mktGrid">
+          <div style="font-family:var(--mono);font-size:12px;color:var(--muted);padding:20px;grid-column:1/-1;">
+            Add symbols to your Watchlist to see quotes here.
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-header"><span class="panel-title">MARKET NOTES</span></div>
+          <div class="panel-body" style="font-family:var(--mono);font-size:11px;color:var(--muted);line-height:2;">
+            <div>NYSE / NASDAQ: <span style="color:var(--bright)">09:30 – 16:00 ET</span></div>
+            <div>8AM SWEEP WINDOW: <span style="color:var(--accent)">08:00 – 08:05 CT (09:00 – 09:05 ET)</span></div>
+            <div>ORB SIGNAL BAR: <span style="color:var(--accent)">09:45 ET CLOSE</span></div>
+            <div style="margin-top:8px;color:rgba(120,160,200,.6);font-size:10px;">
+              * Price data is indicative. Quotes refresh on demand via public endpoints — live during market hours.
             </div>
           </div>
         </div>
@@ -1250,10 +1373,11 @@ function showPage(id) {
     .find(n => n.getAttribute('onclick') && n.getAttribute('onclick').includes("'"+id+"'"));
   if (nav) nav.classList.add('active');
 
-  if (id === 'chat') { clearChatBadge(); refreshChat(); }
-  if (id === 'team') refreshTeam();
+  if (id === 'chat')    { clearChatBadge(); refreshChat(); }
+  if (id === 'team')    refreshTeam();
   if (id === 'watchlist') renderWatchlist();
   if (id === 'support') refreshSupport();
+  if (id === 'market')  refreshMarketData();
 }
 
 /* ══════════════════════════════════════════════════
@@ -1326,137 +1450,295 @@ function pauseNarration() { synth.paused ? synth.resume() : synth.pause(); }
 function stopNarration()  { synth.cancel(); document.getElementById('nSt').textContent='IDLE'; document.getElementById('nPb').style.width='0%'; }
 
 /* ══════════════════════════════════════════════════
-   AUDIO ENGINE (AV STUDIO)
+   AUDIO ENGINE — DSP CHAIN + PLAYLIST + RADIAL VIZ
 ══════════════════════════════════════════════════ */
-let audioCtx, analyserNode, gainNode, audioSrc, audioStream, animId;
+let avCtx, avBass, avTreble, avComp, avPanner, avAnalyser, avGain, avMediaSrc;
+let avRadialId = null;
+let avDataArr  = new Uint8Array(0);
+let avPlaylist = [];   // [{name, url}]
+let avCurrent  = -1;
+let avLooping  = false;
 
-function onSrcChange() {
-  const v = document.getElementById('aSrc').value;
-  document.getElementById('oscRow').style.display   = v === 'osc'  ? 'flex' : 'none';
-  document.getElementById('btnFile').style.display  = v === 'file' ? 'inline-block' : 'none';
-}
-function onFreqChange() {
-  const v = document.getElementById('oscF').value;
-  document.getElementById('oscFv').textContent = v + ' Hz';
-  if (audioSrc && audioSrc.frequency) audioSrc.frequency.setTargetAtTime(+v, audioCtx.currentTime, 0.02);
-}
-function onFileSelect() {
-  const f = document.getElementById('aFile').files[0];
-  if (f) document.getElementById('btnFile').textContent = f.name.slice(0, 18);
+function avInitChain() {
+  if (avCtx) { if (avCtx.state === 'suspended') avCtx.resume(); return; }
+  const el  = document.getElementById('avMediaEl');
+  avCtx     = new (window.AudioContext || window.webkitAudioContext)();
+
+  avBass    = avCtx.createBiquadFilter();
+  avBass.type = 'lowshelf'; avBass.frequency.value = 200;
+
+  avTreble  = avCtx.createBiquadFilter();
+  avTreble.type = 'highshelf'; avTreble.frequency.value = 2000;
+
+  avComp    = avCtx.createDynamicsCompressor();
+  avComp.threshold.value = -24; avComp.knee.value = 30;
+  avComp.ratio.value = 12; avComp.attack.value = 0.003; avComp.release.value = 0.25;
+
+  avPanner  = avCtx.createStereoPanner(); avPanner.pan.value = 0;
+
+  avGain    = avCtx.createGain(); avGain.gain.value = 0.85;
+
+  avAnalyser = avCtx.createAnalyser();
+  avAnalyser.fftSize = 256;
+  avDataArr  = new Uint8Array(avAnalyser.frequencyBinCount);
+
+  avMediaSrc = avCtx.createMediaElementSource(el);
+  avMediaSrc.connect(avBass);
+  avBass.connect(avTreble);
+  avTreble.connect(avComp);
+  avComp.connect(avPanner);
+  avPanner.connect(avGain);
+  avGain.connect(avAnalyser);
+  avAnalyser.connect(avCtx.destination);
+
+  window.__avAnalyser = avAnalyser;
+
+  el.addEventListener('ended', () => { if (!avLooping) avNext(); });
+  avDrawRadial();
 }
 
-function buildAudioGraph() {
-  if (!audioCtx) {
-    audioCtx    = new (window.AudioContext || window.webkitAudioContext)();
-    analyserNode = audioCtx.createAnalyser();
-    analyserNode.fftSize = 1024;
-    analyserNode.smoothingTimeConstant = 0.82;
-    gainNode = audioCtx.createGain();
-    gainNode.gain.value = 0.7;
-    gainNode.connect(analyserNode);
-    analyserNode.connect(audioCtx.destination);
-    window.__avAnalyser = analyserNode;
+function avAddTracks(files) {
+  for (const f of files) {
+    if (avPlaylist.length >= 12) { showToast('Playlist full (12 tracks max).', true); break; }
+    avPlaylist.push({ name: f.name.replace(/\.[^.]+$/, ''), url: URL.createObjectURL(f) });
   }
-  if (audioCtx.state === 'suspended') audioCtx.resume();
+  avRenderPlaylist();
+  if (avCurrent === -1 && avPlaylist.length > 0) avLoadTrack(0);
 }
 
-async function startAudio() {
-  try {
-    buildAudioGraph();
-    const src = document.getElementById('aSrc').value;
-    if (src === 'osc') {
-      audioSrc = audioCtx.createOscillator();
-      audioSrc.type = document.getElementById('oscW').value;
-      audioSrc.frequency.value = +document.getElementById('oscF').value;
-      audioSrc.connect(gainNode); audioSrc.start();
-    } else if (src === 'mic') {
-      audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      audioSrc = audioCtx.createMediaStreamSource(audioStream);
-      audioSrc.connect(gainNode);
-    } else if (src === 'file') {
-      const f = document.getElementById('aFile').files[0];
-      if (!f) { showToast('Select an audio file first.', true); return; }
-      const ab = await f.arrayBuffer();
-      const buf = await audioCtx.decodeAudioData(ab);
-      audioSrc = audioCtx.createBufferSource();
-      audioSrc.buffer = buf; audioSrc.loop = true;
-      audioSrc.connect(gainNode); audioSrc.start();
-    }
-    startVisualizer();
-    document.getElementById('btnAS').disabled = true;
-    document.getElementById('btnAX').disabled = false;
-  } catch(e) { showToast('Audio error: ' + e.message, true); }
+function avLoadTrack(idx) {
+  if (idx < 0 || idx >= avPlaylist.length) return;
+  avInitChain();
+  const el = document.getElementById('avMediaEl');
+  el.src   = avPlaylist[idx].url;
+  avCurrent = idx;
+  avRenderPlaylist();
+  document.getElementById('avNowPlaying').textContent = avPlaylist[idx].name;
+  el.play().then(() => {
+    document.getElementById('avPlayBtn').textContent = '⏸ PAUSE';
+    if (!avRadialId) avDrawRadial();
+  }).catch(() => {});
 }
 
-function stopAudio() {
-  if (audioSrc) { try { audioSrc.stop ? audioSrc.stop() : audioSrc.disconnect(); } catch(_){} audioSrc = null; }
-  if (audioStream) { audioStream.getTracks().forEach(t => t.stop()); audioStream = null; }
-  if (animId) { cancelAnimationFrame(animId); animId = null; }
-  const cv = document.getElementById('vCanvas');
-  if (cv) cv.getContext('2d').clearRect(0, 0, cv.width, cv.height);
-  document.getElementById('btnAS').disabled = false;
-  document.getElementById('btnAX').disabled = true;
-  document.getElementById('vHz').textContent = '-- Hz';
-  document.getElementById('vDb').textContent = '-- dB';
+function avPlayPause() {
+  const el = document.getElementById('avMediaEl');
+  if (!avCtx) { avInitChain(); }
+  if (avCurrent === -1 && avPlaylist.length > 0) { avLoadTrack(0); return; }
+  if (el.paused) {
+    avCtx.resume();
+    el.play().catch(() => {});
+    document.getElementById('avPlayBtn').textContent = '⏸ PAUSE';
+  } else {
+    el.pause();
+    document.getElementById('avPlayBtn').textContent = '▶ PLAY';
+  }
 }
 
-function startVisualizer() {
-  const canvas = document.getElementById('vCanvas');
-  const c = canvas.getContext('2d');
-  function resize() { canvas.width = canvas.offsetWidth * devicePixelRatio; canvas.height = canvas.offsetHeight * devicePixelRatio; }
-  window.addEventListener('resize', resize); resize();
+function avPrev() {
+  if (avPlaylist.length === 0) return;
+  avLoadTrack(avCurrent <= 0 ? avPlaylist.length - 1 : avCurrent - 1);
+}
+function avNext() {
+  if (avPlaylist.length === 0) return;
+  avLoadTrack((avCurrent + 1) % avPlaylist.length);
+}
+function avToggleLoop() {
+  avLooping = !avLooping;
+  document.getElementById('avMediaEl').loop = avLooping;
+  document.getElementById('avLoopBtn').classList.toggle('active', avLooping);
+}
 
-  function draw() {
-    animId = requestAnimationFrame(draw);
-    const n  = analyserNode.frequencyBinCount;
-    const fd = new Uint8Array(n), td = new Uint8Array(n);
-    analyserNode.getByteFrequencyData(fd);
-    analyserNode.getByteTimeDomainData(td);
-    const W = canvas.width, H = canvas.height;
-    c.clearRect(0, 0, W, H);
-    const mode = document.getElementById('vMode').value;
-    const baseColor = nightOps ? '#a855f7' : '#00b4ff';
+function dspUpdate() {
+  const bass   = +document.getElementById('dspBass').value;
+  const treble = +document.getElementById('dspTreble').value;
+  const comp   = +document.getElementById('dspComp').value;
+  const pan    = +document.getElementById('dspPan').value;
+  const vol    = +document.getElementById('dspVol').value;
+  document.getElementById('dspBassV').textContent   = (bass >= 0 ? '+' : '') + bass + ' dB';
+  document.getElementById('dspTrebleV').textContent = (treble >= 0 ? '+' : '') + treble + ' dB';
+  document.getElementById('dspCompV').textContent   = comp + ' dB';
+  document.getElementById('dspVolV').textContent    = Math.round(vol * 100) + '%';
+  const panLabel = pan === 0 ? 'C' : (pan > 0 ? 'R ' + Math.abs(pan).toFixed(2) : 'L ' + Math.abs(pan).toFixed(2));
+  document.getElementById('dspPanV').textContent = panLabel;
+  if (avBass)    avBass.gain.setTargetAtTime(bass,   avCtx.currentTime, 0.05);
+  if (avTreble)  avTreble.gain.setTargetAtTime(treble, avCtx.currentTime, 0.05);
+  if (avComp)    avComp.threshold.setTargetAtTime(comp,  avCtx.currentTime, 0.05);
+  if (avPanner)  avPanner.pan.setTargetAtTime(pan,   avCtx.currentTime, 0.05);
+  if (avGain)    avGain.gain.setTargetAtTime(vol,    avCtx.currentTime, 0.05);
+}
 
-    if (mode === 'bars') {
-      const bw = W / fd.length;
-      for (let i = 0; i < fd.length; i++) {
-        const t = fd[i]/255, bh = t * H;
-        c.fillStyle = `hsl(${nightOps ? 270+(1-t)*80 : 200+(1-t)*60},100%,${40+t*30}%)`;
-        c.fillRect(i*bw, H-bh, bw-1, bh);
+function avRenderPlaylist() {
+  const wrap = document.getElementById('playlistWrap');
+  document.getElementById('plCountLabel').textContent = `PLAYLIST — ${avPlaylist.length} / 12`;
+  if (avPlaylist.length === 0) {
+    wrap.innerHTML = '<div class="pl-empty">Click "+ ADD TRACKS" to load audio files.</div>';
+    return;
+  }
+  wrap.innerHTML = avPlaylist.map((t, i) => `
+    <div class="pl-item${i === avCurrent ? ' active' : ''}" onclick="avLoadTrack(${i})">
+      <span class="pl-num">${i + 1}</span>
+      <span class="pl-name">${t.name}</span>
+      <span class="pl-rm" onclick="event.stopPropagation();avRemoveTrack(${i})">✕</span>
+    </div>`).join('');
+}
+
+function avRemoveTrack(idx) {
+  URL.revokeObjectURL(avPlaylist[idx].url);
+  avPlaylist.splice(idx, 1);
+  if (avCurrent === idx) {
+    document.getElementById('avMediaEl').pause();
+    document.getElementById('avPlayBtn').textContent = '▶ PLAY';
+    avCurrent = avPlaylist.length > 0 ? Math.min(idx, avPlaylist.length - 1) : -1;
+    if (avCurrent >= 0) avLoadTrack(avCurrent);
+    else document.getElementById('avNowPlaying').textContent = 'NO TRACK LOADED';
+  } else if (avCurrent > idx) { avCurrent--; }
+  avRenderPlaylist();
+}
+
+function avDrawRadial() {
+  const canvas = document.getElementById('radialCanvas');
+  if (!canvas) return;
+  const rCtx = canvas.getContext('2d');
+  const cx = 80, cy = 80, radius = 46;
+
+  (function loop() {
+    avRadialId = requestAnimationFrame(loop);
+    rCtx.clearRect(0, 0, 160, 160);
+
+    rCtx.beginPath(); rCtx.arc(cx, cy, radius - 3, 0, Math.PI * 2);
+    rCtx.strokeStyle = 'rgba(20,253,206,0.18)'; rCtx.lineWidth = 1.5; rCtx.stroke();
+
+    if (avAnalyser && avDataArr.length > 0) {
+      avAnalyser.getByteFrequencyData(avDataArr);
+      for (let i = 0; i < 60; i++) {
+        const dataIdx = Math.floor((i / 60) * (avDataArr.length / 1.5));
+        const val     = avDataArr[dataIdx];
+        const barLen  = (val / 255) * 48;
+        const angle   = i * (Math.PI * 2 / 60);
+        const hue     = nightOps ? 260 + (val / 255) * 80 : 180 + (val / 255) * 100;
+        rCtx.strokeStyle = `hsl(${hue},100%,55%)`;
+        rCtx.lineWidth   = 1.8;
+        rCtx.beginPath();
+        rCtx.moveTo(cx + Math.cos(angle) * radius,          cy + Math.sin(angle) * radius);
+        rCtx.lineTo(cx + Math.cos(angle) * (radius + barLen), cy + Math.sin(angle) * (radius + barLen));
+        rCtx.stroke();
       }
-    } else if (mode === 'wave') {
-      c.strokeStyle = baseColor; c.lineWidth = 2 * devicePixelRatio;
-      c.shadowColor = baseColor; c.shadowBlur = 10;
-      c.beginPath();
-      const sw = W / td.length;
-      for (let i = 0; i < td.length; i++) {
-        const y = (td[i]/128)*(H/2);
-        i === 0 ? c.moveTo(0, y) : c.lineTo(i*sw, y);
-      }
-      c.stroke(); c.shadowBlur = 0;
+      let bassAvg = 0;
+      for (let i = 0; i < 20; i++) bassAvg += avDataArr[i];
+      bassAvg /= 20;
+      rCtx.beginPath(); rCtx.arc(cx, cy, radius - 5, 0, Math.PI * 2);
+      rCtx.fillStyle = `rgba(0,243,255,${bassAvg / 500})`; rCtx.fill();
+
+      const pk = Math.max(...avDataArr);
+      const pi = Array.from(avDataArr).indexOf(pk);
+      const sampleRate = avCtx ? avCtx.sampleRate : 44100;
+      document.getElementById('avHz').textContent = ((pi / avDataArr.length) * (sampleRate / 2)).toFixed(0) + ' Hz';
+      document.getElementById('avDb').textContent  = (20 * Math.log10((pk / 255) + 1e-6)).toFixed(1) + ' dB';
     } else {
-      const cx = W/2, cy = H/2, R = Math.min(cx,cy)*.5;
-      for (let i = 0; i < fd.length; i++) {
-        const t = fd[i]/255, a = (i/fd.length)*Math.PI*2 - Math.PI/2, len = t*R*.85;
-        c.strokeStyle = `hsl(${nightOps ? 280+(1-t)*80 : 195+(1-t)*70},100%,${48+t*28}%)`;
-        c.lineWidth = 2 * devicePixelRatio;
-        c.beginPath();
-        c.moveTo(cx+Math.cos(a)*R, cy+Math.sin(a)*R);
-        c.lineTo(cx+Math.cos(a)*(R+len), cy+Math.sin(a)*(R+len));
-        c.stroke();
+      const t = Date.now() * 0.002;
+      for (let i = 0; i < 60; i++) {
+        const angle  = (i / 60) * Math.PI * 2;
+        const barLen = 4 + Math.sin(t + i * 0.3) * 3;
+        rCtx.strokeStyle = nightOps ? 'rgba(168,85,247,0.28)' : 'rgba(20,253,206,0.28)';
+        rCtx.lineWidth = 1.8;
+        rCtx.beginPath();
+        rCtx.moveTo(cx + Math.cos(angle) * radius,          cy + Math.sin(angle) * radius);
+        rCtx.lineTo(cx + Math.cos(angle) * (radius + barLen), cy + Math.sin(angle) * (radius + barLen));
+        rCtx.stroke();
       }
-      c.beginPath(); c.arc(cx, cy, 4*devicePixelRatio, 0, Math.PI*2);
-      c.fillStyle = baseColor; c.fill();
     }
-
-    const pk = Math.max(...fd), pi = fd.indexOf(pk);
-    const hz = audioCtx ? ((pi/n)*(audioCtx.sampleRate/2)).toFixed(0) : '--';
-    const db = (20 * Math.log10((pk/255)+1e-6)).toFixed(1);
-    document.getElementById('vHz').textContent = hz + ' Hz';
-    document.getElementById('vDb').textContent = db + ' dB';
-  }
-  draw();
+  })();
 }
+
+/* ══════════════════════════════════════════════════
+   MARKET DATA — QUOTES + TICKER
+══════════════════════════════════════════════════ */
+const MKT_SEEDS = {
+  'MNQ1!':20500,'NQ1!':20520,'ES1!':5600,'MES1!':5600,
+  'SPY':560,'QQQ':480,'AAPL':210,'TSLA':195,'NVDA':130,
+  'AMZN':185,'MSFT':415,'GOOGL':178,'META':520,'BTC-USD':67000,
+  'ETH-USD':3500,'GLD':235,'SLV':28,'TLT':92,'UNG':2.5,'USO':74
+};
+let mktQuotes = {};
+let mktLastTs = 0;
+
+function mktRandWalk(sym) {
+  const seed = MKT_SEEDS[sym] || 100;
+  if (!mktQuotes[sym]) mktQuotes[sym] = { price: seed + (Math.random() - 0.5) * seed * 0.01, prev: seed };
+  const q = mktQuotes[sym];
+  const move = q.price * (Math.random() - 0.499) * 0.005;
+  q.prev  = q.price;
+  q.price = Math.max(0.01, q.price + move);
+  return q;
+}
+
+async function fetchQuote(sym) {
+  try {
+    const proxy = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(sym)}?interval=1m&range=1d`;
+    const r = await fetch(proxy, { signal: AbortSignal.timeout(4000) });
+    const d = await r.json();
+    const meta = d?.chart?.result?.[0]?.meta;
+    if (meta && meta.regularMarketPrice) {
+      const prev  = meta.previousClose || meta.chartPreviousClose || meta.regularMarketPrice;
+      mktQuotes[sym] = { price: meta.regularMarketPrice, prev };
+      return mktQuotes[sym];
+    }
+  } catch (_) {}
+  return mktRandWalk(sym);
+}
+
+async function refreshMarketData() {
+  const watchlist = loadWatchlist();
+  const symbols   = watchlist.map(w => w.sym).filter(Boolean);
+  if (symbols.length === 0) {
+    document.getElementById('mktGrid').innerHTML =
+      '<div style="font-family:var(--mono);font-size:12px;color:var(--muted);padding:20px;grid-column:1/-1;">Add symbols to your Watchlist to see quotes here.</div>';
+    updateMktTicker([]);
+    return;
+  }
+  document.getElementById('mktLastUpdate').textContent = 'Fetching…';
+  const results = await Promise.all(symbols.map(s => fetchQuote(s)));
+  mktLastTs = Date.now();
+  document.getElementById('mktLastUpdate').textContent =
+    'Last update: ' + new Date(mktLastTs).toLocaleTimeString();
+
+  const grid = document.getElementById('mktGrid');
+  grid.innerHTML = symbols.map((sym, i) => {
+    const q    = results[i];
+    const chg  = q.price - q.prev;
+    const pct  = (chg / q.prev * 100).toFixed(2);
+    const dir  = chg >= 0 ? 'up' : 'dn';
+    const arrow= chg >= 0 ? '▲' : '▼';
+    const px   = q.price < 10 ? q.price.toFixed(4) : q.price < 1000 ? q.price.toFixed(2) : q.price.toFixed(0);
+    return `<div class="mkt-card">
+      <div class="mkt-card-sym">${sym}</div>
+      <div class="mkt-card-px">${px}</div>
+      <div class="mkt-card-chg ${dir}">${arrow} ${Math.abs(chg).toFixed(2)} (${Math.abs(pct)}%)</div>
+      <div class="mkt-card-ts">${new Date(mktLastTs).toLocaleTimeString()}</div>
+    </div>`;
+  }).join('');
+
+  updateMktTicker(symbols.map((sym, i) => ({ sym, q: results[i] })));
+}
+
+function updateMktTicker(items) {
+  if (items.length === 0) { return; }
+  const html = items.map(({ sym, q }) => {
+    const chg = q.price - q.prev;
+    const pct = (chg / q.prev * 100).toFixed(2);
+    const dir = chg >= 0 ? 'up' : 'dn';
+    const arrow = chg >= 0 ? '▲' : '▼';
+    const px = q.price < 10 ? q.price.toFixed(4) : q.price.toFixed(2);
+    return `<span class="mkt-tick-item"><span class="mkt-tick-sym">${sym}</span><span class="mkt-tick-px">${px}</span><span class="mkt-tick-${dir}">${arrow}${Math.abs(pct)}%</span></span>`;
+  }).join('');
+  const track = document.getElementById('mktTickerTrack');
+  if (track) track.innerHTML = html + html; // doubled for seamless scroll loop
+}
+
+// Auto-refresh market data every 60s when page is visible
+setInterval(() => {
+  if (document.visibilityState === 'visible') refreshMarketData();
+}, 60000);
 
 /* ══════════════════════════════════════════════════
    NIGHT OPS MODE
@@ -1550,6 +1832,8 @@ function doLogin(name, role, avatar) {
   renderTeam();
   renderChat();
   startPolling();
+  avDrawRadial();
+  setTimeout(refreshMarketData, 1200);
 
   // Welcome narration
   setTimeout(() => {
