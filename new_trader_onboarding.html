@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Iron Sight — New Trader Onboarding</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #0d1117;
+      color: #e6edf3;
+      min-height: 100vh;
+      line-height: 1.6;
+    }
+
+    /* ── Header ── */
+    header {
+      background: #161b22;
+      border-bottom: 1px solid #30363d;
+      padding: 24px 40px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .logo { display: flex; align-items: center; gap: 14px; }
+    .logo-icon {
+      width: 40px; height: 40px;
+      background: linear-gradient(135deg, #2962ff, #4a148c);
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px; font-weight: 900; color: #fff; letter-spacing: -1px;
+    }
+    .logo-text h1 { font-size: 18px; font-weight: 800; color: #e6edf3; letter-spacing: 0.5px; }
+    .logo-text p  { font-size: 11px; color: #7d8590; margin-top: 1px; }
+    .header-badge {
+      background: linear-gradient(135deg, #2962ff22, #4a148c22);
+      border: 1px solid #2962ff44;
+      color: #79b8ff;
+      font-size: 11px; font-weight: 700;
+      letter-spacing: 1px; padding: 6px 14px; border-radius: 20px;
+      text-transform: uppercase;
+    }
+
+    /* ── Hero ── */
+    .hero {
+      background: linear-gradient(180deg, #161b22 0%, #0d1117 100%);
+      border-bottom: 1px solid #30363d;
+      padding: 64px 40px 56px;
+      text-align: center;
+    }
+    .hero-eyebrow {
+      display: inline-block;
+      font-size: 11px; font-weight: 700; letter-spacing: 2px;
+      color: #2962ff; text-transform: uppercase; margin-bottom: 16px;
+    }
+    .hero h2 {
+      font-size: 36px; font-weight: 800; color: #e6edf3;
+      letter-spacing: -0.5px; margin-bottom: 16px; line-height: 1.2;
+    }
+    .hero h2 span { color: #2962ff; }
+    .hero p {
+      font-size: 16px; color: #8b949e; max-width: 600px;
+      margin: 0 auto 32px; line-height: 1.7;
+    }
+    .hero-chips { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+    .chip {
+      background: #161b22; border: 1px solid #30363d;
+      border-radius: 20px; padding: 6px 16px;
+      font-size: 12px; color: #8b949e;
+    }
+    .chip strong { color: #e6edf3; }
+
+    /* ── Main layout ── */
+    .main { max-width: 860px; margin: 0 auto; padding: 48px 24px 80px; }
+
+    /* ── Section title ── */
+    .section-title {
+      font-size: 11px; font-weight: 700; letter-spacing: 2px;
+      color: #2962ff; text-transform: uppercase;
+      margin-bottom: 24px; margin-top: 56px;
+      padding-bottom: 10px; border-bottom: 1px solid #21262d;
+    }
+
+    /* ── What you need ── */
+    .prereq-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 16px; margin-bottom: 16px;
+    }
+    .prereq-card {
+      background: #161b22; border: 1px solid #30363d; border-radius: 10px;
+      padding: 20px 22px;
+    }
+    .prereq-card .icon { font-size: 24px; margin-bottom: 10px; }
+    .prereq-card h4 { font-size: 14px; font-weight: 700; color: #e6edf3; margin-bottom: 6px; }
+    .prereq-card p  { font-size: 13px; color: #8b949e; line-height: 1.5; }
+    .prereq-card a  { color: #2962ff; text-decoration: none; }
+    .prereq-card a:hover { text-decoration: underline; }
+
+    /* ── Steps ── */
+    .step {
+      display: flex; gap: 28px; margin-bottom: 48px; align-items: flex-start;
+    }
+    .step-number {
+      flex-shrink: 0;
+      width: 44px; height: 44px;
+      background: linear-gradient(135deg, #2962ff, #4a148c);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px; font-weight: 800; color: #fff;
+    }
+    .step-body { flex: 1; }
+    .step-body h3 {
+      font-size: 18px; font-weight: 700; color: #e6edf3;
+      margin-bottom: 10px; margin-top: 8px;
+    }
+    .step-body p { font-size: 14px; color: #8b949e; margin-bottom: 12px; line-height: 1.7; }
+    .step-body a { color: #2962ff; text-decoration: none; }
+    .step-body a:hover { text-decoration: underline; }
+
+    /* ── Callout boxes ── */
+    .callout {
+      border-radius: 8px; padding: 16px 20px;
+      font-size: 13px; line-height: 1.6; margin: 14px 0;
+    }
+    .callout-info {
+      background: #1f2a3a; border: 1px solid #2962ff44;
+      color: #79b8ff;
+    }
+    .callout-warning {
+      background: #2a1f0e; border: 1px solid #d29922aa;
+      color: #e3b341;
+    }
+    .callout-success {
+      background: #0d2119; border: 1px solid #2ea04344;
+      color: #56d364;
+    }
+    .callout strong { font-weight: 700; }
+
+    /* ── Instruction list ── */
+    .instruction-list {
+      list-style: none; padding: 0;
+    }
+    .instruction-list li {
+      display: flex; gap: 14px; align-items: flex-start;
+      padding: 12px 0; border-bottom: 1px solid #21262d;
+      font-size: 14px; color: #8b949e;
+    }
+    .instruction-list li:last-child { border-bottom: none; }
+    .instruction-list li .step-tag {
+      flex-shrink: 0;
+      background: #21262d; border: 1px solid #30363d;
+      border-radius: 4px; padding: 2px 8px;
+      font-size: 11px; font-weight: 700; color: #e6edf3;
+      margin-top: 2px; white-space: nowrap;
+    }
+    .instruction-list li span { flex: 1; line-height: 1.6; }
+    .instruction-list li strong { color: #e6edf3; }
+
+    /* ── Code / field block ── */
+    .field-block {
+      background: #161b22; border: 1px solid #30363d; border-radius: 8px;
+      padding: 16px 20px; margin: 14px 0;
+    }
+    .field-row {
+      display: flex; gap: 12px; align-items: flex-start;
+      padding: 8px 0; border-bottom: 1px solid #21262d; font-size: 13px;
+    }
+    .field-row:last-child { border-bottom: none; padding-bottom: 0; }
+    .field-label {
+      flex-shrink: 0; width: 160px;
+      font-weight: 700; color: #7d8590; font-size: 12px;
+      font-family: 'Consolas', monospace; margin-top: 1px;
+    }
+    .field-value { flex: 1; color: #e6edf3; line-height: 1.5; }
+    .field-value code {
+      background: #21262d; border: 1px solid #30363d;
+      border-radius: 4px; padding: 1px 6px;
+      font-family: 'Consolas', monospace; font-size: 12px; color: #79b8ff;
+    }
+
+    /* ── Script cards ── */
+    .script-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 14px; margin: 14px 0;
+    }
+    .script-card {
+      background: #161b22; border: 1px solid #30363d; border-radius: 10px;
+      padding: 18px 20px;
+    }
+    .script-card .tag {
+      display: inline-block; font-size: 10px; font-weight: 700;
+      letter-spacing: 1px; padding: 3px 8px; border-radius: 3px;
+      text-transform: uppercase; margin-bottom: 10px;
+    }
+    .tag-live   { background: #0d2119; border: 1px solid #2ea043; color: #56d364; }
+    .tag-beta   { background: #1f2a3a; border: 1px solid #2962ff; color: #79b8ff; }
+    .tag-coming { background: #21262d; border: 1px solid #30363d; color: #7d8590; }
+    .script-card h4 { font-size: 14px; font-weight: 700; color: #e6edf3; margin-bottom: 6px; }
+    .script-card p  { font-size: 12px; color: #7d8590; line-height: 1.5; }
+
+    /* ── What happens next ── */
+    .timeline { list-style: none; padding: 0; position: relative; margin: 16px 0; }
+    .timeline::before {
+      content: ''; position: absolute; left: 19px; top: 0; bottom: 0;
+      width: 2px; background: #21262d;
+    }
+    .timeline li {
+      display: flex; gap: 18px; align-items: flex-start;
+      padding: 0 0 28px 0; position: relative;
+    }
+    .timeline li:last-child { padding-bottom: 0; }
+    .tl-dot {
+      flex-shrink: 0; width: 40px; height: 40px;
+      background: #161b22; border: 2px solid #30363d;
+      border-radius: 50%; display: flex; align-items: center; justify-content: center;
+      font-size: 16px; position: relative; z-index: 1;
+    }
+    .tl-dot.active { border-color: #2962ff; background: #1f2a3a; }
+    .tl-content { flex: 1; padding-top: 8px; }
+    .tl-content h4 { font-size: 14px; font-weight: 700; color: #e6edf3; margin-bottom: 4px; }
+    .tl-content p  { font-size: 13px; color: #7d8590; line-height: 1.5; }
+
+    /* ── Contact ── */
+    .contact-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 14px; margin-top: 16px;
+    }
+    .contact-card {
+      background: #161b22; border: 1px solid #30363d; border-radius: 10px;
+      padding: 20px 22px; text-align: center;
+    }
+    .contact-card .icon { font-size: 28px; margin-bottom: 10px; }
+    .contact-card h4 { font-size: 14px; font-weight: 700; color: #e6edf3; margin-bottom: 6px; }
+    .contact-card p  { font-size: 12px; color: #7d8590; }
+    .contact-card a  { color: #2962ff; text-decoration: none; font-size: 13px; font-weight: 600; }
+
+    /* ── Footer ── */
+    footer {
+      background: #161b22; border-top: 1px solid #30363d;
+      padding: 24px 40px; text-align: center;
+      font-size: 12px; color: #7d8590;
+    }
+    footer a { color: #2962ff; text-decoration: none; }
+    footer a:hover { text-decoration: underline; }
+
+    /* ── Divider ── */
+    hr { border: none; border-top: 1px solid #21262d; margin: 40px 0; }
+  </style>
+</head>
+<body>
+
+<!-- ── Header ── -->
+<header>
+  <div class="logo">
+    <div class="logo-icon">S3</div>
+    <div class="logo-text">
+      <h1>Iron Sight</h1>
+      <p>S3 Development — Project Black-Box</p>
+    </div>
+  </div>
+  <div class="header-badge">Beta Access</div>
+</header>
+
+<!-- ── Hero ── -->
+<div class="hero">
+  <div class="hero-eyebrow">Getting Started</div>
+  <h2>Welcome to <span>Iron Sight</span></h2>
+  <p>Iron Sight is a precision signal system built on TradingView. This guide walks you through everything you need to set up your account, connect to the system, and start paper trading as a beta member.</p>
+  <div class="hero-chips">
+    <div class="chip"><strong>Platform:</strong> TradingView</div>
+    <div class="chip"><strong>Phase:</strong> Beta Testing</div>
+    <div class="chip"><strong>Setup Time:</strong> ~15 minutes</div>
+    <div class="chip"><strong>No coding required</strong></div>
+  </div>
+</div>
+
+<!-- ── Main Content ── -->
+<div class="main">
+
+  <!-- What You Need -->
+  <div class="section-title">Before You Begin — What You Need</div>
+  <div class="prereq-grid">
+    <div class="prereq-card">
+      <div class="icon">📊</div>
+      <h4>TradingView Account</h4>
+      <p>Free account works for paper testing. A paid plan (Essential or higher) is required to use webhook alerts for live signal routing. <a href="https://www.tradingview.com" target="_blank">tradingview.com</a></p>
+    </div>
+    <div class="prereq-card">
+      <div class="icon">🔑</div>
+      <h4>Your Access Credentials</h4>
+      <p>Your administrator will provide your <strong>Webhook URL</strong>, <strong>TV Secret key</strong>, and <strong>Trader ID</strong>. You cannot generate these yourself — request access first.</p>
+    </div>
+    <div class="prereq-card">
+      <div class="icon">📱</div>
+      <h4>A Brokerage Account</h4>
+      <p>For paper trading: any paper account works. For live beta: IBKR or NinjaTrader with an active futures/options agreement. Options approval (Level 2) is required for PUT trades.</p>
+    </div>
+  </div>
+
+  <div class="callout callout-warning">
+    <strong>Access Request Required:</strong> Iron Sight scripts are private invite-only publications on TradingView. You must request access before completing any steps below. See the <strong>Get Access</strong> section at the bottom of this page.
+  </div>
+
+  <!-- Steps -->
+  <div class="section-title">Setup Steps</div>
+
+  <!-- Step 1 -->
+  <div class="step">
+    <div class="step-number">1</div>
+    <div class="step-body">
+      <h3>Create Your TradingView Account</h3>
+      <p>Go to <a href="https://www.tradingview.com" target="_blank">tradingview.com</a> and create a free account. Use a professional email address — this will be your identity in the system.</p>
+      <ul class="instruction-list">
+        <li>
+          <span class="step-tag">Do</span>
+          <span>Click <strong>Get started — it's free</strong> on the TradingView homepage. Sign up with email (not social login) so your username is clean and identifiable.</span>
+        </li>
+        <li>
+          <span class="step-tag">Do</span>
+          <span>Choose a <strong>username</strong> that represents you — your admin will reference this to grant script access. Example: <code>jsmith_trader</code></span>
+        </li>
+        <li>
+          <span class="step-tag">Note</span>
+          <span>For <strong>webhook alerts</strong> (live signal routing to NIGHTHAWK), you need a paid plan. The <strong>Essential plan</strong> ($14.95/mo) supports 1 active alert with webhook. The <strong>Plus plan</strong> ($29.95/mo) supports multiple simultaneous alerts.</span>
+        </li>
+      </ul>
+      <div class="callout callout-info">
+        <strong>Paper testing only?</strong> A free TradingView account lets you see all signals on the chart and practice manually. You only need a paid plan when you are ready to have alerts fire automatically to the execution engine.
+      </div>
+    </div>
+  </div>
+
+  <!-- Step 2 -->
+  <div class="step">
+    <div class="step-number">2</div>
+    <div class="step-body">
+      <h3>Request Script Access</h3>
+      <p>Once your TradingView account is created, contact your administrator with your TradingView username. You will be granted access to the Iron Sight scripts and issued your credentials.</p>
+      <div class="field-block">
+        <div class="field-row">
+          <div class="field-label">TV Username</div>
+          <div class="field-value">Your TradingView username (e.g. <code>jsmith_trader</code>)</div>
+        </div>
+        <div class="field-row">
+          <div class="field-label">You will receive</div>
+          <div class="field-value">
+            <code>Webhook URL</code> — your personal NIGHTHAWK endpoint<br>
+            <code>TV_SECRET</code> — your authentication key for alerts<br>
+            <code>Trader ID</code> — your model ID in the Sentinel database
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field-label">Contact</div>
+          <div class="field-value">See the <strong>Get Access</strong> section at the bottom of this page</div>
+        </div>
+      </div>
+      <div class="callout callout-warning">
+        <strong>Keep your TV_SECRET private.</strong> Do not share it or post it publicly. This key authenticates every signal sent from your chart — anyone with it can send fake signals to your account.
+      </div>
+    </div>
+  </div>
+
+  <!-- Step 3 -->
+  <div class="step">
+    <div class="step-number">3</div>
+    <div class="step-body">
+      <h3>Add an Iron Sight Script to Your Chart</h3>
+      <p>After your admin grants access, the Iron Sight scripts will appear in your TradingView Invite-Only Scripts library. Here is how to add one to your chart.</p>
+      <ul class="instruction-list">
+        <li>
+          <span class="step-tag">1</span>
+          <span>Open TradingView and navigate to the ticker and timeframe listed on your assigned script (e.g., <strong>NASDAQ:NVDA, 5-minute</strong> for ORB-PUT).</span>
+        </li>
+        <li>
+          <span class="step-tag">2</span>
+          <span>Click the <strong>Indicators</strong> button at the top of the chart (or press <strong>/</strong>).</span>
+        </li>
+        <li>
+          <span class="step-tag">3</span>
+          <span>Select <strong>Invite-Only Scripts</strong> from the left panel. You will see the Iron Sight scripts your admin has shared with you.</span>
+        </li>
+        <li>
+          <span class="step-tag">4</span>
+          <span>Click the script name to add it to your chart. It will appear as an overlay with signal markers, ORB levels, and gap labels.</span>
+        </li>
+        <li>
+          <span class="step-tag">5</span>
+          <span>Do not change the default settings unless instructed. The parameters are pre-calibrated for the current beta configuration.</span>
+        </li>
+      </ul>
+
+      <p style="margin-top:16px;">Available scripts in the beta program:</p>
+      <div class="script-grid">
+        <div class="script-card">
+          <div class="tag tag-beta">Beta</div>
+          <h4>ORB-PUT-v1.5</h4>
+          <p>NVDA 5-min | Opening Range Breakout short signal for same-day PUT options. Triggers on confirmed gap-down days (0.3%–5.0%).</p>
+        </div>
+        <div class="script-card">
+          <div class="tag tag-beta">Beta</div>
+          <h4>TRNQL 8AM Sweep v3</h4>
+          <p>MNQ 1-min | 8 AM range sweep continuation signal for Micro E-Mini NASDAQ futures. Requires NinjaTrader or Apex account.</p>
+        </div>
+        <div class="script-card">
+          <div class="tag tag-coming">Coming Soon</div>
+          <h4>BTC Accumulation Grid v1</h4>
+          <p>COINBASE:BTCUSD Daily | Grid accumulation signal anchored to 200-day SMA. IBKR crypto account required.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Step 4 -->
+  <div class="step">
+    <div class="step-number">4</div>
+    <div class="step-body">
+      <h3>Set Up Your Webhook Alert</h3>
+      <p>This step connects your TradingView chart to the NIGHTHAWK signal engine. Each time Iron Sight fires a signal, TradingView will send it to NIGHTHAWK automatically. <strong>A paid TradingView plan is required for this step.</strong></p>
+
+      <ul class="instruction-list">
+        <li>
+          <span class="step-tag">1</span>
+          <span>With the Iron Sight script on your chart, right-click anywhere on the chart and select <strong>Add Alert</strong>. Or press <strong>Alt+A</strong>.</span>
+        </li>
+        <li>
+          <span class="step-tag">2</span>
+          <span>In the alert dialog, set <strong>Condition</strong> to the Iron Sight script name and select the appropriate alert condition (e.g., <em>"ORB Short Signal"</em>).</span>
+        </li>
+        <li>
+          <span class="step-tag">3</span>
+          <span>Set <strong>Trigger</strong> to <strong>Once Per Bar Close</strong>. Do not use "Once Per Bar" — this fires on intrabar ticks, not confirmed closes.</span>
+        </li>
+        <li>
+          <span class="step-tag">4</span>
+          <span>Under <strong>Notifications</strong>, enable <strong>Webhook URL</strong> and paste the Webhook URL provided by your admin.</span>
+        </li>
+        <li>
+          <span class="step-tag">5</span>
+          <span>Leave the <strong>Message</strong> field empty — the alert message is built into the script automatically and includes your TV_SECRET and Trader ID.</span>
+        </li>
+        <li>
+          <span class="step-tag">6</span>
+          <span>Click <strong>Create</strong>. A green bell icon will appear on your chart confirming the alert is active.</span>
+        </li>
+      </ul>
+
+      <div class="callout callout-info">
+        <strong>What happens when an alert fires:</strong> TradingView sends a JSON payload to NIGHTHAWK. The signal is logged in the Sentinel database, an SMS notification is dispatched, and (when your account is set to LIVE) an order is routed to your broker. During beta testing, your account is in <strong>OBSERVATION mode</strong> — signals are logged and you receive SMS, but no orders are placed automatically.
+      </div>
+    </div>
+  </div>
+
+  <!-- Step 5 -->
+  <div class="step">
+    <div class="step-number">5</div>
+    <div class="step-body">
+      <h3>Begin Paper Trading</h3>
+      <p>You are now connected. Before any live capital is deployed, all beta members paper trade to validate signal performance in your specific market conditions.</p>
+
+      <ul class="instruction-list">
+        <li>
+          <span class="step-tag">Do</span>
+          <span>Download the <strong>Live Signal Tracking Template</strong> from your admin and log every signal that fires — whether you take the trade or not. Skipped signals are valuable data too.</span>
+        </li>
+        <li>
+          <span class="step-tag">Do</span>
+          <span>Follow the paper trading SOP exactly: entry timing, contract selection, T1/T2 exit rules, and the <strong>14:30 ET hard close</strong>. Discipline in paper trading = discipline in live trading.</span>
+        </li>
+        <li>
+          <span class="step-tag">Do</span>
+          <span>Log your VIX reading at entry for every signal. High VIX (>20) typically inflates PUT premiums — knowing this context is critical for calibrating real options P&amp;L.</span>
+        </li>
+        <li>
+          <span class="step-tag">Target</span>
+          <span>Complete <strong>5 paper trade signals</strong>. After 5 signals, your data is reviewed with the team and a go/no-go decision is made for live capital deployment.</span>
+        </li>
+      </ul>
+
+      <div class="callout callout-success">
+        <strong>You are in beta testing — this is the training environment.</strong> Signal data is being aggregated across all beta members to build a collective performance baseline. Your logs directly contribute to the model improvement process.
+      </div>
+    </div>
+  </div>
+
+  <hr>
+
+  <!-- What Happens Next -->
+  <div class="section-title">What Happens After Setup</div>
+  <ul class="timeline">
+    <li>
+      <div class="tl-dot active">✓</div>
+      <div class="tl-content">
+        <h4>Access Granted</h4>
+        <p>TV script access, webhook URL, TV_SECRET, and Trader ID issued by admin. Your model is registered in Sentinel in OBSERVATION mode.</p>
+      </div>
+    </li>
+    <li>
+      <div class="tl-dot active">→</div>
+      <div class="tl-content">
+        <h4>Paper Trading (Current Phase)</h4>
+        <p>Signals log to Sentinel automatically. You paper trade manually and submit tracking sheets. Team reviews after every 5 signals.</p>
+      </div>
+    </li>
+    <li>
+      <div class="tl-dot">🔒</div>
+      <div class="tl-content">
+        <h4>Review & Calibration</h4>
+        <p>Your paper trade data is reviewed alongside all beta members. T1 hit rate, average premium expansion, and exit quality are assessed. Model parameters may be adjusted.</p>
+      </div>
+    </li>
+    <li>
+      <div class="tl-dot">🚀</div>
+      <div class="tl-content">
+        <h4>Live Capital Authorization</h4>
+        <p>Once T1 hit rate ≥ 65% across ≥ 5 signals and your broker connection is verified, your Sentinel model is switched to LIVE. Orders route automatically on every qualified signal.</p>
+      </div>
+    </li>
+  </ul>
+
+  <hr>
+
+  <!-- Get Access / Contact -->
+  <div class="section-title">Get Access</div>
+  <p style="font-size:14px; color:#8b949e; margin-bottom:16px;">To join the beta program, contact the administrator with your TradingView username and the script(s) you want access to. Response time is typically within 24 hours.</p>
+  <div class="contact-grid">
+    <div class="contact-card">
+      <div class="icon">✉️</div>
+      <h4>Email</h4>
+      <p>Send your TradingView username and intended use case to:</p>
+      <a href="mailto:Vince_casella@protonmail.com">Vince_casella@protonmail.com</a>
+    </div>
+    <div class="contact-card">
+      <div class="icon">📋</div>
+      <h4>Include in Your Request</h4>
+      <p style="text-align:left; font-size:12px; color:#7d8590; line-height:1.8;">
+        ✔ TradingView username<br>
+        ✔ Script(s) requested<br>
+        ✔ Broker / account type<br>
+        ✔ Paper or live intent<br>
+        ✔ Options approval level (for ORB-PUT)
+      </p>
+    </div>
+    <div class="contact-card">
+      <div class="icon">📚</div>
+      <h4>Script Reference Library</h4>
+      <p>Full technical documentation for each Iron Sight script:</p>
+      <a href="index.html">View Library →</a>
+    </div>
+  </div>
+
+</div><!-- /main -->
+
+<!-- ── Footer ── -->
+<footer>
+  <p>Iron Sight — Project Black-Box &nbsp;|&nbsp; S3 Development / Executive Special Service, Inc. &nbsp;|&nbsp; California PPO #120890</p>
+  <p style="margin-top:6px;"><a href="index.html">Script Library</a> &nbsp;·&nbsp; <a href="phantom_mnq_architecture.html">System Architecture</a> &nbsp;·&nbsp; Beta v1.5</p>
+</footer>
+
+</body>
+</html>
