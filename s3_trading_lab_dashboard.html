@@ -1,0 +1,1872 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>S3 TRADING LAB // CONSOLE v1.0</title>
+<link rel="icon" href="https://imagedelivery.net/vqeQDU8kLtN4mG7c7hdsdQ/c1cf7f1c-6709-4f7d-cbea-d41894dce300/public">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Barlow+Condensed:wght@300;400;600;700;900&family=Barlow:wght@300;400;500&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<style>
+/* ── Root Variables ──────────────────────────────── */
+:root{
+  --bg:#040810;--bg2:#070d1a;--bg3:#0c1424;
+  --surface:rgba(7,13,28,.96);--panel:rgba(6,12,26,.97);
+  --border:rgba(0,180,255,.14);--border-h:rgba(0,180,255,.55);
+  --accent:#00b4ff;--accent2:#0077cc;--accent-glow:rgba(0,180,255,.18);
+  --signal:#a855f7;--signal-glow:rgba(168,85,247,.18);
+  --ok:#10b981;--warn:#f59e0b;--danger:#ff2d55;
+  --text:#c8dcf0;--muted:rgba(160,200,240,.42);--bright:#e8f4ff;
+  --mono:'Space Mono',monospace;--display:'Barlow Condensed',sans-serif;
+  --body:'Barlow',sans-serif;--tech:'Share Tech Mono',monospace;
+  --r:6px;
+  --topbar-h:72px;--sidebar-w:220px;
+  --grid-c:rgba(0,180,255,.055);
+}
+body.night-ops{
+  --bg:#06000e;--bg2:#0d0018;--bg3:#150025;
+  --surface:rgba(14,0,30,.97);--panel:rgba(10,0,22,.98);
+  --border:rgba(168,85,247,.18);--border-h:rgba(168,85,247,.60);
+  --accent:#a855f7;--accent2:#7c3aed;--accent-glow:rgba(168,85,247,.18);
+  --signal:#f472b6;--signal-glow:rgba(244,114,182,.18);
+  --ok:#34d399;--warn:#fbbf24;--danger:#ff2d55;
+  --text:#e0ceff;--muted:rgba(200,170,255,.42);--bright:#f3eeff;
+  --grid-c:rgba(168,85,247,.06);
+}
+/* ── Reset ───────────────────────────────────────── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+body{
+  background:
+    radial-gradient(1000px 600px at 50% 20%,rgba(0,180,255,.09),transparent 55%),
+    linear-gradient(180deg,#020608,var(--bg) 50%,#020608);
+  color:var(--text);font-family:var(--body);font-size:15px;line-height:1.55;
+  -webkit-font-smoothing:antialiased;
+}
+body::before{
+  content:'';position:fixed;inset:0;pointer-events:none;z-index:-2;
+  background:linear-gradient(to right,var(--grid-c) 1px,transparent 1px),
+             linear-gradient(to bottom,var(--grid-c) 1px,transparent 1px);
+  background-size:32px 32px;
+}
+body.night-ops{
+  background:
+    radial-gradient(1000px 600px at 50% 20%,rgba(168,85,247,.10),transparent 55%),
+    linear-gradient(180deg,#04000c,var(--bg) 50%,#04000c);
+}
+::-webkit-scrollbar{width:5px}
+::-webkit-scrollbar-track{background:var(--bg2)}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+
+/* ── CRT + Vignette ──────────────────────────────── */
+#particle-canvas{position:fixed;inset:0;pointer-events:none;z-index:0;}
+.crt-lines{position:fixed;inset:0;pointer-events:none;z-index:2;
+  background:repeating-linear-gradient(to bottom,rgba(0,0,0,0) 0px,rgba(0,0,0,0) 2px,rgba(0,0,0,.08) 3px);opacity:.5;}
+.crt-vignette{position:fixed;inset:0;pointer-events:none;z-index:2;
+  background:radial-gradient(900px 600px at 50% 38%,transparent 52%,rgba(0,0,0,.62) 100%);}
+
+/* ── Boot Screen ─────────────────────────────────── */
+#boot{
+  position:fixed;inset:0;z-index:9999;background:#000;
+  display:flex;align-items:center;justify-content:center;
+  transition:opacity .55s ease;
+}
+.boot-card{
+  width:min(480px,92vw);border:1px solid var(--accent);background:rgba(0,5,15,.98);
+  padding:44px 40px;border-radius:14px;text-align:center;
+  box-shadow:0 0 80px rgba(0,180,255,.12),0 0 200px rgba(0,180,255,.04);
+}
+.boot-logo{width:72px;height:72px;border-radius:50%;margin:0 auto 20px;
+  border:2px solid var(--accent);display:block;
+  box-shadow:0 0 30px rgba(0,180,255,.22);}
+.boot-title{font-family:var(--display);font-size:22px;font-weight:700;
+  letter-spacing:.3em;color:var(--accent);margin-bottom:4px;}
+.boot-sub{font-family:var(--mono);font-size:11px;color:var(--muted);
+  letter-spacing:.18em;margin-bottom:28px;}
+.boot-input{
+  width:100%;background:#000;border:1px solid var(--accent);color:var(--accent);
+  font-family:var(--mono);font-size:20px;padding:13px 16px;
+  text-align:center;letter-spacing:4px;outline:none;border-radius:4px;
+  transition:box-shadow .2s;
+}
+.boot-input:focus{box-shadow:0 0 24px rgba(0,180,255,.25);}
+.boot-msg{margin-top:14px;font-family:var(--mono);font-size:12px;
+  color:var(--danger);letter-spacing:.1em;min-height:18px;}
+.boot-demo{margin-top:14px;font-family:var(--mono);font-size:11px;
+  color:var(--muted);cursor:pointer;letter-spacing:.1em;}
+.boot-demo:hover{color:var(--accent);}
+.boot-typing{
+  font-family:var(--mono);font-size:14px;color:var(--accent);
+  letter-spacing:.2em;overflow:hidden;white-space:nowrap;width:0;
+  animation:typing 2.2s steps(28,end) .3s forwards;margin-bottom:24px;
+}
+@keyframes typing{from{width:0}to{width:100%}}
+
+/* ── App Shell ───────────────────────────────────── */
+#app{display:none;flex-direction:column;height:100vh;position:relative;z-index:4;}
+
+/* ── Topbar ──────────────────────────────────────── */
+.topbar{
+  height:var(--topbar-h);background:rgba(4,8,18,.98);
+  border-bottom:1px solid var(--border);
+  display:grid;grid-template-columns:auto 1fr auto;align-items:center;
+  padding:0 18px;gap:16px;flex-shrink:0;z-index:50;position:relative;
+  box-shadow:0 0 40px rgba(0,180,255,.06);
+}
+.topbar-brand{display:flex;align-items:center;gap:12px;}
+.topbar-logo{width:42px;height:42px;border-radius:50%;
+  border:1px solid rgba(0,180,255,.35);
+  box-shadow:0 0 18px rgba(0,180,255,.20);}
+.brand-name{font-family:var(--display);font-weight:700;font-size:17px;
+  letter-spacing:.22em;color:var(--bright);}
+.brand-sub{font-family:var(--mono);font-size:9px;color:var(--muted);
+  letter-spacing:.18em;margin-top:1px;}
+.topbar-center{display:flex;align-items:center;gap:18px;justify-content:center;}
+.clock-block{text-align:center;background:rgba(0,180,255,.04);
+  border:1px solid var(--border);border-radius:6px;padding:6px 14px;}
+.clock-time{font-family:var(--mono);font-size:18px;color:var(--accent);letter-spacing:.08em;}
+.clock-label{font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:.18em;margin-top:1px;}
+.topbar-right{display:flex;align-items:center;gap:10px;}
+.mode-btn{
+  font-family:var(--mono);font-size:10px;letter-spacing:.12em;
+  padding:5px 10px;background:var(--bg3);color:var(--muted);
+  border:1px solid var(--border);border-radius:4px;cursor:pointer;
+  transition:all .18s;
+}
+.mode-btn:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-glow);}
+.mode-btn.active{border-color:var(--accent);color:var(--accent);background:var(--accent-glow);}
+.officer-chip{
+  display:flex;align-items:center;gap:10px;
+  background:rgba(0,180,255,.05);border:1px solid var(--border);
+  border-radius:8px;padding:6px 12px;
+}
+.officer-avatar{width:34px;height:34px;border-radius:50%;
+  border:2px solid var(--accent);object-fit:cover;background:var(--bg3);
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--display);font-size:15px;font-weight:700;color:var(--accent);}
+.officer-name{font-family:var(--display);font-size:14px;font-weight:600;color:var(--bright);}
+.officer-role{font-family:var(--mono);font-size:9px;color:var(--accent);letter-spacing:.15em;}
+.status-dot{width:8px;height:8px;border-radius:50%;background:var(--ok);
+  box-shadow:0 0 8px var(--ok);animation:pulse-dot 2s infinite;}
+@keyframes pulse-dot{0%,100%{opacity:1}50%{opacity:.45}}
+
+/* ── Body Layout ─────────────────────────────────── */
+.body-wrap{display:flex;flex:1;overflow:hidden;}
+
+/* ── Sidebar ─────────────────────────────────────── */
+.sidebar{
+  width:var(--sidebar-w);flex-shrink:0;
+  background:rgba(4,8,18,.98);border-right:1px solid var(--border);
+  display:flex;flex-direction:column;overflow:hidden;z-index:40;
+}
+.sidebar-scroll{flex:1;overflow-y:auto;padding:10px 0;}
+.nav-section{padding:6px 16px 4px;font-family:var(--mono);font-size:9px;
+  color:var(--muted);letter-spacing:.22em;border-bottom:1px solid rgba(0,180,255,.06);
+  margin-bottom:2px;padding-bottom:8px;}
+.nav-item{
+  display:flex;align-items:center;gap:10px;padding:9px 18px;
+  font-family:var(--display);font-size:14px;font-weight:600;letter-spacing:.06em;
+  color:rgba(160,200,240,.55);cursor:pointer;transition:all .18s;
+  border-left:3px solid transparent;
+}
+.nav-item:hover{color:var(--bright);background:var(--accent-glow);}
+.nav-item.active{
+  color:var(--bright);border-left-color:var(--accent);
+  background:linear-gradient(90deg,var(--accent-glow),transparent 70%);
+}
+.nav-icon{font-size:15px;width:20px;text-align:center;}
+.nav-badge{
+  margin-left:auto;background:var(--danger);color:#fff;
+  border-radius:10px;padding:1px 7px;font-family:var(--mono);font-size:10px;
+  display:none;
+}
+.nav-badge.on{display:inline;}
+.sidebar-footer{padding:12px 16px;border-top:1px solid var(--border);}
+.posture-chip{
+  display:flex;align-items:center;gap:8px;padding:7px 12px;
+  background:rgba(16,185,129,.06);border:1px solid rgba(16,185,129,.25);
+  border-radius:6px;font-family:var(--mono);font-size:11px;color:var(--ok);
+  letter-spacing:.12em;
+}
+.posture-dot{width:7px;height:7px;border-radius:50%;background:var(--ok);
+  box-shadow:0 0 7px var(--ok);animation:pulse-dot 2s infinite;}
+
+/* ── Main Content ────────────────────────────────── */
+.main-content{flex:1;overflow-y:auto;padding:18px;}
+.page{display:none;}
+.page.active{display:block;}
+.page-eyebrow{font-family:var(--mono);font-size:10px;letter-spacing:.24em;
+  color:var(--muted);margin-bottom:4px;}
+.page-title{font-family:var(--display);font-size:28px;font-weight:700;
+  color:var(--bright);letter-spacing:.06em;margin-bottom:18px;
+  text-shadow:0 0 30px rgba(0,180,255,.15);}
+
+/* ── Panels ──────────────────────────────────────── */
+.panel{
+  background:linear-gradient(180deg,var(--surface),var(--panel));
+  border:1px solid var(--border);border-radius:var(--r);
+  padding:0;overflow:hidden;position:relative;margin-bottom:16px;
+}
+.panel::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,var(--accent),transparent);opacity:.4;}
+.panel-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:12px 18px;border-bottom:1px solid var(--border);
+  background:linear-gradient(90deg,rgba(0,180,255,.06),transparent 60%);
+}
+.panel-title{font-family:var(--mono);font-size:11px;letter-spacing:.22em;
+  color:var(--accent);text-transform:uppercase;}
+.panel-body{padding:16px 18px;}
+
+/* ── Grid Layouts ────────────────────────────────── */
+.grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:16px;}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
+@media(max-width:900px){.grid-4{grid-template-columns:1fr 1fr;}.grid-3{grid-template-columns:1fr;}.grid-2{grid-template-columns:1fr;}}
+
+/* ── Stat Cards ──────────────────────────────────── */
+.stat-card{
+  background:linear-gradient(180deg,var(--surface),rgba(4,8,18,.99));
+  border:1px solid var(--border);border-radius:var(--r);padding:18px;
+  position:relative;overflow:hidden;
+}
+.stat-card::before{content:'';position:absolute;top:0;left:0;width:3px;
+  height:100%;background:var(--accent);}
+.stat-card.signal::before{background:var(--signal);}
+.stat-card.ok::before{background:var(--ok);}
+.stat-card.warn::before{background:var(--warn);}
+.stat-value{font-family:var(--display);font-size:38px;font-weight:900;
+  color:var(--bright);letter-spacing:.02em;line-height:1;}
+.stat-label{font-family:var(--mono);font-size:9px;letter-spacing:.22em;
+  color:var(--muted);margin-top:4px;}
+.stat-sub{font-family:var(--mono);font-size:11px;color:var(--accent);margin-top:8px;}
+
+/* ── Script Status Cards ─────────────────────────── */
+.script-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;}
+@media(max-width:900px){.script-grid{grid-template-columns:1fr 1fr;}}
+.script-card{
+  background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);
+  padding:14px;position:relative;
+}
+.script-name{font-family:var(--display);font-size:16px;font-weight:700;
+  color:var(--bright);margin-bottom:2px;}
+.script-ticker{font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:.1em;}
+.script-mode{
+  display:inline-block;margin-top:10px;padding:3px 9px;border-radius:4px;
+  font-family:var(--mono);font-size:10px;letter-spacing:.14em;
+}
+.script-mode.obs{background:rgba(245,158,11,.09);border:1px solid rgba(245,158,11,.3);color:var(--warn);}
+.script-mode.live{background:rgba(16,185,129,.09);border:1px solid rgba(16,185,129,.3);color:var(--ok);}
+.script-last{font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:8px;}
+
+/* ── Table ───────────────────────────────────────── */
+.tbl-wrap{overflow-x:auto;}
+.data-table{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:12px;}
+.data-table th{
+  padding:9px 12px;text-align:left;color:var(--muted);
+  letter-spacing:.16em;font-size:10px;font-weight:400;
+  border-bottom:1px solid var(--accent);background:var(--panel);
+  white-space:nowrap;
+}
+.data-table td{
+  padding:9px 12px;border-bottom:1px solid rgba(0,180,255,.07);
+  vertical-align:middle;
+}
+.data-table tr:hover td{background:rgba(0,180,255,.03);}
+.td-time{color:var(--accent2);}
+.td-script{font-family:var(--display);font-weight:700;font-size:13px;color:var(--bright);}
+.td-action-buy{color:var(--ok);}
+.td-action-sell{color:var(--danger);}
+.td-action-accum{color:var(--signal);}
+
+/* ── Badges ──────────────────────────────────────── */
+.badge{
+  display:inline-block;padding:2px 8px;border-radius:4px;
+  font-family:var(--mono);font-size:10px;letter-spacing:.1em;
+  border:1px solid currentColor;
+}
+.badge.ok{color:var(--ok);background:rgba(16,185,129,.08);}
+.badge.warn{color:var(--warn);background:rgba(245,158,11,.08);}
+.badge.danger{color:var(--danger);background:rgba(255,45,85,.08);}
+.badge.info{color:var(--accent);background:var(--accent-glow);}
+.badge.signal{color:var(--signal);background:var(--signal-glow);}
+.badge.neutral{color:var(--muted);border-color:var(--border);background:none;}
+
+/* ── Buttons ─────────────────────────────────────── */
+.btn{
+  font-family:var(--mono);font-size:11px;letter-spacing:.1em;padding:7px 16px;
+  background:var(--bg3);color:var(--muted);border:1px solid var(--border);
+  border-radius:var(--r);cursor:pointer;transition:all .18s;white-space:nowrap;
+}
+.btn:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-glow);}
+.btn.primary{border-color:rgba(0,180,255,.5);color:var(--accent);background:var(--accent-glow);}
+.btn.primary:hover{background:rgba(0,180,255,.22);box-shadow:0 0 18px rgba(0,180,255,.14);}
+.btn.danger{border-color:rgba(255,45,85,.4);color:var(--danger);background:rgba(255,45,85,.07);}
+.btn.sm{padding:4px 10px;font-size:10px;}
+
+/* ── Chat ────────────────────────────────────────── */
+.chat-wrap{display:flex;flex-direction:column;height:calc(100vh - var(--topbar-h) - 120px);}
+.chat-feed{flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:10px;}
+.chat-msg{display:flex;gap:10px;align-items:flex-start;}
+.chat-msg.mine{flex-direction:row-reverse;}
+.chat-avatar{width:32px;height:32px;border-radius:50%;background:var(--bg3);
+  border:1px solid var(--border);flex-shrink:0;display:flex;align-items:center;
+  justify-content:center;font-family:var(--display);font-size:13px;font-weight:700;
+  color:var(--accent);}
+.chat-bubble{
+  max-width:72%;background:var(--bg3);border:1px solid var(--border);
+  border-radius:10px;padding:9px 13px;font-size:14px;line-height:1.5;
+}
+.chat-msg.mine .chat-bubble{
+  background:rgba(0,180,255,.09);border-color:rgba(0,180,255,.3);
+}
+.chat-meta{font-family:var(--mono);font-size:10px;color:var(--muted);
+  margin-bottom:3px;display:flex;gap:8px;align-items:center;}
+.chat-input-row{display:flex;gap:10px;padding:12px;border-top:1px solid var(--border);}
+.chat-input{
+  flex:1;background:var(--bg3);border:1px solid var(--border);
+  border-radius:var(--r);color:var(--text);font-family:var(--body);
+  font-size:14px;padding:9px 14px;outline:none;transition:border-color .2s;
+}
+.chat-input:focus{border-color:var(--accent);}
+.chat-input::placeholder{color:var(--muted);}
+
+/* ── Forms ───────────────────────────────────────── */
+.form-group{margin-bottom:16px;}
+.form-label{font-family:var(--mono);font-size:10px;letter-spacing:.16em;
+  color:var(--muted);display:block;margin-bottom:6px;}
+.form-input,.form-textarea,.form-select{
+  width:100%;background:var(--bg3);border:1px solid var(--border);
+  border-radius:var(--r);color:var(--text);font-family:var(--body);
+  font-size:14px;padding:9px 13px;outline:none;
+  transition:border-color .2s,box-shadow .2s;
+}
+.form-input:focus,.form-textarea:focus,.form-select:focus{
+  border-color:var(--accent);box-shadow:0 0 20px rgba(0,180,255,.12);}
+.form-textarea{min-height:100px;resize:vertical;}
+.form-select{cursor:pointer;}
+
+/* ── Clock Center ────────────────────────────────── */
+.clock-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px;}
+@media(max-width:900px){.clock-grid{grid-template-columns:1fr 1fr;}}
+.clock-card{
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--r);
+  padding:20px;text-align:center;
+}
+.clock-city{font-family:var(--mono);font-size:10px;letter-spacing:.22em;color:var(--muted);margin-bottom:6px;}
+.clock-display{font-family:var(--tech);font-size:40px;color:var(--accent);
+  text-shadow:0 0 20px rgba(0,180,255,.3);letter-spacing:.04em;}
+.clock-date{font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:4px;}
+.market-status{display:inline-block;margin-top:8px;padding:2px 8px;border-radius:4px;
+  font-family:var(--mono);font-size:10px;letter-spacing:.12em;}
+.market-status.open{color:var(--ok);background:rgba(16,185,129,.09);border:1px solid rgba(16,185,129,.3);}
+.market-status.closed{color:var(--muted);background:none;border:1px solid var(--border);}
+.timer-block{
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--r);
+  padding:20px;
+}
+.timer-display{font-family:var(--tech);font-size:56px;color:var(--warn);
+  text-align:center;text-shadow:0 0 24px rgba(245,158,11,.3);margin:12px 0;}
+.timer-controls{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;}
+
+/* ── AV Studio ───────────────────────────────────── */
+.vwrap{position:relative;background:var(--bg);border:1px solid var(--border);
+  border-radius:var(--r);overflow:hidden;height:160px;margin-bottom:12px;}
+#vCanvas{width:100%;height:100%;display:block;}
+.vhud{position:absolute;bottom:8px;right:10px;font-family:var(--mono);
+  font-size:11px;color:rgba(0,180,255,.55);}
+.narrate-bar{background:var(--border);height:3px;border-radius:2px;overflow:hidden;margin-top:8px;}
+.narrate-fill{height:100%;width:0%;background:var(--accent);
+  border-radius:2px;box-shadow:0 0 6px var(--accent);transition:width .3s linear;}
+
+/* ── Team Panel ──────────────────────────────────── */
+.team-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;}
+.team-card{
+  background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);
+  padding:16px;text-align:center;transition:border-color .2s;
+}
+.team-card:hover{border-color:var(--accent);}
+.team-avatar-circle{
+  width:56px;height:56px;border-radius:50%;background:var(--bg2);
+  border:2px solid var(--accent);margin:0 auto 10px;
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--display);font-size:22px;font-weight:700;color:var(--accent);
+  box-shadow:0 0 18px rgba(0,180,255,.18);
+}
+.team-name{font-family:var(--display);font-size:16px;font-weight:700;color:var(--bright);}
+.team-role{font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:.12em;margin-top:2px;}
+.team-since{font-family:var(--mono);font-size:10px;color:var(--accent2);margin-top:6px;}
+.online-dot{display:inline-block;width:8px;height:8px;border-radius:50%;
+  background:var(--ok);box-shadow:0 0 7px var(--ok);animation:pulse-dot 2s infinite;
+  margin-right:5px;}
+
+/* ── Alert/Toast ─────────────────────────────────── */
+#toast{
+  position:fixed;bottom:24px;right:24px;z-index:8000;
+  background:var(--bg2);border:1px solid var(--accent);border-radius:8px;
+  padding:12px 20px;font-family:var(--mono);font-size:12px;color:var(--accent);
+  box-shadow:0 0 30px rgba(0,180,255,.14);
+  opacity:0;transform:translateY(8px);transition:all .3s ease;pointer-events:none;
+}
+#toast.show{opacity:1;transform:translateY(0);}
+#toast.danger{border-color:var(--danger);color:var(--danger);box-shadow:0 0 30px rgba(255,45,85,.14);}
+
+/* ── Voice Indicator ─────────────────────────────── */
+#voice-indicator{
+  position:fixed;bottom:18px;left:calc(var(--sidebar-w) + 20px);z-index:7000;
+  display:flex;align-items:center;gap:8px;padding:7px 14px;
+  border-radius:999px;background:var(--bg2);border:1px solid var(--border);
+  font-family:var(--mono);font-size:11px;color:var(--accent);
+  opacity:0;transition:opacity .3s;pointer-events:none;
+}
+#voice-indicator.active{opacity:1;}
+.vi-bars{display:flex;align-items:center;gap:2px;height:14px;}
+.vi-bar{width:3px;border-radius:2px;background:var(--accent);animation:viBar .6s ease-in-out infinite alternate;}
+.vi-bar:nth-child(1){height:5px;animation-delay:0s}
+.vi-bar:nth-child(2){height:11px;animation-delay:.1s}
+.vi-bar:nth-child(3){height:14px;animation-delay:.2s}
+.vi-bar:nth-child(4){height:9px;animation-delay:.3s}
+.vi-bar:nth-child(5){height:5px;animation-delay:.4s}
+@keyframes viBar{from{opacity:.4;transform:scaleY(.6)}to{opacity:1;transform:scaleY(1)}}
+
+/* ── Watchlist ───────────────────────────────────── */
+.watch-table-wrap{overflow-x:auto;}
+.watch-item-add{display:flex;gap:10px;margin-bottom:14px;}
+
+/* ── Ticker ──────────────────────────────────────── */
+.ticker-strip{
+  background:rgba(0,180,255,.04);border:1px solid var(--border);
+  border-radius:4px;padding:7px 12px;font-family:var(--mono);font-size:11px;
+  color:var(--muted);overflow:hidden;white-space:nowrap;margin-bottom:16px;
+}
+.ticker-strip span{color:var(--accent);}
+
+/* ── Separator ───────────────────────────────────── */
+.sep{height:1px;background:var(--border);margin:16px 0;}
+</style>
+</head>
+<body>
+
+<!-- Particle canvas + CRT layers -->
+<canvas id="particle-canvas"></canvas>
+<div class="crt-lines"></div>
+<div class="crt-vignette"></div>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<!-- VOICE INDICATOR -->
+<div id="voice-indicator">
+  <div class="vi-bars">
+    <div class="vi-bar"></div><div class="vi-bar"></div><div class="vi-bar"></div>
+    <div class="vi-bar"></div><div class="vi-bar"></div>
+  </div>
+  <span id="vi-label">SPEAKING…</span>
+</div>
+
+<!-- ═══════════════════════ BOOT SCREEN ═══════════════════════ -->
+<div id="boot">
+  <div class="boot-card">
+    <img class="boot-logo" src="https://imagedelivery.net/vqeQDU8kLtN4mG7c7hdsdQ/c1cf7f1c-6709-4f7d-cbea-d41894dce300/public" alt="S3">
+    <div class="boot-typing">S3 TRADING LAB // CONSOLE v1.0</div>
+    <div class="boot-title">S3 TRADING LAB</div>
+    <div class="boot-sub">AUTHORIZED ACCESS ONLY — ENTER ACCESS CODE</div>
+    <input id="bootCode" type="text" class="boot-input" placeholder="[ ACCESS CODE ]"
+           autocomplete="off" spellcheck="false" autofocus maxlength="12">
+    <div id="bootMsg" class="boot-msg"></div>
+    <div class="boot-demo" onclick="demoLogin()">[ DEMO — ENTER WITHOUT CODE ]</div>
+  </div>
+</div>
+
+<!-- ═══════════════════════ MAIN APP ═══════════════════════ -->
+<div id="app">
+
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div class="topbar-brand">
+      <img class="topbar-logo"
+           src="https://imagedelivery.net/vqeQDU8kLtN4mG7c7hdsdQ/c1cf7f1c-6709-4f7d-cbea-d41894dce300/public" alt="S3">
+      <div>
+        <div class="brand-name">S3 TRADING LAB</div>
+        <div class="brand-sub">IRON SIGHT CONSOLE</div>
+      </div>
+    </div>
+
+    <div class="topbar-center">
+      <div class="clock-block">
+        <div class="clock-time" id="clkNY">--:--:--</div>
+        <div class="clock-label">NEW YORK / ET</div>
+      </div>
+      <div class="clock-block">
+        <div class="clock-time" id="clkLA">--:--:--</div>
+        <div class="clock-label">LOS ANGELES / PT</div>
+      </div>
+      <div class="clock-block">
+        <div class="clock-time" id="clkLN">--:--:--</div>
+        <div class="clock-label">LONDON / GMT</div>
+      </div>
+    </div>
+
+    <div class="topbar-right">
+      <button class="mode-btn" id="nightBtn" onclick="toggleNightOps()">NIGHT OPS</button>
+      <button class="mode-btn" id="voiceBtn" onclick="toggleVoice()">VOICE ON</button>
+      <div class="officer-chip">
+        <div class="officer-avatar" id="officerInitial">?</div>
+        <div>
+          <div class="officer-name" id="officerName">---</div>
+          <div class="officer-role" id="officerRole">---</div>
+        </div>
+        <div class="status-dot"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BODY -->
+  <div class="body-wrap">
+
+    <!-- SIDEBAR -->
+    <nav class="sidebar">
+      <div class="sidebar-scroll">
+        <div class="nav-section">TRADING OPS</div>
+        <div class="nav-item active" onclick="showPage('overview')">
+          <span class="nav-icon">◈</span> OVERVIEW
+        </div>
+        <div class="nav-item" onclick="showPage('signals')">
+          <span class="nav-icon">⚡</span> SIGNAL MONITOR
+          <span class="nav-badge" id="badge-signals">0</span>
+        </div>
+        <div class="nav-item" onclick="showPage('scripts')">
+          <span class="nav-icon">◉</span> SCRIPT STATUS
+        </div>
+        <div class="nav-item" onclick="showPage('watchlist')">
+          <span class="nav-icon">◎</span> WATCHLIST
+        </div>
+        <div class="nav-section">TEAM</div>
+        <div class="nav-item" onclick="showPage('team')">
+          <span class="nav-icon">◫</span> TEAM ONLINE
+        </div>
+        <div class="nav-item" onclick="showPage('chat')">
+          <span class="nav-icon">◷</span> LIVE CHAT
+          <span class="nav-badge" id="badge-chat">0</span>
+        </div>
+        <div class="nav-item" onclick="showPage('support')">
+          <span class="nav-icon">◬</span> SUPPORT
+        </div>
+        <div class="nav-section">STUDIO</div>
+        <div class="nav-item" onclick="showPage('clocks')">
+          <span class="nav-icon">◕</span> CLOCK CENTER
+        </div>
+        <div class="nav-item" onclick="showPage('av')">
+          <span class="nav-icon">◈</span> AV STUDIO
+        </div>
+        <div class="nav-section" id="adminSection" style="display:none">ADMIN</div>
+        <div class="nav-item" id="adminNav" style="display:none" onclick="showPage('admin')">
+          <span class="nav-icon">◆</span> ADMIN PANEL
+        </div>
+      </div>
+      <div class="sidebar-footer">
+        <div class="posture-chip">
+          <div class="posture-dot"></div>
+          <span id="postureLabel">OBSERVATION</span>
+        </div>
+      </div>
+    </nav>
+
+    <!-- MAIN CONTENT -->
+    <main class="main-content">
+
+      <!-- ── OVERVIEW ── -->
+      <div class="page active" id="page-overview">
+        <div class="page-eyebrow">S3 TRADING LAB // CONSOLE</div>
+        <div class="page-title">OVERVIEW</div>
+
+        <div class="ticker-strip">
+          LAST SIGNAL: <span id="tickerText">Awaiting data feed…</span>
+        </div>
+
+        <div class="grid-4">
+          <div class="stat-card">
+            <div class="stat-value" id="stat-scripts">4</div>
+            <div class="stat-label">ACTIVE SCRIPTS</div>
+            <div class="stat-sub">↑ All monitoring</div>
+          </div>
+          <div class="stat-card signal">
+            <div class="stat-value" id="stat-signals-today">—</div>
+            <div class="stat-label">SIGNALS TODAY</div>
+            <div class="stat-sub" id="stat-signals-sub">Awaiting feed</div>
+          </div>
+          <div class="stat-card ok">
+            <div class="stat-value" id="stat-team">1</div>
+            <div class="stat-label">TEAM ONLINE</div>
+            <div class="stat-sub" id="stat-team-sub">You are connected</div>
+          </div>
+          <div class="stat-card warn">
+            <div class="stat-value" id="stat-market">—</div>
+            <div class="stat-label">MARKET STATUS</div>
+            <div class="stat-sub" id="stat-market-sub">Calculating…</div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-header">
+            <span class="panel-title">SCRIPT STATUS GRID</span>
+            <button class="btn sm" onclick="showPage('scripts')">VIEW ALL</button>
+          </div>
+          <div class="panel-body">
+            <div class="script-grid" id="overview-scripts">
+              <div class="script-card">
+                <div class="script-name">TRNQL</div>
+                <div class="script-ticker">NASDAQ:MNQ1! · 5m</div>
+                <div><span class="script-mode obs">OBSERVATION</span></div>
+                <div class="script-last" id="sc-trnql-last">Last: —</div>
+              </div>
+              <div class="script-card">
+                <div class="script-name">ORB-PUT</div>
+                <div class="script-ticker">NASDAQ:NVDA · 5m</div>
+                <div><span class="script-mode obs">OBSERVATION</span></div>
+                <div class="script-last" id="sc-orb-last">Last: —</div>
+              </div>
+              <div class="script-card">
+                <div class="script-name">BTC-ACCUM</div>
+                <div class="script-ticker">COINBASE:BTCUSD · 1D</div>
+                <div><span class="script-mode obs">OBSERVATION</span></div>
+                <div class="script-last" id="sc-btc-last">Last: —</div>
+              </div>
+              <div class="script-card">
+                <div class="script-name">PHANTOM-MNQ</div>
+                <div class="script-ticker">CME:MNQ · 5m · LSTM</div>
+                <div><span class="script-mode obs">OBSERVATION</span></div>
+                <div class="script-last" id="sc-phantom-last">Last: —</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-header">
+            <span class="panel-title">RECENT SIGNALS</span>
+            <button class="btn sm" onclick="showPage('signals')">FULL LOG</button>
+          </div>
+          <div class="panel-body">
+            <div class="tbl-wrap">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>TIME (ET)</th>
+                    <th>SCRIPT</th>
+                    <th>ACTION</th>
+                    <th>PRICE</th>
+                    <th>STATUS</th>
+                  </tr>
+                </thead>
+                <tbody id="overview-signal-tbody">
+                  <tr><td colspan="5" style="text-align:center;color:var(--muted);padding:20px;font-size:12px;">
+                    Deploy GAS backend to enable live signal feed
+                  </td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── SIGNAL MONITOR ── -->
+      <div class="page" id="page-signals">
+        <div class="page-eyebrow">IRON SIGHT // SIGNALS</div>
+        <div class="page-title">SIGNAL MONITOR</div>
+        <div class="panel">
+          <div class="panel-header">
+            <span class="panel-title">SIGNAL LOG</span>
+            <div style="display:flex;gap:8px;">
+              <select class="form-select" id="signalFilter" style="width:160px;padding:4px 8px;font-size:11px;" onchange="filterSignals()">
+                <option value="all">ALL SCRIPTS</option>
+                <option value="TRNQL">TRNQL</option>
+                <option value="ORB-PUT">ORB-PUT</option>
+                <option value="BTC-ACCUM">BTC-ACCUM</option>
+                <option value="PHANTOM-MNQ">PHANTOM-MNQ</option>
+              </select>
+              <button class="btn sm primary" onclick="refreshSignals()">⟳ REFRESH</button>
+            </div>
+          </div>
+          <div class="panel-body">
+            <div class="tbl-wrap">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>TIMESTAMP (ET)</th>
+                    <th>SCRIPT</th>
+                    <th>MODEL ID</th>
+                    <th>ACTION</th>
+                    <th>PRICE</th>
+                    <th>TIER</th>
+                    <th>STATUS</th>
+                    <th>NOTES</th>
+                  </tr>
+                </thead>
+                <tbody id="signal-tbody">
+                  <tr><td colspan="8" style="text-align:center;color:var(--muted);padding:24px;font-size:12px;">
+                    Connect GAS backend to stream live signal data
+                  </td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── SCRIPT STATUS ── -->
+      <div class="page" id="page-scripts">
+        <div class="page-eyebrow">IRON SIGHT // SCRIPTS</div>
+        <div class="page-title">SCRIPT STATUS</div>
+        <div class="grid-2">
+          <div class="panel">
+            <div class="panel-header">
+              <span class="panel-title">TRNQL_8AMSWEEP.v3</span>
+              <span class="badge warn">OBSERVATION</span>
+            </div>
+            <div class="panel-body">
+              <div style="font-family:var(--mono);font-size:12px;line-height:2;">
+                <div>TICKER: <span style="color:var(--bright)">NASDAQ:MNQ1!</span></div>
+                <div>TIMEFRAME: <span style="color:var(--bright)">5-min</span></div>
+                <div>SIGNAL TYPE: <span style="color:var(--bright)">8AM Range Breakout</span></div>
+                <div>VERSION: <span style="color:var(--accent)">v3.0</span></div>
+                <div>LAST SIGNAL: <span style="color:var(--muted)" id="detail-trnql">—</span></div>
+              </div>
+              <div class="sep"></div>
+              <p style="font-size:13px;color:var(--muted);line-height:1.7;">Monitors the 7:55–8:00 CT pre-market range on MNQ futures. Fires BUY/SELL signal on breakout with FVG and LSTM council quorum validation.</p>
+            </div>
+          </div>
+          <div class="panel">
+            <div class="panel-header">
+              <span class="panel-title">ORB-PUT-v1.5</span>
+              <span class="badge warn">OBSERVATION</span>
+            </div>
+            <div class="panel-body">
+              <div style="font-family:var(--mono);font-size:12px;line-height:2;">
+                <div>TICKER: <span style="color:var(--bright)">NASDAQ:NVDA</span></div>
+                <div>TIMEFRAME: <span style="color:var(--bright)">5-min (15-min ORB)</span></div>
+                <div>SIGNAL TYPE: <span style="color:var(--bright)">Gap-Down ORB Breakout</span></div>
+                <div>VERSION: <span style="color:var(--accent)">v1.5</span></div>
+                <div>LAST SIGNAL: <span style="color:var(--muted)" id="detail-orb">—</span></div>
+              </div>
+              <div class="sep"></div>
+              <p style="font-size:13px;color:var(--muted);line-height:1.7;">Gap-down qualifier (-0.3% to -5.0%). Fires short signal on close below 9:30–9:45 ORB Low. Equity proxy for 0DTE PUT options. Phase 2 live paper trading active.</p>
+            </div>
+          </div>
+          <div class="panel">
+            <div class="panel-header">
+              <span class="panel-title">BTC-ACCUM-v1</span>
+              <span class="badge warn">OBSERVATION</span>
+            </div>
+            <div class="panel-body">
+              <div style="font-family:var(--mono);font-size:12px;line-height:2;">
+                <div>TICKER: <span style="color:var(--bright)">COINBASE:BTCUSD</span></div>
+                <div>TIMEFRAME: <span style="color:var(--bright)">1D</span></div>
+                <div>SIGNAL TYPE: <span style="color:var(--bright)">Grid Accumulation</span></div>
+                <div>VERSION: <span style="color:var(--accent)">v1.0</span></div>
+                <div>LAST SIGNAL: <span style="color:var(--muted)" id="detail-btc">—</span></div>
+              </div>
+              <div class="sep"></div>
+              <p style="font-size:13px;color:var(--muted);line-height:1.7;">200-day SMA anchor. GTC limit orders at L1=-8%, L2=-15%, L3=-25%, L4=-40%. Capital: $500/$1000/$2000/$5000. IBKR crypto via PAXOS. Pending IBKR permissions approval.</p>
+            </div>
+          </div>
+          <div class="panel">
+            <div class="panel-header">
+              <span class="panel-title">PHANTOM-MNQ</span>
+              <span class="badge warn">OBSERVATION</span>
+            </div>
+            <div class="panel-body">
+              <div style="font-family:var(--mono);font-size:12px;line-height:2;">
+                <div>TICKER: <span style="color:var(--bright)">CME:MNQ</span></div>
+                <div>TIMEFRAME: <span style="color:var(--bright)">5-min</span></div>
+                <div>SIGNAL TYPE: <span style="color:var(--bright)">LSTM + Agent Council</span></div>
+                <div>VERSION: <span style="color:var(--accent)">v0.1 (Dev)</span></div>
+                <div>LAST SIGNAL: <span style="color:var(--muted)" id="detail-phantom">—</span></div>
+              </div>
+              <div class="sep"></div>
+              <p style="font-size:13px;color:var(--muted);line-height:1.7;">Python autonomous trading system. LSTM price prediction + multi-agent council (Gatekeeper, Risk, Reaper). NT8 ATI bridge for bracket order execution. NT8 Windows install pending.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── WATCHLIST ── -->
+      <div class="page" id="page-watchlist">
+        <div class="page-eyebrow">S3 TRADING LAB // INSTRUMENTS</div>
+        <div class="page-title">WATCHLIST</div>
+        <div class="panel">
+          <div class="panel-header">
+            <span class="panel-title">TRACKED INSTRUMENTS</span>
+            <button class="btn sm primary" onclick="showAddWatch()">+ ADD</button>
+          </div>
+          <div class="panel-body">
+            <div class="watch-item-add" id="watchAddRow" style="display:none;">
+              <input type="text" class="form-input" id="watchSymbol" placeholder="SYMBOL (e.g. NVDA)" style="max-width:160px;">
+              <input type="text" class="form-input" id="watchNote" placeholder="Note (optional)" style="flex:1;">
+              <button class="btn primary" onclick="addWatchItem()">ADD</button>
+              <button class="btn" onclick="document.getElementById('watchAddRow').style.display='none'">CANCEL</button>
+            </div>
+            <div class="tbl-wrap">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>SYMBOL</th>
+                    <th>ADDED</th>
+                    <th>NOTE</th>
+                    <th>ACTION</th>
+                  </tr>
+                </thead>
+                <tbody id="watchlist-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── TEAM ── -->
+      <div class="page" id="page-team">
+        <div class="page-eyebrow">S3 TRADING LAB // MEMBERS</div>
+        <div class="page-title">TEAM ONLINE</div>
+        <div class="panel">
+          <div class="panel-header">
+            <span class="panel-title">ACTIVE SESSIONS</span>
+            <span class="badge ok" id="team-count-badge">1 ONLINE</span>
+          </div>
+          <div class="panel-body">
+            <div class="team-grid" id="team-grid">
+              <!-- populated by JS -->
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── LIVE CHAT ── -->
+      <div class="page" id="page-chat">
+        <div class="page-eyebrow">S3 TRADING LAB // COMMUNICATIONS</div>
+        <div class="page-title">LIVE CHAT</div>
+        <div class="panel" style="padding:0;">
+          <div class="panel-header">
+            <span class="panel-title">TEAM CHANNEL</span>
+            <button class="btn sm" onclick="refreshChat()">⟳ REFRESH</button>
+          </div>
+          <div class="chat-wrap">
+            <div class="chat-feed" id="chat-feed">
+              <!-- populated by JS -->
+            </div>
+            <div class="chat-input-row">
+              <input type="text" class="chat-input" id="chatInput"
+                     placeholder="Type a message… (Enter to send)"
+                     onkeydown="if(event.key==='Enter')sendChat()">
+              <button class="btn primary" onclick="sendChat()">SEND</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── SUPPORT ── -->
+      <div class="page" id="page-support">
+        <div class="page-eyebrow">S3 TRADING LAB // SUPPORT</div>
+        <div class="page-title">SUPPORT REQUESTS</div>
+        <div class="grid-2">
+          <div class="panel">
+            <div class="panel-header"><span class="panel-title">SUBMIT REQUEST</span></div>
+            <div class="panel-body">
+              <div class="form-group">
+                <label class="form-label">SUBJECT</label>
+                <input type="text" class="form-input" id="suppSubject" placeholder="Brief summary">
+              </div>
+              <div class="form-group">
+                <label class="form-label">DESCRIPTION</label>
+                <textarea class="form-textarea" id="suppBody" placeholder="Describe your issue or question in detail…"></textarea>
+              </div>
+              <button class="btn primary" onclick="submitSupport()">SUBMIT REQUEST</button>
+            </div>
+          </div>
+          <div class="panel">
+            <div class="panel-header">
+              <span class="panel-title">MY REQUESTS</span>
+              <button class="btn sm" onclick="refreshSupport()">⟳ REFRESH</button>
+            </div>
+            <div class="panel-body">
+              <div id="support-list" style="font-family:var(--mono);font-size:12px;color:var(--muted);">
+                No requests on file.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── CLOCK CENTER ── -->
+      <div class="page" id="page-clocks">
+        <div class="page-eyebrow">S3 TRADING LAB // TIME</div>
+        <div class="page-title">CLOCK CENTER</div>
+        <div class="clock-grid">
+          <div class="clock-card">
+            <div class="clock-city">NEW YORK / ET</div>
+            <div class="clock-display" id="big-clk-ny">--:--:--</div>
+            <div class="clock-date" id="big-date-ny">---</div>
+            <div class="market-status" id="nyse-status">---</div>
+          </div>
+          <div class="clock-card">
+            <div class="clock-city">LOS ANGELES / PT</div>
+            <div class="clock-display" id="big-clk-la">--:--:--</div>
+            <div class="clock-date" id="big-date-la">---</div>
+          </div>
+          <div class="clock-card">
+            <div class="clock-city">LONDON / GMT</div>
+            <div class="clock-display" id="big-clk-ln">--:--:--</div>
+            <div class="clock-date" id="big-date-ln">---</div>
+            <div class="market-status" id="lse-status">---</div>
+          </div>
+          <div class="clock-card">
+            <div class="clock-city">TOKYO / JST</div>
+            <div class="clock-display" id="big-clk-tk">--:--:--</div>
+            <div class="clock-date" id="big-date-tk">---</div>
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div class="timer-block">
+            <div class="panel-header" style="padding:12px 0 12px;border-bottom:1px solid var(--border);">
+              <span class="panel-title">COUNTDOWN TIMER</span>
+            </div>
+            <div class="timer-display" id="timerDisplay">00:00:00</div>
+            <div class="timer-controls">
+              <input type="text" class="form-input" id="timerInput" placeholder="HH:MM:SS" style="max-width:130px;text-align:center;">
+              <button class="btn primary" onclick="startTimer()">START</button>
+              <button class="btn" onclick="pauseTimer()">PAUSE</button>
+              <button class="btn" onclick="resetTimer()">RESET</button>
+            </div>
+          </div>
+          <div class="timer-block">
+            <div class="panel-header" style="padding:12px 0 12px;border-bottom:1px solid var(--border);">
+              <span class="panel-title">MARKET HOURS</span>
+            </div>
+            <div style="font-family:var(--mono);font-size:12px;line-height:2.2;margin-top:12px;">
+              <div>NYSE / NASDAQ: <span style="color:var(--bright)">09:30 – 16:00 ET</span></div>
+              <div>PRE-MARKET: <span style="color:var(--bright)">04:00 – 09:30 ET</span></div>
+              <div>AFTER-HOURS: <span style="color:var(--bright)">16:00 – 20:00 ET</span></div>
+              <div class="sep"></div>
+              <div>8AM SWEEP WINDOW: <span style="color:var(--accent)">08:00 – 08:05 CT</span></div>
+              <div>ORB SIGNAL BAR: <span style="color:var(--accent)">09:45 ET CLOSE</span></div>
+              <div>ORB HARD CLOSE: <span style="color:var(--warn)">14:30 ET</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── AV STUDIO ── -->
+      <div class="page" id="page-av">
+        <div class="page-eyebrow">S3 TRADING LAB // AUDIO-VISUAL</div>
+        <div class="page-title">AV STUDIO</div>
+        <div class="grid-2">
+          <!-- MUSIC VISUALIZER -->
+          <div class="panel">
+            <div class="panel-header"><span class="panel-title">MUSIC VISUALIZER</span></div>
+            <div class="panel-body">
+              <div class="vwrap">
+                <canvas id="vCanvas"></canvas>
+                <div class="vhud"><span id="vHz">-- Hz</span> · <span id="vDb">-- dB</span></div>
+              </div>
+              <div style="display:flex;gap:10px;align-items:center;margin-bottom:10px;flex-wrap:wrap;">
+                <label style="font-family:var(--mono);font-size:10px;color:var(--muted);">SOURCE</label>
+                <select id="aSrc" class="form-select" style="flex:1;max-width:160px;padding:5px 9px;font-size:12px;" onchange="onSrcChange()">
+                  <option value="osc">Oscillator</option>
+                  <option value="mic">Microphone</option>
+                  <option value="file">Audio File</option>
+                </select>
+                <select id="vMode" class="form-select" style="flex:1;max-width:120px;padding:5px 9px;font-size:12px;">
+                  <option value="bars">Bars</option>
+                  <option value="wave">Wave</option>
+                  <option value="ring">Ring</option>
+                </select>
+                <input type="file" id="aFile" accept="audio/*" style="display:none" onchange="onFileSelect()">
+              </div>
+              <div id="oscRow" style="display:flex;gap:10px;align-items:center;margin-bottom:10px;flex-wrap:wrap;">
+                <label style="font-family:var(--mono);font-size:10px;color:var(--muted);">WAVE</label>
+                <select id="oscW" class="form-select" style="max-width:110px;padding:5px 8px;font-size:12px;">
+                  <option value="sine">Sine</option><option value="square">Square</option>
+                  <option value="sawtooth">Sawtooth</option><option value="triangle">Triangle</option>
+                </select>
+                <label style="font-family:var(--mono);font-size:10px;color:var(--muted);">FREQ</label>
+                <input type="range" id="oscF" min="20" max="2000" value="440"
+                       style="flex:1;accent-color:var(--accent);" oninput="onFreqChange()">
+                <span id="oscFv" style="font-family:var(--mono);font-size:11px;color:var(--warn);min-width:55px;">440 Hz</span>
+              </div>
+              <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                <button class="btn primary" id="btnAS" onclick="startAudio()">▶ START</button>
+                <button class="btn" id="btnAX" onclick="stopAudio()" disabled>■ STOP</button>
+                <button class="btn" id="btnFile" style="display:none" onclick="document.getElementById('aFile').click()">CHOOSE FILE</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- NARRATION ENGINE -->
+          <div class="panel">
+            <div class="panel-header"><span class="panel-title">NARRATION ENGINE</span></div>
+            <div class="panel-body">
+              <textarea class="form-textarea" id="narTxt" style="min-height:90px;">Welcome to S3 Trading Lab console. Iron Sight signal monitoring is active.</textarea>
+              <div style="display:flex;gap:10px;align-items:center;margin:10px 0;flex-wrap:wrap;">
+                <label style="font-family:var(--mono);font-size:10px;color:var(--muted);">VOICE</label>
+                <select id="vSel" class="form-select" style="flex:1;padding:5px 9px;font-size:12px;"></select>
+              </div>
+              <div style="display:flex;gap:10px;align-items:center;margin-bottom:8px;flex-wrap:wrap;">
+                <label style="font-family:var(--mono);font-size:10px;color:var(--muted);min-width:30px;">RATE</label>
+                <input type="range" id="nRate" min=".5" max="2" step=".05" value="1"
+                       style="flex:1;accent-color:var(--accent);" oninput="document.getElementById('nRateV').textContent=(+this.value).toFixed(2)+'×'">
+                <span id="nRateV" style="font-family:var(--mono);font-size:11px;color:var(--warn);min-width:36px;">1.00×</span>
+                <label style="font-family:var(--mono);font-size:10px;color:var(--muted);min-width:35px;">PITCH</label>
+                <input type="range" id="nPitch" min="0" max="2" step=".1" value="1"
+                       style="flex:1;accent-color:var(--accent);" oninput="document.getElementById('nPitchV').textContent=(+this.value).toFixed(1)">
+                <span id="nPitchV" style="font-family:var(--mono);font-size:11px;color:var(--warn);min-width:24px;">1.0</span>
+              </div>
+              <div class="narrate-bar"><div class="narrate-fill" id="nPb"></div></div>
+              <div style="font-family:var(--mono);font-size:11px;color:var(--muted);margin:6px 0;" id="nSt">IDLE</div>
+              <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                <button class="btn primary" onclick="speakNarration()">▶ SPEAK</button>
+                <button class="btn" onclick="pauseNarration()">⏸ PAUSE</button>
+                <button class="btn" onclick="stopNarration()">■ STOP</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── ADMIN ── -->
+      <div class="page" id="page-admin">
+        <div class="page-eyebrow">S3 TRADING LAB // ADMIN</div>
+        <div class="page-title">ADMIN PANEL</div>
+        <div class="panel">
+          <div class="panel-header">
+            <span class="panel-title">USER MANAGEMENT</span>
+          </div>
+          <div class="panel-body">
+            <div class="tbl-wrap">
+              <table class="data-table">
+                <thead>
+                  <tr><th>NAME</th><th>ROLE</th><th>ACCESS CODE</th><th>STATUS</th><th>LAST LOGIN</th><th>ACTIONS</th></tr>
+                </thead>
+                <tbody id="admin-users-tbody">
+                  <tr><td colspan="6" style="text-align:center;color:var(--muted);padding:20px;font-size:12px;">
+                    Connect GAS backend to manage users
+                  </td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-header">
+            <span class="panel-title">SESSION LOG</span>
+            <button class="btn sm" onclick="refreshAdmin()">⟳ REFRESH</button>
+          </div>
+          <div class="panel-body">
+            <div class="tbl-wrap">
+              <table class="data-table">
+                <thead>
+                  <tr><th>NAME</th><th>LOGIN</th><th>LOGOUT</th><th>DURATION</th><th>STATUS</th></tr>
+                </thead>
+                <tbody id="admin-sessions-tbody">
+                  <tr><td colspan="5" style="text-align:center;color:var(--muted);padding:20px;font-size:12px;">
+                    No session data available
+                  </td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div><!-- /.body-wrap -->
+</div><!-- /#app -->
+
+<script>
+'use strict';
+
+/* ══════════════════════════════════════════════════
+   CONFIG
+   Update GAS_URL after deploying Google Apps Script
+   Sheet ID: 1deDxKXZMYAqSlD-jsF9MO-hM1pmM3BdsvAszPDHND04
+══════════════════════════════════════════════════ */
+const GAS_URL = ''; // TODO: paste deployed GAS /exec URL here
+
+let CURRENT_USER = null;
+let voiceMuted   = false;
+let nightOps     = false;
+let synth        = window.speechSynthesis;
+let aiVoice      = null;
+
+/* ── Watchlist store ── */
+function loadWatchlist(){ try{ return JSON.parse(localStorage.getItem('s3_watchlist')||'[]'); }catch(e){ return []; } }
+function saveWatchlist(d){ localStorage.setItem('s3_watchlist', JSON.stringify(d)); }
+
+/* ── Chat store ── */
+function loadChat(){ try{ return JSON.parse(localStorage.getItem('s3_chat')||'[]'); }catch(e){ return []; } }
+function saveChat(d){ localStorage.setItem('s3_chat', JSON.stringify(d)); }
+
+/* ── Support store ── */
+function loadSupport(){ try{ return JSON.parse(localStorage.getItem('s3_support')||'[]'); }catch(e){ return []; } }
+function saveSupport(d){ localStorage.setItem('s3_support', JSON.stringify(d)); }
+
+/* ══════════════════════════════════════════════════
+   THREE.JS PARTICLE BACKGROUND
+══════════════════════════════════════════════════ */
+(function ParticleBackground() {
+  try {
+    const canvas   = document.getElementById('particle-canvas');
+    const scene    = new THREE.Scene();
+    scene.fog      = new THREE.FogExp2(0x040810, 0.0018);
+    const camera   = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
+    camera.position.z = 9;
+    const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setClearColor(0x000000, 0);
+
+    const COUNT = 3200;
+    const geo = new THREE.BufferGeometry();
+    const pos = new Float32Array(COUNT * 3);
+    for (let i = 0; i < COUNT * 3; i++) pos[i] = (Math.random() - 0.5) * 32;
+    geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+    const mat = new THREE.PointsMaterial({ size: 0.045, color: 0x00b4ff, transparent: true, opacity: 0.55 });
+    const points = new THREE.Points(geo, mat);
+    scene.add(points);
+
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+
+    function animate() {
+      requestAnimationFrame(animate);
+      const t = Date.now() * 0.0005;
+      points.rotation.y = t * 0.18;
+      let bass = 0;
+      if (window.__avAnalyser) {
+        const d = new Uint8Array(window.__avAnalyser.frequencyBinCount);
+        window.__avAnalyser.getByteFrequencyData(d);
+        for (let i = 0; i < 20; i++) bass += d[i];
+        bass /= 20;
+      }
+      const sc = 1 + (bass / 255) * 0.45;
+      points.scale.set(sc, sc, sc);
+      mat.color.setHex(bass > 110 ? (nightOps ? 0xd946ef : 0x7c3aed) : (nightOps ? 0xa855f7 : 0x00b4ff));
+      renderer.render(scene, camera);
+    }
+    animate();
+  } catch(e) { console.warn('Particle BG unavailable:', e.message); }
+})();
+
+/* ══════════════════════════════════════════════════
+   CLOCK SYSTEM
+══════════════════════════════════════════════════ */
+function fmtTZ(tz) {
+  return new Date().toLocaleTimeString('en-US', { hour12: false, timeZone: tz });
+}
+function fmtDateTZ(tz) {
+  return new Date().toLocaleDateString('en-US', { weekday:'short', month:'short', day:'numeric', timeZone: tz });
+}
+
+function tickClocks() {
+  const nyT = fmtTZ('America/New_York');
+  const laT = fmtTZ('America/Los_Angeles');
+  const lnT = fmtTZ('Europe/London');
+  const tkT = fmtTZ('Asia/Tokyo');
+
+  // Topbar clocks
+  document.getElementById('clkNY').textContent = nyT;
+  document.getElementById('clkLA').textContent = laT;
+  document.getElementById('clkLN').textContent = lnT;
+
+  // Clock Center
+  document.getElementById('big-clk-ny').textContent = nyT;
+  document.getElementById('big-clk-la').textContent = laT;
+  document.getElementById('big-clk-ln').textContent = lnT;
+  document.getElementById('big-clk-tk').textContent = tkT;
+  document.getElementById('big-date-ny').textContent = fmtDateTZ('America/New_York');
+  document.getElementById('big-date-la').textContent = fmtDateTZ('America/Los_Angeles');
+  document.getElementById('big-date-ln').textContent = fmtDateTZ('Europe/London');
+  document.getElementById('big-date-tk').textContent = fmtDateTZ('Asia/Tokyo');
+
+  // Market status
+  const now = new Date();
+  const etH = +new Date().toLocaleString('en-US', { hour:'numeric', hour12:false, timeZone:'America/New_York' });
+  const etM = +new Date().toLocaleString('en-US', { minute:'numeric', hour12:false, timeZone:'America/New_York' });
+  const etMin = etH * 60 + etM;
+  const isWeekday = [1,2,3,4,5].includes(now.getDay());
+  const nyseOpen  = isWeekday && etMin >= 570 && etMin < 960; // 9:30-16:00
+  const nyseEl = document.getElementById('nyse-status');
+  nyseEl.textContent  = nyseOpen ? 'MARKET OPEN' : 'MARKET CLOSED';
+  nyseEl.className    = 'market-status ' + (nyseOpen ? 'open' : 'closed');
+
+  document.getElementById('stat-market').textContent = nyseOpen ? 'OPEN' : 'CLOSED';
+  document.getElementById('stat-market-sub').textContent = nyseOpen ? 'NYSE/NASDAQ trading' : 'Market closed';
+}
+setInterval(tickClocks, 1000);
+tickClocks();
+
+/* ══════════════════════════════════════════════════
+   COUNTDOWN TIMER
+══════════════════════════════════════════════════ */
+let timerSec = 0, timerRunning = false, timerInterval = null;
+
+function parseTimerInput() {
+  const v = document.getElementById('timerInput').value.trim();
+  const parts = v.split(':').map(Number);
+  if (parts.length === 3) return parts[0]*3600 + parts[1]*60 + parts[2];
+  if (parts.length === 2) return parts[0]*60 + parts[1];
+  return parseInt(parts[0]) || 0;
+}
+function renderTimer() {
+  const h = Math.floor(timerSec/3600), m = Math.floor((timerSec%3600)/60), s = timerSec%60;
+  document.getElementById('timerDisplay').textContent =
+    String(h).padStart(2,'0')+':'+String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
+}
+function startTimer() {
+  if (!timerSec) timerSec = parseTimerInput();
+  if (!timerSec) return;
+  if (timerRunning) return;
+  timerRunning = true;
+  timerInterval = setInterval(() => {
+    if (timerSec <= 0) { clearInterval(timerInterval); timerRunning = false; showToast('TIMER COMPLETE'); return; }
+    timerSec--; renderTimer();
+  }, 1000);
+}
+function pauseTimer() { clearInterval(timerInterval); timerRunning = false; }
+function resetTimer() { pauseTimer(); timerSec = 0; renderTimer(); }
+
+/* ══════════════════════════════════════════════════
+   NAVIGATION
+══════════════════════════════════════════════════ */
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  const pg = document.getElementById('page-' + id);
+  if (pg) pg.classList.add('active');
+  const nav = Array.from(document.querySelectorAll('.nav-item'))
+    .find(n => n.getAttribute('onclick') && n.getAttribute('onclick').includes("'"+id+"'"));
+  if (nav) nav.classList.add('active');
+
+  if (id === 'chat') { clearChatBadge(); refreshChat(); }
+  if (id === 'team') refreshTeam();
+  if (id === 'watchlist') renderWatchlist();
+  if (id === 'support') refreshSupport();
+}
+
+/* ══════════════════════════════════════════════════
+   VOICE SYSTEM
+══════════════════════════════════════════════════ */
+function initVoices() {
+  if (!synth) return;
+  const voices = synth.getVoices();
+  aiVoice = voices.find(v => /google uk english female/i.test(v.name))
+          || voices.find(v => /google/i.test(v.name) && /en/i.test(v.lang))
+          || voices.find(v => /en-GB/i.test(v.lang))
+          || voices[0] || null;
+
+  // Fill narration voice selector
+  const sel = document.getElementById('vSel');
+  if (sel) {
+    sel.innerHTML = '';
+    voices.forEach((v, i) => {
+      const o = document.createElement('option');
+      o.value = i; o.textContent = v.name + ' (' + v.lang + ')';
+      sel.appendChild(o);
+    });
+    const best = voices.findIndex(v => /google/i.test(v.name) && /en/i.test(v.lang));
+    if (best !== -1) sel.value = best;
+  }
+}
+if (synth && synth.onvoiceschanged !== undefined) synth.onvoiceschanged = initVoices;
+
+function speakText(text, label) {
+  if (voiceMuted || !synth) return;
+  if (synth.speaking) synth.cancel();
+  const u = new SpeechSynthesisUtterance(text);
+  if (aiVoice) u.voice = aiVoice;
+  u.pitch = 1.05; u.rate = 0.9; u.volume = 1.0;
+  u.onstart = () => { const vi = document.getElementById('voice-indicator'); vi.classList.add('active'); document.getElementById('vi-label').textContent = (label || text).slice(0, 32) + '…'; };
+  u.onend = u.onerror = () => document.getElementById('voice-indicator').classList.remove('active');
+  synth.speak(u);
+}
+
+function toggleVoice() {
+  voiceMuted = !voiceMuted;
+  if (synth && synth.speaking) synth.cancel();
+  document.getElementById('voice-indicator').classList.remove('active');
+  document.getElementById('voiceBtn').textContent = voiceMuted ? 'VOICE OFF' : 'VOICE ON';
+  document.getElementById('voiceBtn').classList.toggle('active', !voiceMuted);
+}
+
+/* ── Narration Engine ── */
+let narUtter = null;
+function speakNarration() {
+  if (!synth) return;
+  if (synth.speaking) synth.cancel();
+  const text = document.getElementById('narTxt').value.trim();
+  if (!text) return;
+  const voices = synth.getVoices();
+  const selIdx = +document.getElementById('vSel').value;
+  narUtter = new SpeechSynthesisUtterance(text);
+  narUtter.voice  = voices[selIdx] || null;
+  narUtter.rate   = +document.getElementById('nRate').value;
+  narUtter.pitch  = +document.getElementById('nPitch').value;
+  narUtter.volume = 1.0;
+  const total = text.length;
+  narUtter.onstart    = () => { document.getElementById('nSt').textContent = 'SPEAKING'; document.getElementById('nPb').style.width = '0%'; };
+  narUtter.onboundary = e  => { document.getElementById('nPb').style.width = ((e.charIndex/total)*100).toFixed(1)+'%'; };
+  narUtter.onend      = () => { document.getElementById('nSt').textContent = 'COMPLETE'; document.getElementById('nPb').style.width = '100%'; setTimeout(()=>{ document.getElementById('nPb').style.width='0%'; },1200); };
+  narUtter.onerror    = e  => { document.getElementById('nSt').textContent = 'ERROR: '+e.error; };
+  synth.speak(narUtter);
+}
+function pauseNarration() { synth.paused ? synth.resume() : synth.pause(); }
+function stopNarration()  { synth.cancel(); document.getElementById('nSt').textContent='IDLE'; document.getElementById('nPb').style.width='0%'; }
+
+/* ══════════════════════════════════════════════════
+   AUDIO ENGINE (AV STUDIO)
+══════════════════════════════════════════════════ */
+let audioCtx, analyserNode, gainNode, audioSrc, audioStream, animId;
+
+function onSrcChange() {
+  const v = document.getElementById('aSrc').value;
+  document.getElementById('oscRow').style.display   = v === 'osc'  ? 'flex' : 'none';
+  document.getElementById('btnFile').style.display  = v === 'file' ? 'inline-block' : 'none';
+}
+function onFreqChange() {
+  const v = document.getElementById('oscF').value;
+  document.getElementById('oscFv').textContent = v + ' Hz';
+  if (audioSrc && audioSrc.frequency) audioSrc.frequency.setTargetAtTime(+v, audioCtx.currentTime, 0.02);
+}
+function onFileSelect() {
+  const f = document.getElementById('aFile').files[0];
+  if (f) document.getElementById('btnFile').textContent = f.name.slice(0, 18);
+}
+
+function buildAudioGraph() {
+  if (!audioCtx) {
+    audioCtx    = new (window.AudioContext || window.webkitAudioContext)();
+    analyserNode = audioCtx.createAnalyser();
+    analyserNode.fftSize = 1024;
+    analyserNode.smoothingTimeConstant = 0.82;
+    gainNode = audioCtx.createGain();
+    gainNode.gain.value = 0.7;
+    gainNode.connect(analyserNode);
+    analyserNode.connect(audioCtx.destination);
+    window.__avAnalyser = analyserNode;
+  }
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+}
+
+async function startAudio() {
+  try {
+    buildAudioGraph();
+    const src = document.getElementById('aSrc').value;
+    if (src === 'osc') {
+      audioSrc = audioCtx.createOscillator();
+      audioSrc.type = document.getElementById('oscW').value;
+      audioSrc.frequency.value = +document.getElementById('oscF').value;
+      audioSrc.connect(gainNode); audioSrc.start();
+    } else if (src === 'mic') {
+      audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      audioSrc = audioCtx.createMediaStreamSource(audioStream);
+      audioSrc.connect(gainNode);
+    } else if (src === 'file') {
+      const f = document.getElementById('aFile').files[0];
+      if (!f) { showToast('Select an audio file first.', true); return; }
+      const ab = await f.arrayBuffer();
+      const buf = await audioCtx.decodeAudioData(ab);
+      audioSrc = audioCtx.createBufferSource();
+      audioSrc.buffer = buf; audioSrc.loop = true;
+      audioSrc.connect(gainNode); audioSrc.start();
+    }
+    startVisualizer();
+    document.getElementById('btnAS').disabled = true;
+    document.getElementById('btnAX').disabled = false;
+  } catch(e) { showToast('Audio error: ' + e.message, true); }
+}
+
+function stopAudio() {
+  if (audioSrc) { try { audioSrc.stop ? audioSrc.stop() : audioSrc.disconnect(); } catch(_){} audioSrc = null; }
+  if (audioStream) { audioStream.getTracks().forEach(t => t.stop()); audioStream = null; }
+  if (animId) { cancelAnimationFrame(animId); animId = null; }
+  const cv = document.getElementById('vCanvas');
+  if (cv) cv.getContext('2d').clearRect(0, 0, cv.width, cv.height);
+  document.getElementById('btnAS').disabled = false;
+  document.getElementById('btnAX').disabled = true;
+  document.getElementById('vHz').textContent = '-- Hz';
+  document.getElementById('vDb').textContent = '-- dB';
+}
+
+function startVisualizer() {
+  const canvas = document.getElementById('vCanvas');
+  const c = canvas.getContext('2d');
+  function resize() { canvas.width = canvas.offsetWidth * devicePixelRatio; canvas.height = canvas.offsetHeight * devicePixelRatio; }
+  window.addEventListener('resize', resize); resize();
+
+  function draw() {
+    animId = requestAnimationFrame(draw);
+    const n  = analyserNode.frequencyBinCount;
+    const fd = new Uint8Array(n), td = new Uint8Array(n);
+    analyserNode.getByteFrequencyData(fd);
+    analyserNode.getByteTimeDomainData(td);
+    const W = canvas.width, H = canvas.height;
+    c.clearRect(0, 0, W, H);
+    const mode = document.getElementById('vMode').value;
+    const baseColor = nightOps ? '#a855f7' : '#00b4ff';
+
+    if (mode === 'bars') {
+      const bw = W / fd.length;
+      for (let i = 0; i < fd.length; i++) {
+        const t = fd[i]/255, bh = t * H;
+        c.fillStyle = `hsl(${nightOps ? 270+(1-t)*80 : 200+(1-t)*60},100%,${40+t*30}%)`;
+        c.fillRect(i*bw, H-bh, bw-1, bh);
+      }
+    } else if (mode === 'wave') {
+      c.strokeStyle = baseColor; c.lineWidth = 2 * devicePixelRatio;
+      c.shadowColor = baseColor; c.shadowBlur = 10;
+      c.beginPath();
+      const sw = W / td.length;
+      for (let i = 0; i < td.length; i++) {
+        const y = (td[i]/128)*(H/2);
+        i === 0 ? c.moveTo(0, y) : c.lineTo(i*sw, y);
+      }
+      c.stroke(); c.shadowBlur = 0;
+    } else {
+      const cx = W/2, cy = H/2, R = Math.min(cx,cy)*.5;
+      for (let i = 0; i < fd.length; i++) {
+        const t = fd[i]/255, a = (i/fd.length)*Math.PI*2 - Math.PI/2, len = t*R*.85;
+        c.strokeStyle = `hsl(${nightOps ? 280+(1-t)*80 : 195+(1-t)*70},100%,${48+t*28}%)`;
+        c.lineWidth = 2 * devicePixelRatio;
+        c.beginPath();
+        c.moveTo(cx+Math.cos(a)*R, cy+Math.sin(a)*R);
+        c.lineTo(cx+Math.cos(a)*(R+len), cy+Math.sin(a)*(R+len));
+        c.stroke();
+      }
+      c.beginPath(); c.arc(cx, cy, 4*devicePixelRatio, 0, Math.PI*2);
+      c.fillStyle = baseColor; c.fill();
+    }
+
+    const pk = Math.max(...fd), pi = fd.indexOf(pk);
+    const hz = audioCtx ? ((pi/n)*(audioCtx.sampleRate/2)).toFixed(0) : '--';
+    const db = (20 * Math.log10((pk/255)+1e-6)).toFixed(1);
+    document.getElementById('vHz').textContent = hz + ' Hz';
+    document.getElementById('vDb').textContent = db + ' dB';
+  }
+  draw();
+}
+
+/* ══════════════════════════════════════════════════
+   NIGHT OPS MODE
+══════════════════════════════════════════════════ */
+function toggleNightOps() {
+  nightOps = !nightOps;
+  document.body.classList.toggle('night-ops', nightOps);
+  document.getElementById('nightBtn').classList.toggle('active', nightOps);
+  document.getElementById('nightBtn').textContent = nightOps ? 'NIGHT OPS ON' : 'NIGHT OPS';
+}
+
+/* ══════════════════════════════════════════════════
+   TOAST
+══════════════════════════════════════════════════ */
+function showToast(msg, isDanger) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'show' + (isDanger ? ' danger' : '');
+  setTimeout(() => el.classList.remove('show', 'danger'), 3000);
+}
+
+/* ══════════════════════════════════════════════════
+   BOOT / AUTH
+══════════════════════════════════════════════════ */
+document.getElementById('bootCode').addEventListener('keydown', function(e) {
+  if (e.key !== 'Enter') return;
+  const code = this.value.trim().toUpperCase();
+  if (!code) return;
+  tryLogin(code);
+});
+
+async function tryLogin(code) {
+  const msg = document.getElementById('bootMsg');
+  msg.style.color = 'var(--accent)';
+  msg.textContent = 'VERIFYING…';
+
+  if (GAS_URL) {
+    try {
+      const r = await fetch(GAS_URL + '?action=login&code=' + encodeURIComponent(code));
+      const d = await r.json();
+      if (d.success) { doLogin(d.name, d.role, d.avatar || ''); return; }
+      msg.style.color = 'var(--danger)';
+      msg.textContent = 'ACCESS DENIED — INVALID CODE';
+    } catch(e) {
+      msg.style.color = 'var(--warn)';
+      msg.textContent = 'BACKEND OFFLINE — USE DEMO MODE';
+    }
+  } else {
+    // Offline: check localStorage codes
+    const localUsers = JSON.parse(localStorage.getItem('s3_users') || '[]');
+    const found = localUsers.find(u => u.code === code && u.status === 'ACTIVE');
+    if (found) { doLogin(found.name, found.role, ''); return; }
+    // Default demo code for first-time setup
+    if (code === 'S3ADMIN' || code === 'DEMO') { demoLogin(); return; }
+    msg.style.color = 'var(--danger)';
+    msg.textContent = 'ACCESS DENIED — TRY "DEMO" OR DEPLOY GAS';
+  }
+}
+
+function demoLogin() {
+  doLogin('V.CASELLA', 'ADMIN', '');
+}
+
+function doLogin(name, role, avatar) {
+  CURRENT_USER = { name, role, avatar, loginTime: new Date().toISOString() };
+
+  // Officer chip
+  document.getElementById('officerName').textContent = name;
+  document.getElementById('officerRole').textContent = role;
+  const initial = name.charAt(0);
+  document.getElementById('officerInitial').textContent = initial;
+
+  // Admin nav
+  if (role === 'ADMIN') {
+    document.getElementById('adminSection').style.display = '';
+    document.getElementById('adminNav').style.display = '';
+  }
+
+  // Boot out
+  const boot = document.getElementById('boot');
+  boot.style.opacity = '0';
+  setTimeout(() => { boot.style.display = 'none'; }, 550);
+
+  // Show app
+  const app = document.getElementById('app');
+  app.style.display = 'flex';
+
+  // Init systems
+  initVoices();
+  renderWatchlist();
+  renderTeam();
+  renderChat();
+  startPolling();
+
+  // Welcome narration
+  setTimeout(() => {
+    speakText('S3 Trading Lab console active. Welcome, ' + name + '.', 'SYSTEM ONLINE');
+  }, 800);
+
+  showToast('ACCESS GRANTED — Welcome, ' + name);
+
+  // Log session locally
+  const sessions = JSON.parse(localStorage.getItem('s3_sessions') || '[]');
+  sessions.push({ name, role, sessionId: Math.random().toString(36).slice(2,10).toUpperCase(), loginTime: CURRENT_USER.loginTime, status: 'OPEN' });
+  localStorage.setItem('s3_sessions', JSON.stringify(sessions.slice(-100)));
+}
+
+/* ══════════════════════════════════════════════════
+   WATCHLIST
+══════════════════════════════════════════════════ */
+function renderWatchlist() {
+  const items = loadWatchlist();
+  const tbody = document.getElementById('watchlist-tbody');
+  if (!items.length) {
+    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--muted);padding:20px;font-size:12px;">No items — click + ADD to start tracking</td></tr>';
+    return;
+  }
+  tbody.innerHTML = items.map((item, i) =>
+    '<tr>' +
+    '<td class="td-script">' + esc(item.symbol) + '</td>' +
+    '<td class="td-time">' + item.added + '</td>' +
+    '<td>' + esc(item.note || '—') + '</td>' +
+    '<td><button class="btn danger sm" onclick="removeWatch(' + i + ')">REMOVE</button></td>' +
+    '</tr>'
+  ).join('');
+}
+function showAddWatch() { document.getElementById('watchAddRow').style.display = 'flex'; document.getElementById('watchSymbol').focus(); }
+function addWatchItem() {
+  const sym  = document.getElementById('watchSymbol').value.trim().toUpperCase();
+  const note = document.getElementById('watchNote').value.trim();
+  if (!sym) return;
+  const items = loadWatchlist();
+  items.push({ symbol: sym, note, added: new Date().toLocaleDateString() });
+  saveWatchlist(items);
+  document.getElementById('watchSymbol').value = '';
+  document.getElementById('watchNote').value = '';
+  document.getElementById('watchAddRow').style.display = 'none';
+  renderWatchlist();
+  showToast(sym + ' added to watchlist');
+}
+function removeWatch(i) {
+  const items = loadWatchlist();
+  items.splice(i, 1);
+  saveWatchlist(items);
+  renderWatchlist();
+}
+
+/* ══════════════════════════════════════════════════
+   TEAM
+══════════════════════════════════════════════════ */
+function renderTeam() {
+  const sessions = JSON.parse(localStorage.getItem('s3_sessions') || '[]');
+  const open = sessions.filter(s => s.status === 'OPEN');
+  const grid = document.getElementById('team-grid');
+  if (!open.length) {
+    grid.innerHTML = '<div style="font-family:var(--mono);font-size:12px;color:var(--muted);padding:20px;">No active sessions found</div>';
+    document.getElementById('team-count-badge').textContent = '0 ONLINE';
+    document.getElementById('stat-team').textContent = '0';
+    return;
+  }
+  grid.innerHTML = open.map(s =>
+    '<div class="team-card">' +
+    '<div class="team-avatar-circle">' + s.name.charAt(0) + '</div>' +
+    '<div class="team-name">' + esc(s.name) + '</div>' +
+    '<div class="team-role">' + esc(s.role) + '</div>' +
+    '<div class="team-since"><span class="online-dot"></span>Since ' + new Date(s.loginTime).toLocaleTimeString('en-US', {hour:'2-digit',minute:'2-digit',hour12:false}) + '</div>' +
+    '</div>'
+  ).join('');
+  document.getElementById('team-count-badge').textContent = open.length + ' ONLINE';
+  document.getElementById('stat-team').textContent = open.length;
+  document.getElementById('stat-team-sub').textContent = open.length === 1 ? 'You are connected' : open.length + ' members active';
+}
+function refreshTeam() { renderTeam(); }
+
+/* ══════════════════════════════════════════════════
+   CHAT
+══════════════════════════════════════════════════ */
+let chatLastCount = 0;
+let chatUnread = 0;
+
+function renderChat() {
+  const msgs = loadChat();
+  const feed = document.getElementById('chat-feed');
+  if (!msgs.length) {
+    feed.innerHTML = '<div style="text-align:center;font-family:var(--mono);font-size:12px;color:var(--muted);padding:30px;">No messages yet — say hello to your team!</div>';
+    return;
+  }
+  feed.innerHTML = msgs.slice(-80).map(m => {
+    const mine = CURRENT_USER && m.name === CURRENT_USER.name;
+    return '<div class="chat-msg' + (mine ? ' mine' : '') + '">' +
+      '<div class="chat-avatar">' + m.name.charAt(0) + '</div>' +
+      '<div><div class="chat-meta"><span style="color:var(--bright);">' + esc(m.name) + '</span>' +
+      '<span class="badge ' + (m.role==='ADMIN'?'warn':'info') + '" style="font-size:9px;padding:1px 5px;">' + esc(m.role) + '</span>' +
+      '<span>' + m.time + '</span></div>' +
+      '<div class="chat-bubble">' + esc(m.text) + '</div></div>' +
+      '</div>';
+  }).join('');
+  feed.scrollTop = feed.scrollHeight;
+  chatLastCount = msgs.length;
+}
+
+function sendChat() {
+  if (!CURRENT_USER) return;
+  const input = document.getElementById('chatInput');
+  const text = input.value.trim();
+  if (!text) return;
+  const msgs = loadChat();
+  const msg = {
+    name: CURRENT_USER.name,
+    role: CURRENT_USER.role,
+    text,
+    time: new Date().toLocaleTimeString('en-US', {hour:'2-digit', minute:'2-digit', hour12:false})
+  };
+  msgs.push(msg);
+  saveChat(msgs);
+  input.value = '';
+  renderChat();
+
+  if (GAS_URL) {
+    fetch(GAS_URL, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ action: 'postMessage', name: msg.name, role: msg.role, text: msg.text })
+    }).catch(() => {});
+  }
+}
+
+function refreshChat() {
+  if (GAS_URL) {
+    fetch(GAS_URL + '?action=getChat')
+      .then(r => r.json())
+      .then(data => {
+        if (data && data.messages) {
+          saveChat(data.messages);
+          renderChat();
+        }
+      }).catch(() => renderChat());
+  } else {
+    renderChat();
+  }
+}
+
+function clearChatBadge() {
+  chatUnread = 0;
+  document.getElementById('badge-chat').textContent = '0';
+  document.getElementById('badge-chat').classList.remove('on');
+}
+
+/* ══════════════════════════════════════════════════
+   SUPPORT
+══════════════════════════════════════════════════ */
+function submitSupport() {
+  if (!CURRENT_USER) return;
+  const subject = document.getElementById('suppSubject').value.trim();
+  const body    = document.getElementById('suppBody').value.trim();
+  if (!subject || !body) { showToast('Fill in both fields', true); return; }
+  const item = {
+    id: Date.now().toString(36).toUpperCase(),
+    name: CURRENT_USER.name,
+    subject, body,
+    submitted: new Date().toLocaleString(),
+    status: 'OPEN'
+  };
+  const items = loadSupport();
+  items.push(item);
+  saveSupport(items);
+  document.getElementById('suppSubject').value = '';
+  document.getElementById('suppBody').value = '';
+  refreshSupport();
+  showToast('Support request submitted — ID: ' + item.id);
+
+  if (GAS_URL) {
+    fetch(GAS_URL, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ action: 'submitSupport', ...item })
+    }).catch(() => {});
+  }
+}
+
+function refreshSupport() {
+  const items = loadSupport().filter(i => !CURRENT_USER || CURRENT_USER.role === 'ADMIN' ? true : i.name === CURRENT_USER.name);
+  const el = document.getElementById('support-list');
+  if (!items.length) { el.innerHTML = '<div style="color:var(--muted);font-size:12px;">No requests on file.</div>'; return; }
+  el.innerHTML = items.slice().reverse().map(i =>
+    '<div style="border:1px solid var(--border);border-radius:6px;padding:12px;margin-bottom:10px;">' +
+    '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">' +
+    '<span style="font-family:var(--display);font-size:15px;font-weight:700;color:var(--bright);">' + esc(i.subject) + '</span>' +
+    '<span class="badge ' + (i.status==='OPEN'?'warn':'ok') + '">' + i.status + '</span>' +
+    '</div>' +
+    '<div style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-bottom:8px;">ID: ' + i.id + ' · ' + esc(i.name) + ' · ' + i.submitted + '</div>' +
+    '<div style="font-size:13px;color:var(--text);">' + esc(i.body) + '</div>' +
+    '</div>'
+  ).join('');
+}
+
+/* ══════════════════════════════════════════════════
+   SIGNALS (GAS ActivityLog)
+══════════════════════════════════════════════════ */
+let allSignals = [];
+
+function renderSignals(data) {
+  allSignals = data || [];
+  const filter = document.getElementById('signalFilter').value;
+  const rows = filter === 'all' ? allSignals : allSignals.filter(s => s.script === filter);
+
+  const tbody = document.getElementById('signal-tbody');
+  const ovBody = document.getElementById('overview-signal-tbody');
+
+  if (!rows.length) {
+    const empty = '<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:24px;font-size:12px;">No signals in log</td></tr>';
+    tbody.innerHTML = empty;
+    ovBody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:20px;font-size:12px;">No signals recorded</td></tr>';
+    document.getElementById('stat-signals-today').textContent = '0';
+    return;
+  }
+
+  tbody.innerHTML = rows.slice().reverse().map(s =>
+    '<tr>' +
+    '<td class="td-time">' + esc(s.timestamp || '—') + '</td>' +
+    '<td class="td-script">' + esc(s.script || '—') + '</td>' +
+    '<td><span class="badge info" style="font-size:9px;">' + esc(s.model_id || '—') + '</span></td>' +
+    '<td class="td-action-' + (s.action||'').toLowerCase() + '">' + esc(s.action || '—') + '</td>' +
+    '<td style="font-family:var(--mono);color:var(--bright);">' + (s.price ? '$'+s.price : '—') + '</td>' +
+    '<td>' + (s.tier ? '<span class="badge signal">T'+s.tier+'</span>' : '—') + '</td>' +
+    '<td><span class="badge ' + (s.status==='FILLED'?'ok':s.status==='CANCELLED'?'danger':'warn') + '">' + esc(s.status||'OBS') + '</span></td>' +
+    '<td style="color:var(--muted);font-size:11px;">' + esc(s.notes || '') + '</td>' +
+    '</tr>'
+  ).join('');
+
+  // Overview table (last 5)
+  ovBody.innerHTML = rows.slice(-5).reverse().map(s =>
+    '<tr>' +
+    '<td class="td-time">' + esc(s.timestamp || '—') + '</td>' +
+    '<td class="td-script">' + esc(s.script || '—') + '</td>' +
+    '<td class="td-action-' + (s.action||'').toLowerCase() + '">' + esc(s.action || '—') + '</td>' +
+    '<td style="font-family:var(--mono);color:var(--bright);">' + (s.price ? '$'+s.price : '—') + '</td>' +
+    '<td><span class="badge ' + (s.status==='FILLED'?'ok':'warn') + '">' + esc(s.status||'OBS') + '</span></td>' +
+    '</tr>'
+  ).join('');
+
+  // Stat
+  const today = new Date().toLocaleDateString();
+  const todayCount = rows.filter(s => s.timestamp && s.timestamp.startsWith(today)).length;
+  document.getElementById('stat-signals-today').textContent = todayCount || rows.length;
+  document.getElementById('stat-signals-sub').textContent = todayCount ? 'Today' : 'Total in log';
+
+  // Ticker
+  const latest = rows[rows.length - 1];
+  if (latest) {
+    document.getElementById('tickerText').textContent =
+      (latest.script || '') + ' — ' + (latest.action || '') + ' @ $' + (latest.price || '—') + ' [' + (latest.status || 'OBS') + '] — ' + (latest.timestamp || '');
+  }
+
+  // Badge
+  if (rows.length > 0) {
+    document.getElementById('badge-signals').textContent = rows.length;
+    document.getElementById('badge-signals').classList.add('on');
+  }
+}
+
+function filterSignals() { renderSignals(allSignals); }
+
+function refreshSignals() {
+  if (!GAS_URL) return;
+  fetch(GAS_URL + '?action=getActivityLog')
+    .then(r => r.json())
+    .then(d => { if (d && d.signals) renderSignals(d.signals); })
+    .catch(() => {});
+}
+
+/* ══════════════════════════════════════════════════
+   ADMIN
+══════════════════════════════════════════════════ */
+function refreshAdmin() {
+  const sessions = JSON.parse(localStorage.getItem('s3_sessions') || '[]');
+  const tbody = document.getElementById('admin-sessions-tbody');
+  if (!sessions.length) {
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:16px;font-size:12px;">No sessions</td></tr>';
+    return;
+  }
+  tbody.innerHTML = sessions.slice().reverse().slice(0, 30).map(s =>
+    '<tr>' +
+    '<td class="td-script">' + esc(s.name) + '</td>' +
+    '<td class="td-time">' + new Date(s.loginTime).toLocaleString() + '</td>' +
+    '<td class="td-time">' + (s.logoutTime ? new Date(s.logoutTime).toLocaleString() : '—') + '</td>' +
+    '<td>—</td>' +
+    '<td><span class="badge ' + (s.status==='OPEN'?'ok':'neutral') + '">' + esc(s.status) + '</span></td>' +
+    '</tr>'
+  ).join('');
+}
+
+/* ══════════════════════════════════════════════════
+   POLLING
+══════════════════════════════════════════════════ */
+function startPolling() {
+  if (GAS_URL) {
+    refreshSignals();
+    setInterval(refreshSignals, 60000);
+    setInterval(refreshChat, 30000);
+  }
+  setInterval(renderTeam, 60000);
+}
+
+/* ══════════════════════════════════════════════════
+   UTILS
+══════════════════════════════════════════════════ */
+function esc(s) {
+  return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+</script>
+</body>
+</html>
