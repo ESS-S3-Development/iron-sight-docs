@@ -768,6 +768,242 @@ body.night-ops .ov-drag-handle{color:var(--signal);}
 .ql-link .ql-icon{font-size:9px;opacity:.7;}
 body.night-ops .ql-link:hover{color:var(--accent);border-color:rgba(168,85,247,.5);background:rgba(168,85,247,.07);}
 
+/* ══ NEON GLOW SYSTEM ════════════════════════════════
+   Permanent pulse: logos + officer avatar
+   Hover neon flash: all interactive elements
+══════════════════════════════════════════════════ */
+
+@keyframes neonPulse {
+  0%,100%{
+    box-shadow:
+      0 0 6px  rgba(0,180,255,.70),
+      0 0 18px rgba(0,180,255,.40),
+      0 0 40px rgba(0,180,255,.20),
+      0 0 80px rgba(0,180,255,.08);
+  }
+  50%{
+    box-shadow:
+      0 0 14px rgba(0,180,255,1),
+      0 0 40px rgba(0,180,255,.75),
+      0 0 90px rgba(0,180,255,.38),
+      0 0 160px rgba(0,180,255,.14);
+  }
+}
+@keyframes neonPulseNight {
+  0%,100%{
+    box-shadow:
+      0 0 6px  rgba(168,85,247,.70),
+      0 0 18px rgba(168,85,247,.40),
+      0 0 40px rgba(168,85,247,.20),
+      0 0 80px rgba(168,85,247,.08);
+  }
+  50%{
+    box-shadow:
+      0 0 14px rgba(168,85,247,1),
+      0 0 40px rgba(168,85,247,.75),
+      0 0 90px rgba(168,85,247,.38),
+      0 0 160px rgba(168,85,247,.14);
+  }
+}
+
+/* ── Permanent pulsating glow ── */
+.boot-logo,
+.topbar-logo{
+  animation:neonPulse 2.4s ease-in-out infinite;
+  border-color:rgba(0,180,255,.6) !important;
+}
+.officer-avatar{
+  animation:neonPulse 2.4s ease-in-out infinite;
+  border-color:rgba(0,180,255,.7) !important;
+}
+body.night-ops .boot-logo,
+body.night-ops .topbar-logo{
+  animation:neonPulseNight 2.4s ease-in-out infinite;
+  border-color:rgba(168,85,247,.6) !important;
+}
+body.night-ops .officer-avatar{
+  animation:neonPulseNight 2.4s ease-in-out infinite;
+  border-color:rgba(168,85,247,.7) !important;
+}
+
+/* ── Add transitions to elements that need them ── */
+.stat-card,.script-card,.panel,.clock-block,
+.chat-bubble,.chat-home-msg,.wl-mini-row,.mkt-mini-row,
+.av-mini-pl-item,.posture-chip,.officer-chip,
+.ov-restore-chip,.nav-badge,.drawer-tab{
+  transition:box-shadow .18s ease, border-color .18s ease, background .18s ease;
+}
+
+/* ── Hover neon flash — cards & containers ── */
+.stat-card:hover,.script-card:hover{
+  box-shadow:
+    0 0 0 1px rgba(0,180,255,.45),
+    0 0 20px rgba(0,180,255,.28),
+    0 0 55px rgba(0,180,255,.12);
+  border-color:rgba(0,180,255,.55) !important;
+}
+.panel:hover{
+  box-shadow:
+    0 0 0 1px rgba(0,180,255,.22),
+    0 0 28px rgba(0,180,255,.14),
+    0 0 70px rgba(0,180,255,.06);
+  border-color:rgba(0,180,255,.28) !important;
+}
+.team-card:hover,.mkt-card:hover,.clock-card:hover{
+  box-shadow:
+    0 0 0 1px rgba(0,180,255,.4),
+    0 0 20px rgba(0,180,255,.24),
+    0 0 50px rgba(0,180,255,.10);
+  border-color:rgba(0,180,255,.5) !important;
+}
+.clock-block:hover{
+  box-shadow:
+    0 0 0 1px rgba(0,180,255,.35),
+    0 0 20px rgba(0,180,255,.22);
+  border-color:rgba(0,180,255,.45) !important;
+}
+
+/* ── Hover neon flash — buttons ── */
+.btn:hover{
+  box-shadow:
+    0 0 12px rgba(0,180,255,.40),
+    0 0 30px rgba(0,180,255,.18) !important;
+}
+.btn.primary:hover{
+  box-shadow:
+    0 0 16px rgba(0,180,255,.60),
+    0 0 40px rgba(0,180,255,.28) !important;
+}
+.mode-btn:hover{
+  box-shadow:
+    0 0 14px rgba(0,180,255,.45),
+    0 0 36px rgba(0,180,255,.20);
+}
+
+/* ── Hover neon flash — nav ── */
+.nav-item:hover{
+  box-shadow:inset 0 0 20px rgba(0,180,255,.12);
+}
+.nav-item.active{
+  box-shadow:inset 0 0 24px rgba(0,180,255,.14);
+}
+
+/* ── Hover neon flash — chat & lists ── */
+.chat-bubble:hover{
+  box-shadow:
+    0 0 0 1px rgba(0,180,255,.22),
+    0 0 16px rgba(0,180,255,.18);
+}
+.chat-home-msg:hover{
+  box-shadow:0 0 14px rgba(0,180,255,.18);
+  border-left-color:rgba(0,180,255,.65) !important;
+}
+.wl-mini-row:hover,.mkt-mini-row:hover{
+  box-shadow:0 0 12px rgba(0,180,255,.16);
+}
+.pl-item:hover,.av-mini-pl-item:hover{
+  box-shadow:0 0 16px rgba(0,180,255,.25);
+}
+.pl-item.active,.av-mini-pl-item.active{
+  box-shadow:
+    0 0 0 1px rgba(0,180,255,.35),
+    0 0 18px rgba(0,180,255,.22);
+}
+.data-table tr:hover td{
+  box-shadow:0 4px 20px rgba(0,180,255,.08);
+}
+
+/* ── Hover neon flash — chips ── */
+.officer-chip:hover{
+  box-shadow:
+    0 0 18px rgba(0,180,255,.30),
+    0 0 50px rgba(0,180,255,.12);
+  border-color:rgba(0,180,255,.50) !important;
+}
+.posture-chip:hover{
+  box-shadow:0 0 18px rgba(16,185,129,.28);
+}
+.ov-restore-chip:hover,.drawer-tab:hover,.drawer-tab.active{
+  box-shadow:0 0 12px rgba(0,180,255,.22);
+}
+.ql-link:hover{
+  box-shadow:
+    0 0 12px rgba(0,180,255,.40),
+    0 0 28px rgba(0,180,255,.18);
+}
+
+/* ── Form inputs — neon focus ── */
+.boot-input:focus{
+  box-shadow:
+    0 0 20px rgba(0,180,255,.50),
+    0 0 60px rgba(0,180,255,.22) !important;
+}
+.form-input:focus,.form-textarea:focus,.form-select:focus{
+  box-shadow:
+    0 0 0 1px rgba(0,180,255,.40),
+    0 0 20px rgba(0,180,255,.22),
+    0 0 50px rgba(0,180,255,.10) !important;
+}
+.chat-input:focus{
+  box-shadow:0 0 18px rgba(0,180,255,.28);
+}
+
+/* ── Night-ops purple variants ── */
+body.night-ops .stat-card:hover,
+body.night-ops .script-card:hover{
+  box-shadow:
+    0 0 0 1px rgba(168,85,247,.45),
+    0 0 20px rgba(168,85,247,.28),
+    0 0 55px rgba(168,85,247,.12);
+  border-color:rgba(168,85,247,.55) !important;
+}
+body.night-ops .panel:hover{
+  box-shadow:
+    0 0 0 1px rgba(168,85,247,.22),
+    0 0 28px rgba(168,85,247,.14),
+    0 0 70px rgba(168,85,247,.06);
+  border-color:rgba(168,85,247,.28) !important;
+}
+body.night-ops .btn:hover,
+body.night-ops .mode-btn:hover{
+  box-shadow:
+    0 0 14px rgba(168,85,247,.50),
+    0 0 36px rgba(168,85,247,.22);
+}
+body.night-ops .team-card:hover,
+body.night-ops .mkt-card:hover,
+body.night-ops .clock-block:hover,
+body.night-ops .clock-card:hover{
+  box-shadow:
+    0 0 0 1px rgba(168,85,247,.4),
+    0 0 20px rgba(168,85,247,.24),
+    0 0 50px rgba(168,85,247,.10);
+  border-color:rgba(168,85,247,.5) !important;
+}
+body.night-ops .officer-chip:hover{
+  box-shadow:
+    0 0 18px rgba(168,85,247,.30),
+    0 0 50px rgba(168,85,247,.12);
+  border-color:rgba(168,85,247,.50) !important;
+}
+body.night-ops .ql-link:hover{
+  box-shadow:
+    0 0 12px rgba(168,85,247,.45),
+    0 0 28px rgba(168,85,247,.20);
+}
+body.night-ops .nav-item:hover{
+  box-shadow:inset 0 0 20px rgba(168,85,247,.14);
+}
+body.night-ops .chat-bubble:hover{
+  box-shadow:
+    0 0 0 1px rgba(168,85,247,.25),
+    0 0 16px rgba(168,85,247,.20);
+}
+body.night-ops .pl-item:hover,
+body.night-ops .av-mini-pl-item:hover{
+  box-shadow:0 0 16px rgba(168,85,247,.28);
+}
+
 /* ── Mobile / Hamburger ──────────────────────────── */
 .mob-menu-btn{
   display:none;align-items:center;justify-content:center;
