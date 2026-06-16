@@ -545,7 +545,7 @@ body.night-ops .ov-drag-handle{color:var(--signal);}
 .av-mini-transport{display:flex;gap:8px;justify-content:center;margin:6px 0;}
 
 /* Home chat feed */
-.chat-home-feed{max-height:200px;overflow-y:auto;display:flex;flex-direction:column;gap:4px;margin-bottom:8px;padding:4px 0;}
+.chat-home-feed{max-height:360px;overflow-y:auto;display:flex;flex-direction:column;gap:4px;margin-bottom:8px;padding:4px 0;}
 .chat-home-msg{font-family:var(--mono);padding:5px 8px;border-radius:4px;
   background:rgba(0,10,24,.5);border-left:2px solid rgba(0,180,255,.18);}
 .chat-home-author{font-size:12px;color:var(--accent);}
@@ -690,7 +690,22 @@ body.night-ops .ov-drag-handle{color:var(--signal);}
 .dsp-val{font-family:var(--mono);font-size:11px;color:var(--warn);min-width:40px;text-align:right;}
 
 /* ── Playlist ────────────────────────────────────── */
-.playlist-wrap{max-height:160px;overflow-y:auto;margin-top:6px;}
+.playlist-wrap{max-height:300px;overflow-y:auto;margin-top:6px;}
+
+/* Mini playlist on home AV widget */
+.av-mini-pl{max-height:196px;overflow-y:auto;margin-top:10px;border-top:1px solid var(--border);padding-top:6px;}
+.av-mini-pl-item{
+  display:flex;align-items:center;gap:8px;padding:5px 8px;border-radius:4px;
+  cursor:pointer;border:1px solid transparent;transition:background .15s;
+  font-family:var(--mono);font-size:12px;color:var(--muted);
+}
+.av-mini-pl-item:hover{background:rgba(0,180,255,.07);color:var(--bright);}
+.av-mini-pl-item.active{background:rgba(0,180,255,.10);border-color:rgba(0,180,255,.20);color:var(--accent);}
+.av-mini-pl-idx{font-size:10px;color:var(--muted);min-width:18px;text-align:right;flex-shrink:0;}
+.av-mini-pl-name{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+
+/* Watchlist mini scroll */
+#wl-mini-list{max-height:340px;overflow-y:auto;}
 .pl-item{display:flex;align-items:center;gap:8px;padding:5px 8px;border-radius:4px;
   cursor:pointer;border:1px solid transparent;transition:background .15s;}
 .pl-item:hover{background:rgba(0,180,255,.07);}
@@ -1151,6 +1166,10 @@ body.night-ops .ov-drag-handle{color:var(--signal);}
                            style="flex:1;accent-color:var(--accent);"
                            oninput="dspVolMiniSync(this.value)">
                     <span id="dspVolMiniVal" style="font-family:var(--mono);font-size:11px;color:var(--warn);min-width:32px;">85%</span>
+                  </div>
+                  <!-- Mini playlist — synced with full AV page -->
+                  <div class="av-mini-pl" id="av-mini-pl">
+                    <div style="font-family:var(--mono);font-size:11px;color:var(--muted);padding:8px 0;text-align:center;">No tracks loaded.</div>
                   </div>
                 </div>
               </div>
@@ -2210,6 +2229,7 @@ function initHomeWidgets() {
   renderWatchlistMini();
   renderMktMini();
   drawRadialMini();
+  renderAvMiniPlaylist();
 }
 
 /* Mini radial canvas on home page */
@@ -2266,6 +2286,24 @@ function syncAvMiniState() {
   var pb = document.getElementById('avPlayBtnMini');
   if (np) np.textContent = avCurrent >= 0 && avPlaylist[avCurrent] ? avPlaylist[avCurrent].name : 'NO TRACK LOADED';
   if (pb) pb.textContent = el && !el.paused ? '⏸ PAUSE' : '▶ PLAY';
+  renderAvMiniPlaylist();
+}
+
+function renderAvMiniPlaylist() {
+  var wrap = document.getElementById('av-mini-pl');
+  if (!wrap) return;
+  if (!avPlaylist.length) {
+    wrap.innerHTML = '<div style="font-family:var(--mono);font-size:11px;color:var(--muted);padding:8px 0;text-align:center;">No tracks — click OPEN to add music.</div>';
+    return;
+  }
+  wrap.innerHTML = avPlaylist.map(function(t, i) {
+    var isActive = i === avCurrent;
+    return '<div class="av-mini-pl-item' + (isActive ? ' active' : '') + '" onclick="avLoadTrack(' + i + ');avPlayPause();">' +
+      '<span class="av-mini-pl-idx">' + (i + 1) + '</span>' +
+      (isActive ? '<span style="font-size:10px;color:var(--accent);">▶</span>' : '') +
+      '<span class="av-mini-pl-name">' + esc(t.name) + '</span>' +
+      '</div>';
+  }).join('');
 }
 
 function dspVolMiniSync(val) {
@@ -2324,13 +2362,20 @@ function renderWatchlistMini() {
     list.innerHTML = '<div style="font-family:var(--mono);font-size:11px;color:var(--muted);padding:10px 0;text-align:center;">No symbols tracked.</div>';
     return;
   }
-  list.innerHTML = items.slice(0,8).map(function(item){
+  list.innerHTML = items.map(function(item){
     var q   = mktQuotes[item.sym];
     var px  = q ? (q.price < 10 ? q.price.toFixed(4) : q.price.toFixed(2)) : '—';
+    var chg = q ? (q.price - q.prev) : 0;
+    var chgPct = q ? ((chg / q.prev) * 100).toFixed(2) : null;
+    var chgHtml = chgPct !== null
+      ? '<span style="font-family:var(--mono);font-size:11px;margin-left:6px;' +
+        (chg >= 0 ? 'color:#22c55e">' : 'color:var(--danger)">') +
+        (chg >= 0 ? '▲' : '▼') + Math.abs(chgPct) + '%</span>'
+      : '';
     return '<div class="wl-mini-row">' +
       '<span class="wl-mini-sym">' + esc(item.sym) + '</span>' +
       '<span class="wl-mini-note">' + esc(item.note||'') + '</span>' +
-      '<span class="wl-mini-px">' + px + '</span>' +
+      '<span class="wl-mini-px">' + px + chgHtml + '</span>' +
       '</div>';
   }).join('');
 }
@@ -2562,6 +2607,7 @@ function avRenderPlaylist() {
   document.getElementById('plCountLabel').textContent = `PLAYLIST — ${avPlaylist.length} / 12`;
   if (avPlaylist.length === 0) {
     wrap.innerHTML = '<div class="pl-empty">Click "+ ADD TRACKS" to load audio files.</div>';
+    renderAvMiniPlaylist();
     return;
   }
   wrap.innerHTML = avPlaylist.map((t, i) => `
@@ -2570,10 +2616,11 @@ function avRenderPlaylist() {
       <span class="pl-name">${t.name}</span>
       <span class="pl-rm" onclick="event.stopPropagation();avRemoveTrack(${i})">✕</span>
     </div>`).join('');
+  renderAvMiniPlaylist();
 }
 
 function avRemoveTrack(idx) {
-  URL.revokeObjectURL(avPlaylist[idx].url);
+  if (avPlaylist[idx].url && avPlaylist[idx].url.startsWith('blob:')) URL.revokeObjectURL(avPlaylist[idx].url);
   avPlaylist.splice(idx, 1);
   if (avCurrent === idx) {
     document.getElementById('avMediaEl').pause();
