@@ -1640,6 +1640,47 @@ body.night-ops .ov-drag-handle{color:var(--signal);}
             </div>
           </div>
         </div>
+
+        <!-- ── MEDIA CONFIG ── -->
+        <div class="panel">
+          <div class="panel-header">
+            <span class="panel-title">🎵 MEDIA CONFIG — DEFAULT AV TRACK</span>
+          </div>
+          <div class="panel-body">
+            <div class="form-group">
+              <label class="form-label">TRACK NAME</label>
+              <input type="text" class="form-input" id="adminDefaultTrackName"
+                     placeholder="e.g. S3 LAB — DEFAULT MIX" style="margin-bottom:0;">
+            </div>
+            <div class="form-group">
+              <label class="form-label">AUDIO FILE URL (https:// — mp3, ogg, wav, m4a)</label>
+              <input type="url" class="form-input" id="adminDefaultTrackUrl"
+                     placeholder="https://…" style="margin-bottom:0;">
+            </div>
+            <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:4px;">
+              <button class="btn primary" onclick="adminSaveDefaultTrack()">◈ SAVE &amp; APPLY</button>
+              <button class="btn" onclick="adminPreviewDefaultTrack()">▶ PREVIEW</button>
+              <button class="btn" onclick="adminResetDefaultTrack()">↺ RESET TO ORIGINAL</button>
+            </div>
+            <div id="adminDefaultTrackStatus" style="font-family:var(--mono);font-size:12px;
+              color:var(--muted);margin-top:10px;min-height:16px;"></div>
+            <div style="margin-top:14px;padding:12px 14px;
+              background:rgba(0,180,255,.04);border:1px solid var(--border);border-radius:6px;">
+              <div style="font-family:var(--mono);font-size:11px;color:var(--accent);
+                letter-spacing:.14em;margin-bottom:6px;">CURRENT DEFAULT TRACK</div>
+              <div id="adminCurrentTrackName" style="font-family:var(--display);font-size:15px;
+                font-weight:700;color:var(--bright);margin-bottom:4px;">—</div>
+              <div id="adminCurrentTrackUrl" style="font-family:var(--mono);font-size:11px;
+                color:var(--muted);word-break:break-all;">—</div>
+            </div>
+            <div style="margin-top:12px;padding:10px 14px;
+              background:rgba(245,158,11,.05);border:1px solid rgba(245,158,11,.2);border-radius:6px;
+              font-family:var(--mono);font-size:11px;color:rgba(245,158,11,.8);line-height:1.6;">
+              <strong>NOTE:</strong> Changes save to this device immediately.
+              Once GAS backend is deployed, changes will sync across all users automatically.
+            </div>
+          </div>
+        </div>
       </div>
 
     </main>
@@ -1801,6 +1842,20 @@ body.night-ops .ov-drag-handle{color:var(--signal);}
 ══════════════════════════════════════════════════ */
 const GAS_URL = ''; // TODO: paste deployed GAS /exec URL here
 
+/* ── Default AV track — admin can override via Admin Panel ──
+   Priority: GAS config (when live) > localStorage s3_media_config > hardcoded fallback  */
+var MEDIA_CONFIG = (function() {
+  var HARDCODED = {
+    defaultTrackUrl:  'https://static.wixstatic.com/mp3/b8ecbb_6d6b4ea6305d4d38bc5917142262c3db.mp3',
+    defaultTrackName: 'S3 LAB — DEFAULT MIX'
+  };
+  try {
+    var saved = JSON.parse(localStorage.getItem('s3_media_config') || '{}');
+    if (saved.defaultTrackUrl && saved.defaultTrackUrl.startsWith('https://')) return saved;
+  } catch(_) {}
+  return HARDCODED;
+})();
+
 let CURRENT_USER = null;
 let voiceMuted   = false;
 let nightOps     = false;
@@ -1960,6 +2015,7 @@ function showPage(id) {
   if (nav) nav.classList.add('active');
 
   if (id === 'chat')    { clearChatBadge(); refreshChat(); }
+  if (id === 'admin')   { refreshAdmin(); adminOpenMediaConfig(); }
   if (id === 'team')    refreshTeam();
   if (id === 'watchlist') renderWatchlist();
   if (id === 'support') refreshSupport();
@@ -2418,6 +2474,15 @@ function avInitChain() {
 
   el.addEventListener('ended', () => { if (!avLooping) avNext(); });
   avDrawRadial();
+}
+
+function avLoadDefaults() {
+  if (avPlaylist.length > 0) return;
+  var cfg = MEDIA_CONFIG;
+  if (cfg.defaultTrackUrl) {
+    avPlaylist.push({ name: cfg.defaultTrackName || 'DEFAULT MIX', url: cfg.defaultTrackUrl, isDefault: true });
+    avRenderPlaylist();
+  }
 }
 
 function avAddTracks(files) {
@@ -3026,6 +3091,7 @@ function doLogin(name, role, avatar) {
   renderChat();
   startPolling();
   avDrawRadial();
+  setTimeout(avLoadDefaults, 300);
   loadAndApplyPrefs();
   setTimeout(function(){ refreshMarketData(); }, 1200);
   setTimeout(initHomeWidgets, 200);
@@ -3327,6 +3393,96 @@ function refreshAdmin() {
     '<td><span class="badge ' + (s.status==='OPEN'?'ok':'neutral') + '">' + esc(s.status) + '</span></td>' +
     '</tr>'
   ).join('');
+}
+
+function adminOpenMediaConfig() {
+  var cfg = MEDIA_CONFIG;
+  var nameEl = document.getElementById('adminDefaultTrackName');
+  var urlEl  = document.getElementById('adminDefaultTrackUrl');
+  if (nameEl) nameEl.value = cfg.defaultTrackName || '';
+  if (urlEl)  urlEl.value  = cfg.defaultTrackUrl  || '';
+  adminRefreshCurrentTrackDisplay();
+}
+
+function adminRefreshCurrentTrackDisplay() {
+  var cfg = MEDIA_CONFIG;
+  var nameEl = document.getElementById('adminCurrentTrackName');
+  var urlEl  = document.getElementById('adminCurrentTrackUrl');
+  if (nameEl) nameEl.textContent = cfg.defaultTrackName || '—';
+  if (urlEl)  urlEl.textContent  = cfg.defaultTrackUrl  || '—';
+}
+
+function adminSaveDefaultTrack() {
+  var url  = (document.getElementById('adminDefaultTrackUrl').value || '').trim();
+  var name = (document.getElementById('adminDefaultTrackName').value || '').trim() || 'DEFAULT MIX';
+  var statusEl = document.getElementById('adminDefaultTrackStatus');
+  if (!url.startsWith('https://')) {
+    statusEl.style.color = 'var(--danger)';
+    statusEl.textContent = '✕ URL must start with https://';
+    return;
+  }
+  var cfg = { defaultTrackUrl: url, defaultTrackName: name };
+  localStorage.setItem('s3_media_config', JSON.stringify(cfg));
+  MEDIA_CONFIG = cfg;
+  // Replace default track in playlist if it's still the only/default entry
+  if (avPlaylist.length === 0 || (avPlaylist.length === 1 && avPlaylist[0].isDefault)) {
+    var wasPlaying = avCurrent === 0 && document.getElementById('avMediaEl') && !document.getElementById('avMediaEl').paused;
+    avPlaylist = [{ name: name, url: url, isDefault: true }];
+    avRenderPlaylist();
+    if (wasPlaying) { avCurrent = -1; avLoadTrack(0); }
+  }
+  adminRefreshCurrentTrackDisplay();
+  // GAS sync when deployed
+  if (GAS_URL) {
+    statusEl.style.color = 'var(--muted)';
+    statusEl.textContent = '⟳ Syncing to GAS…';
+    fetch(GAS_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'setMediaConfig', defaultTrackUrl: url, defaultTrackName: name })
+    }).then(function() {
+      statusEl.style.color = 'var(--ok)';
+      statusEl.textContent = '✔ SAVED & SYNCED TO GAS — All users will see new default.';
+    }).catch(function() {
+      statusEl.style.color = 'var(--warn)';
+      statusEl.textContent = '✔ SAVED LOCALLY — GAS sync failed (will retry on next deploy).';
+    });
+  } else {
+    statusEl.style.color = 'var(--ok)';
+    statusEl.textContent = '✔ SAVED — Active on this device. Sync across users requires GAS deployment.';
+  }
+  showToast('DEFAULT TRACK UPDATED');
+}
+
+function adminPreviewDefaultTrack() {
+  var url = (document.getElementById('adminDefaultTrackUrl').value || '').trim();
+  if (!url.startsWith('https://')) { showToast('Enter a valid https:// URL first', true); return; }
+  var el = document.getElementById('avMediaEl');
+  if (!el) { showToast('AV engine not ready', true); return; }
+  avInitChain();
+  el.src = url;
+  el.play().catch(function(){});
+  showToast('PREVIEWING TRACK…');
+}
+
+function adminResetDefaultTrack() {
+  var ORIG = {
+    defaultTrackUrl:  'https://static.wixstatic.com/mp3/b8ecbb_6d6b4ea6305d4d38bc5917142262c3db.mp3',
+    defaultTrackName: 'S3 LAB — DEFAULT MIX'
+  };
+  localStorage.removeItem('s3_media_config');
+  MEDIA_CONFIG = ORIG;
+  document.getElementById('adminDefaultTrackName').value = ORIG.defaultTrackName;
+  document.getElementById('adminDefaultTrackUrl').value  = ORIG.defaultTrackUrl;
+  adminRefreshCurrentTrackDisplay();
+  if (avPlaylist.length === 0 || (avPlaylist.length === 1 && avPlaylist[0].isDefault)) {
+    avPlaylist = [{ name: ORIG.defaultTrackName, url: ORIG.defaultTrackUrl, isDefault: true }];
+    avRenderPlaylist();
+  }
+  var statusEl = document.getElementById('adminDefaultTrackStatus');
+  statusEl.style.color = 'var(--ok)';
+  statusEl.textContent = '✔ RESET TO ORIGINAL DEFAULT TRACK';
+  showToast('DEFAULT TRACK RESET');
 }
 
 /* ══════════════════════════════════════════════════
