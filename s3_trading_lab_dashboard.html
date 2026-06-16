@@ -445,6 +445,125 @@ body.night-ops{
 /* ── Separator ───────────────────────────────────── */
 .sep{height:1px;background:var(--border);margin:16px 0;}
 
+/* ══ OVERVIEW LAYOUT ENGINE ══════════════════════════ */
+.ov-page-header{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:10px;flex-wrap:wrap;}
+.ov-page-right{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:4px;}
+.ov-ticker{
+  background:rgba(0,180,255,.04);border:1px solid var(--border);border-radius:4px;
+  padding:5px 12px;font-family:var(--mono);font-size:11px;color:var(--muted);
+  white-space:nowrap;overflow:hidden;max-width:300px;
+}
+.ov-ticker span{color:var(--accent);}
+.btn.ov-edit-btn.active{background:rgba(245,158,11,.12);border-color:var(--warn);color:var(--warn);}
+
+.ov-layout-toolbar{
+  display:none;align-items:center;gap:10px;flex-wrap:wrap;
+  padding:9px 14px;margin-bottom:12px;
+  background:rgba(0,5,14,.96);border:1px solid rgba(0,180,255,.25);border-radius:6px;
+  font-family:var(--mono);font-size:10px;color:var(--accent);letter-spacing:.12em;
+}
+.ov-layout-toolbar.visible{display:flex;}
+.ov-lt-label{flex:1;}
+.ov-lt-hint{color:var(--muted);font-size:9px;}
+
+.ov-hidden-tray{
+  display:none;gap:8px;flex-wrap:wrap;padding:10px 14px;
+  background:rgba(0,5,14,.60);border:1px dashed rgba(0,180,255,.16);border-radius:6px;margin-bottom:12px;
+}
+.ov-hidden-tray.has-items{display:flex;}
+body:not(.ov-edit-mode) .ov-hidden-tray{display:none !important;}
+.ov-restore-chip{
+  display:flex;align-items:center;gap:6px;padding:4px 10px;
+  border:1px solid rgba(0,180,255,.20);background:rgba(0,5,14,.80);border-radius:5px;
+  font-family:var(--mono);font-size:11px;color:var(--muted);cursor:pointer;transition:all .15s;
+}
+.ov-restore-chip:hover{color:var(--accent);border-color:var(--accent);}
+
+/* Stats zone */
+.ov-stats-zone{
+  display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:14px;
+  border-radius:8px;padding:2px;transition:background .2s,border .2s;
+}
+body.ov-edit-mode .ov-stats-zone{border:2px dashed rgba(0,180,255,.15);padding:6px;}
+body.ov-edit-mode .ov-stats-zone.drag-over{background:rgba(0,180,255,.05);border-color:var(--accent);}
+@media(max-width:900px){.ov-stats-zone{grid-template-columns:repeat(2,1fr);}}
+
+/* Content grid */
+.ov-content-grid{display:grid;grid-template-columns:1fr 360px;gap:16px;align-items:start;}
+@media(max-width:1100px){.ov-content-grid{grid-template-columns:1fr 320px;}}
+@media(max-width:900px){.ov-content-grid{grid-template-columns:1fr;}}
+
+/* Zones */
+.ov-zone{display:flex;flex-direction:column;gap:14px;min-height:60px;border-radius:8px;padding:2px;transition:background .2s,border .2s;}
+body.ov-edit-mode .ov-zone{border:2px dashed rgba(0,180,255,.16);padding:6px;min-height:80px;}
+body.ov-edit-mode .ov-zone.drag-over{background:rgba(0,180,255,.06);border-color:var(--accent);box-shadow:0 0 16px rgba(0,180,255,.10);}
+.ov-zone-label{display:none;font-family:var(--mono);font-size:9px;letter-spacing:.16em;color:var(--muted);text-align:center;padding:2px 6px;margin-bottom:4px;}
+body.ov-edit-mode .ov-zone-label{display:block;}
+
+/* Widgets */
+.ov-widget{position:relative;transition:opacity .2s,transform .15s;}
+.ov-widget.dragging{opacity:.45;transform:scale(.97);}
+.ov-widget.drag-placeholder{border:2px dashed rgba(0,180,255,.28);border-radius:8px;background:rgba(0,180,255,.04);min-height:60px;}
+.ov-edit-bar{
+  display:none;position:absolute;top:0;left:0;right:0;height:34px;
+  background:linear-gradient(90deg,rgba(0,8,20,.98),rgba(0,8,20,.92));
+  border-bottom:1px solid rgba(0,180,255,.18);border-radius:8px 8px 0 0;
+  z-index:22;align-items:center;padding:0 10px;gap:8px;cursor:grab;
+}
+.ov-edit-bar:active{cursor:grabbing;}
+body.ov-edit-mode .ov-widget .ov-edit-bar{display:flex;}
+.ov-drag-handle{font-family:var(--mono);font-size:16px;color:var(--accent);cursor:grab;flex-shrink:0;opacity:.75;}
+.ov-drag-handle:active{cursor:grabbing;}
+.ov-edit-label{font-family:var(--mono);font-size:10px;letter-spacing:.14em;color:var(--muted);flex:1;}
+.ov-edit-actions{display:flex;gap:4px;margin-left:auto;}
+.ov-edit-btn{
+  width:24px;height:24px;border:1px solid rgba(0,180,255,.18);
+  background:rgba(0,8,20,.60);color:var(--muted);font-family:var(--mono);font-size:13px;
+  border-radius:4px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;
+}
+.ov-edit-btn:hover{color:var(--bright);border-color:var(--accent);}
+.ov-edit-btn.danger-btn{color:rgba(239,68,68,.55);}
+.ov-edit-btn.danger-btn:hover{color:var(--danger);border-color:var(--danger);}
+body.ov-edit-mode .ov-widget .panel{margin-top:34px;border-radius:0 0 var(--r) var(--r);}
+body.ov-edit-mode .ov-widget.stat-widget .stat-card{margin-top:34px;border-radius:0 0 var(--r) var(--r);}
+.ov-widget.collapsed .panel>*:not(.panel-header){display:none;}
+.ov-widget.collapsed .panel{border-radius:var(--r);}
+
+/* Night ops adaptation */
+body.night-ops.ov-edit-mode .ov-zone.drag-over{background:rgba(168,85,247,.06);border-color:var(--signal);}
+body.night-ops .ov-widget.drag-placeholder{border-color:rgba(168,85,247,.30);}
+body.night-ops .ov-edit-bar{background:linear-gradient(90deg,rgba(8,0,18,.98),rgba(8,0,18,.92));border-bottom-color:rgba(168,85,247,.22);}
+body.night-ops .ov-drag-handle{color:var(--signal);}
+
+/* Mini AV */
+.av-mini-wrap{display:flex;justify-content:center;margin:6px 0 4px;}
+.av-mini-nowplaying{font-family:var(--mono);font-size:10px;color:var(--accent);
+  text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  padding:0 8px;margin-bottom:6px;max-width:100%;}
+.av-mini-transport{display:flex;gap:8px;justify-content:center;margin:6px 0;}
+
+/* Home chat feed */
+.chat-home-feed{max-height:200px;overflow-y:auto;display:flex;flex-direction:column;gap:4px;margin-bottom:8px;padding:4px 0;}
+.chat-home-msg{font-family:var(--mono);padding:5px 8px;border-radius:4px;
+  background:rgba(0,10,24,.5);border-left:2px solid rgba(0,180,255,.18);}
+.chat-home-author{font-size:10px;color:var(--accent);}
+.chat-home-text{font-size:11px;color:var(--bright);margin-top:1px;}
+.chat-home-ts{font-size:9px;color:var(--muted);}
+
+/* Watchlist mini */
+.wl-mini-row{display:flex;align-items:center;justify-content:space-between;
+  padding:6px 0;border-bottom:1px solid rgba(0,180,255,.07);font-family:var(--mono);}
+.wl-mini-sym{font-size:12px;color:var(--bright);font-weight:700;}
+.wl-mini-note{font-size:10px;color:var(--muted);flex:1;padding:0 8px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.wl-mini-px{font-size:11px;color:var(--accent);}
+
+/* Market pulse mini */
+.mkt-mini-row{display:flex;align-items:center;justify-content:space-between;
+  padding:6px 0;border-bottom:1px solid rgba(0,180,255,.07);font-family:var(--mono);}
+.mkt-mini-sym{font-size:12px;color:var(--bright);font-weight:700;}
+.mkt-mini-px{font-size:12px;color:var(--accent);}
+.mkt-mini-chg{font-size:11px;}.mkt-mini-chg.up{color:#22c55e;}.mkt-mini-chg.dn{color:var(--danger);}
+
 /* ── Market Price Ticker Bar ─────────────────────── */
 .mkt-ticker-bar{
   height:26px;background:rgba(0,10,20,.95);border-bottom:1px solid rgba(0,180,255,.14);
@@ -642,98 +761,238 @@ body.night-ops{
 
       <!-- ── OVERVIEW ── -->
       <div class="page active" id="page-overview">
-        <div class="page-eyebrow">S3 TRADING LAB // CONSOLE</div>
-        <div class="page-title">OVERVIEW</div>
 
-        <div class="ticker-strip">
-          LAST SIGNAL: <span id="tickerText">Awaiting data feed…</span>
-        </div>
-
-        <div class="grid-4">
-          <div class="stat-card">
-            <div class="stat-value" id="stat-scripts">4</div>
-            <div class="stat-label">ACTIVE SCRIPTS</div>
-            <div class="stat-sub">↑ All monitoring</div>
+        <!-- Page header -->
+        <div class="ov-page-header">
+          <div>
+            <div class="page-eyebrow">S3 TRADING LAB // CONSOLE</div>
+            <div class="page-title" style="margin-bottom:0;">OVERVIEW</div>
           </div>
-          <div class="stat-card signal">
-            <div class="stat-value" id="stat-signals-today">—</div>
-            <div class="stat-label">SIGNALS TODAY</div>
-            <div class="stat-sub" id="stat-signals-sub">Awaiting feed</div>
-          </div>
-          <div class="stat-card ok">
-            <div class="stat-value" id="stat-team">1</div>
-            <div class="stat-label">TEAM ONLINE</div>
-            <div class="stat-sub" id="stat-team-sub">You are connected</div>
-          </div>
-          <div class="stat-card warn">
-            <div class="stat-value" id="stat-market">—</div>
-            <div class="stat-label">MARKET STATUS</div>
-            <div class="stat-sub" id="stat-market-sub">Calculating…</div>
+          <div class="ov-page-right">
+            <div class="ov-ticker">LAST SIGNAL: <span id="tickerText">Awaiting feed…</span></div>
+            <button class="btn ov-edit-btn" id="ov-edit-btn" onclick="ovToggleEdit()">⬡ EDIT LAYOUT</button>
           </div>
         </div>
 
-        <div class="panel">
-          <div class="panel-header">
-            <span class="panel-title">SCRIPT STATUS GRID</span>
-            <button class="btn sm" onclick="showPage('scripts')">VIEW ALL</button>
+        <!-- Layout toolbar -->
+        <div class="ov-layout-toolbar" id="ov-layout-toolbar">
+          <span class="ov-lt-label">⬡ EDIT MODE — DRAG PANELS TO REPOSITION</span>
+          <span class="ov-lt-hint">≡ DRAG &nbsp;|&nbsp; _ COLLAPSE &nbsp;|&nbsp; ✕ HIDE</span>
+          <button class="btn" style="padding:5px 14px;font-size:11px;" onclick="ovSaveLayout()">✔ SAVE</button>
+          <button class="btn" style="padding:5px 14px;font-size:11px;" onclick="ovResetLayout()">↺ RESET</button>
+          <button class="btn" style="padding:5px 14px;font-size:11px;color:var(--danger);border-color:rgba(239,68,68,.4);" onclick="ovToggleEdit()">✕ CANCEL</button>
+        </div>
+
+        <!-- Hidden widgets tray -->
+        <div class="ov-hidden-tray" id="ov-hidden-tray"></div>
+
+        <!-- ── STATS ZONE ── -->
+        <div class="ov-stats-zone ov-zone" id="ov-zone-stats" data-zone="stats">
+          <div class="ov-zone-label">STATS ROW</div>
+
+          <div class="ov-widget stat-widget" id="ov-w-stat-scripts" data-widget="stat-scripts">
+            <div class="ov-edit-bar"><span class="ov-drag-handle">≡≡</span><span class="ov-edit-label">ACTIVE SCRIPTS</span><div class="ov-edit-actions"><button class="ov-edit-btn" onclick="ovCollapse('ov-w-stat-scripts')">_</button><button class="ov-edit-btn danger-btn" onclick="ovHide('ov-w-stat-scripts')">✕</button></div></div>
+            <div class="stat-card">
+              <div class="stat-value" id="stat-scripts">4</div>
+              <div class="stat-label">ACTIVE SCRIPTS</div>
+              <div class="stat-sub">↑ All monitoring</div>
+            </div>
           </div>
-          <div class="panel-body">
-            <div class="script-grid" id="overview-scripts">
-              <div class="script-card">
-                <div class="script-name">TRNQL</div>
-                <div class="script-ticker">NASDAQ:MNQ1! · 5m</div>
-                <div><span class="script-mode obs">OBSERVATION</span></div>
-                <div class="script-last" id="sc-trnql-last">Last: —</div>
-              </div>
-              <div class="script-card">
-                <div class="script-name">ORB-PUT</div>
-                <div class="script-ticker">NASDAQ:NVDA · 5m</div>
-                <div><span class="script-mode obs">OBSERVATION</span></div>
-                <div class="script-last" id="sc-orb-last">Last: —</div>
-              </div>
-              <div class="script-card">
-                <div class="script-name">BTC-ACCUM</div>
-                <div class="script-ticker">COINBASE:BTCUSD · 1D</div>
-                <div><span class="script-mode obs">OBSERVATION</span></div>
-                <div class="script-last" id="sc-btc-last">Last: —</div>
-              </div>
-              <div class="script-card">
-                <div class="script-name">PHANTOM-MNQ</div>
-                <div class="script-ticker">CME:MNQ · 5m · LSTM</div>
-                <div><span class="script-mode obs">OBSERVATION</span></div>
-                <div class="script-last" id="sc-phantom-last">Last: —</div>
-              </div>
+
+          <div class="ov-widget stat-widget" id="ov-w-stat-signals" data-widget="stat-signals">
+            <div class="ov-edit-bar"><span class="ov-drag-handle">≡≡</span><span class="ov-edit-label">SIGNALS TODAY</span><div class="ov-edit-actions"><button class="ov-edit-btn" onclick="ovCollapse('ov-w-stat-signals')">_</button><button class="ov-edit-btn danger-btn" onclick="ovHide('ov-w-stat-signals')">✕</button></div></div>
+            <div class="stat-card signal">
+              <div class="stat-value" id="stat-signals-today">—</div>
+              <div class="stat-label">SIGNALS TODAY</div>
+              <div class="stat-sub" id="stat-signals-sub">Awaiting feed</div>
+            </div>
+          </div>
+
+          <div class="ov-widget stat-widget" id="ov-w-stat-team" data-widget="stat-team">
+            <div class="ov-edit-bar"><span class="ov-drag-handle">≡≡</span><span class="ov-edit-label">TEAM ONLINE</span><div class="ov-edit-actions"><button class="ov-edit-btn" onclick="ovCollapse('ov-w-stat-team')">_</button><button class="ov-edit-btn danger-btn" onclick="ovHide('ov-w-stat-team')">✕</button></div></div>
+            <div class="stat-card ok">
+              <div class="stat-value" id="stat-team">1</div>
+              <div class="stat-label">TEAM ONLINE</div>
+              <div class="stat-sub" id="stat-team-sub">You are connected</div>
+            </div>
+          </div>
+
+          <div class="ov-widget stat-widget" id="ov-w-stat-market" data-widget="stat-market">
+            <div class="ov-edit-bar"><span class="ov-drag-handle">≡≡</span><span class="ov-edit-label">MARKET STATUS</span><div class="ov-edit-actions"><button class="ov-edit-btn" onclick="ovCollapse('ov-w-stat-market')">_</button><button class="ov-edit-btn danger-btn" onclick="ovHide('ov-w-stat-market')">✕</button></div></div>
+            <div class="stat-card warn">
+              <div class="stat-value" id="stat-market">—</div>
+              <div class="stat-label">MARKET STATUS</div>
+              <div class="stat-sub" id="stat-market-sub">Calculating…</div>
             </div>
           </div>
         </div>
 
-        <div class="panel">
-          <div class="panel-header">
-            <span class="panel-title">RECENT SIGNALS</span>
-            <button class="btn sm" onclick="showPage('signals')">FULL LOG</button>
-          </div>
-          <div class="panel-body">
-            <div class="tbl-wrap">
-              <table class="data-table">
-                <thead>
-                  <tr>
-                    <th>TIME (ET)</th>
-                    <th>SCRIPT</th>
-                    <th>ACTION</th>
-                    <th>PRICE</th>
-                    <th>STATUS</th>
-                  </tr>
-                </thead>
-                <tbody id="overview-signal-tbody">
-                  <tr><td colspan="5" style="text-align:center;color:var(--muted);padding:20px;font-size:12px;">
-                    Deploy GAS backend to enable live signal feed
-                  </td></tr>
-                </tbody>
-              </table>
+        <!-- ── MAIN CONTENT GRID ── -->
+        <div class="ov-content-grid">
+
+          <!-- ZONE A — LEFT COLUMN -->
+          <div class="ov-zone" id="ov-zone-a" data-zone="zone-a">
+            <div class="ov-zone-label">ZONE A — LEFT COLUMN</div>
+
+            <!-- Recent Signals -->
+            <div class="ov-widget" id="ov-w-signals" data-widget="signals">
+              <div class="ov-edit-bar"><span class="ov-drag-handle">≡≡</span><span class="ov-edit-label">RECENT SIGNALS</span><div class="ov-edit-actions"><button class="ov-edit-btn" onclick="ovCollapse('ov-w-signals')">_</button><button class="ov-edit-btn danger-btn" onclick="ovHide('ov-w-signals')">✕</button></div></div>
+              <div class="panel">
+                <div class="panel-header">
+                  <span class="panel-title">RECENT SIGNALS</span>
+                  <button class="btn sm" onclick="showPage('signals')">FULL LOG ↗</button>
+                </div>
+                <div class="panel-body">
+                  <div class="tbl-wrap">
+                    <table class="data-table">
+                      <thead>
+                        <tr><th>TIME (ET)</th><th>SCRIPT</th><th>ACTION</th><th>PRICE</th><th>STATUS</th></tr>
+                      </thead>
+                      <tbody id="overview-signal-tbody">
+                        <tr><td colspan="5" style="text-align:center;color:var(--muted);padding:20px;font-size:12px;">
+                          Deploy GAS backend to enable live signal feed
+                        </td></tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
-      </div>
+
+            <!-- Script Status -->
+            <div class="ov-widget" id="ov-w-scripts" data-widget="scripts">
+              <div class="ov-edit-bar"><span class="ov-drag-handle">≡≡</span><span class="ov-edit-label">SCRIPT STATUS</span><div class="ov-edit-actions"><button class="ov-edit-btn" onclick="ovCollapse('ov-w-scripts')">_</button><button class="ov-edit-btn danger-btn" onclick="ovHide('ov-w-scripts')">✕</button></div></div>
+              <div class="panel">
+                <div class="panel-header">
+                  <span class="panel-title">SCRIPT STATUS GRID</span>
+                  <button class="btn sm" onclick="showPage('scripts')">DETAIL ↗</button>
+                </div>
+                <div class="panel-body">
+                  <div class="script-grid" id="overview-scripts">
+                    <div class="script-card">
+                      <div class="script-name">TRNQL</div>
+                      <div class="script-ticker">NASDAQ:MNQ1! · 5m</div>
+                      <div><span class="script-mode obs">OBSERVATION</span></div>
+                      <div class="script-last" id="sc-trnql-last">Last: —</div>
+                    </div>
+                    <div class="script-card">
+                      <div class="script-name">ORB-PUT</div>
+                      <div class="script-ticker">NASDAQ:NVDA · 5m</div>
+                      <div><span class="script-mode obs">OBSERVATION</span></div>
+                      <div class="script-last" id="sc-orb-last">Last: —</div>
+                    </div>
+                    <div class="script-card">
+                      <div class="script-name">BTC-ACCUM</div>
+                      <div class="script-ticker">COINBASE:BTCUSD · 1D</div>
+                      <div><span class="script-mode obs">OBSERVATION</span></div>
+                      <div class="script-last" id="sc-btc-last">Last: —</div>
+                    </div>
+                    <div class="script-card">
+                      <div class="script-name">PHANTOM-MNQ</div>
+                      <div class="script-ticker">CME:MNQ · 5m · LSTM</div>
+                      <div><span class="script-mode obs">OBSERVATION</span></div>
+                      <div class="script-last" id="sc-phantom-last">Last: —</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Market Pulse -->
+            <div class="ov-widget" id="ov-w-mkt" data-widget="mkt">
+              <div class="ov-edit-bar"><span class="ov-drag-handle">≡≡</span><span class="ov-edit-label">MARKET PULSE</span><div class="ov-edit-actions"><button class="ov-edit-btn" onclick="ovCollapse('ov-w-mkt')">_</button><button class="ov-edit-btn danger-btn" onclick="ovHide('ov-w-mkt')">✕</button></div></div>
+              <div class="panel">
+                <div class="panel-header">
+                  <span class="panel-title">MARKET PULSE</span>
+                  <button class="btn sm" onclick="showPage('market')">FULL VIEW ↗</button>
+                </div>
+                <div class="panel-body" style="padding:10px 18px;">
+                  <div id="mkt-mini-list">
+                    <div style="font-family:var(--mono);font-size:11px;color:var(--muted);padding:10px 0;text-align:center;">
+                      Add symbols to Watchlist to see prices here.
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div><!-- /ov-zone-a -->
+
+          <!-- ZONE B — RIGHT COLUMN -->
+          <div class="ov-zone" id="ov-zone-b" data-zone="zone-b">
+            <div class="ov-zone-label">ZONE B — RIGHT COLUMN</div>
+
+            <!-- Live Chat -->
+            <div class="ov-widget" id="ov-w-chat" data-widget="chat">
+              <div class="ov-edit-bar"><span class="ov-drag-handle">≡≡</span><span class="ov-edit-label">LIVE CHAT</span><div class="ov-edit-actions"><button class="ov-edit-btn" onclick="ovCollapse('ov-w-chat')">_</button><button class="ov-edit-btn danger-btn" onclick="ovHide('ov-w-chat')">✕</button></div></div>
+              <div class="panel">
+                <div class="panel-header">
+                  <span class="panel-title">LIVE CHAT</span>
+                  <button class="btn sm" onclick="showPage('chat')">EXPAND ↗</button>
+                </div>
+                <div class="panel-body" style="padding:10px 14px;">
+                  <div class="chat-home-feed" id="chat-feed-home">
+                    <div style="font-family:var(--mono);font-size:11px;color:var(--muted);padding:8px 0;text-align:center;">No messages yet.</div>
+                  </div>
+                  <div style="display:flex;gap:8px;padding-top:8px;border-top:1px solid var(--border);">
+                    <input type="text" class="chat-input" id="chatInput-home"
+                           style="flex:1;padding:6px 10px;"
+                           placeholder="Send message…"
+                           onkeydown="if(event.key==='Enter')sendChatHome()">
+                    <button class="btn primary" onclick="sendChatHome()">SEND</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- AV Studio Mini -->
+            <div class="ov-widget" id="ov-w-av" data-widget="av">
+              <div class="ov-edit-bar"><span class="ov-drag-handle">≡≡</span><span class="ov-edit-label">AV STUDIO</span><div class="ov-edit-actions"><button class="ov-edit-btn" onclick="ovCollapse('ov-w-av')">_</button><button class="ov-edit-btn danger-btn" onclick="ovHide('ov-w-av')">✕</button></div></div>
+              <div class="panel">
+                <div class="panel-header">
+                  <span class="panel-title">AV STUDIO</span>
+                  <button class="btn sm" onclick="showPage('av')">OPEN ↗</button>
+                </div>
+                <div class="panel-body" style="padding:10px 14px;">
+                  <div class="av-mini-wrap">
+                    <canvas id="radialMini" width="100" height="100" style="border-radius:50%;background:rgba(0,8,18,.7);"></canvas>
+                  </div>
+                  <div class="av-mini-nowplaying" id="avNowPlayingMini">NO TRACK LOADED</div>
+                  <div class="av-mini-transport">
+                    <button class="btn" onclick="avPrev()">⏮</button>
+                    <button class="btn primary" id="avPlayBtnMini" onclick="avPlayPause()">▶ PLAY</button>
+                    <button class="btn" onclick="avNext()">⏭</button>
+                  </div>
+                  <div style="display:flex;gap:8px;align-items:center;margin-top:8px;">
+                    <span style="font-family:var(--mono);font-size:9px;color:var(--muted);min-width:26px;">VOL</span>
+                    <input type="range" min="0" max="1" step="0.02" value="0.85" id="dspVolMiniSlider"
+                           style="flex:1;accent-color:var(--accent);"
+                           oninput="dspVolMiniSync(this.value)">
+                    <span id="dspVolMiniVal" style="font-family:var(--mono);font-size:11px;color:var(--warn);min-width:32px;">85%</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Watchlist Mini -->
+            <div class="ov-widget" id="ov-w-watchlist" data-widget="watchlist">
+              <div class="ov-edit-bar"><span class="ov-drag-handle">≡≡</span><span class="ov-edit-label">WATCHLIST</span><div class="ov-edit-actions"><button class="ov-edit-btn" onclick="ovCollapse('ov-w-watchlist')">_</button><button class="ov-edit-btn danger-btn" onclick="ovHide('ov-w-watchlist')">✕</button></div></div>
+              <div class="panel">
+                <div class="panel-header">
+                  <span class="panel-title">WATCHLIST</span>
+                  <button class="btn sm" onclick="showPage('watchlist')">MANAGE ↗</button>
+                </div>
+                <div class="panel-body" style="padding:8px 14px;">
+                  <div id="wl-mini-list">
+                    <div style="font-family:var(--mono);font-size:11px;color:var(--muted);padding:10px 0;text-align:center;">No symbols tracked.</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div><!-- /ov-zone-b -->
+        </div><!-- /ov-content-grid -->
+      </div><!-- /page-overview -->
 
       <!-- ── SIGNAL MONITOR ── -->
       <div class="page" id="page-signals">
@@ -1381,6 +1640,342 @@ function showPage(id) {
 }
 
 /* ══════════════════════════════════════════════════
+   OVERVIEW LAYOUT ENGINE
+══════════════════════════════════════════════════ */
+var OV_EDIT_ACTIVE = false;
+var OV_DRAG_SRC    = null;
+var OV_DRAG_PH     = null;
+
+var OV_WIDGET_LABELS = {
+  'ov-w-stat-scripts':'ACTIVE SCRIPTS','ov-w-stat-signals':'SIGNALS TODAY',
+  'ov-w-stat-team':'TEAM ONLINE','ov-w-stat-market':'MARKET STATUS',
+  'ov-w-signals':'RECENT SIGNALS','ov-w-scripts':'SCRIPT STATUS',
+  'ov-w-mkt':'MARKET PULSE','ov-w-chat':'LIVE CHAT',
+  'ov-w-av':'AV STUDIO','ov-w-watchlist':'WATCHLIST'
+};
+
+function ovLayoutKey() {
+  var n = CURRENT_USER ? CURRENT_USER.name.toUpperCase().replace(/\W/g,'_') : 'DEFAULT';
+  return 's3_layout_' + n;
+}
+function ovDefaultLayout() {
+  return {
+    version:1,
+    zones:{
+      'ov-zone-stats':['ov-w-stat-scripts','ov-w-stat-signals','ov-w-stat-team','ov-w-stat-market'],
+      'ov-zone-a':['ov-w-signals','ov-w-scripts','ov-w-mkt'],
+      'ov-zone-b':['ov-w-chat','ov-w-av','ov-w-watchlist']
+    },
+    collapsed:[], hidden:[]
+  };
+}
+function ovCaptureLayout() {
+  var layout = {version:1,zones:{},collapsed:[],hidden:[]};
+  document.querySelectorAll('.ov-zone').forEach(function(z){
+    layout.zones[z.id] = [];
+    z.querySelectorAll(':scope > .ov-widget').forEach(function(w){ layout.zones[z.id].push(w.id); });
+  });
+  document.querySelectorAll('.ov-widget.collapsed').forEach(function(w){ layout.collapsed.push(w.id); });
+  document.querySelectorAll('.ov-widget[data-hidden="true"]').forEach(function(w){ layout.hidden.push(w.id); });
+  return layout;
+}
+function ovApplyLayout(layout) {
+  if (!layout || !layout.zones) return;
+  Object.keys(layout.zones).forEach(function(zid){
+    var z = document.getElementById(zid); if (!z) return;
+    layout.zones[zid].forEach(function(wid){
+      var w = document.getElementById(wid); if (w) z.appendChild(w);
+    });
+  });
+  document.querySelectorAll('.ov-widget').forEach(function(w){ w.classList.remove('collapsed'); });
+  (layout.collapsed||[]).forEach(function(wid){ var w=document.getElementById(wid); if(w) w.classList.add('collapsed'); });
+  document.querySelectorAll('.ov-widget').forEach(function(w){ w.style.display=''; w.removeAttribute('data-hidden'); });
+  (layout.hidden||[]).forEach(function(wid){ var w=document.getElementById(wid); if(w){ w.style.display='none'; w.setAttribute('data-hidden','true'); } });
+  ovUpdateTray(layout.hidden||[]);
+}
+function ovLoadLayout() {
+  try { var r=localStorage.getItem(ovLayoutKey()); return r ? JSON.parse(r) : ovDefaultLayout(); }
+  catch(e){ return ovDefaultLayout(); }
+}
+function ovSaveLayout() {
+  localStorage.setItem(ovLayoutKey(), JSON.stringify(ovCaptureLayout()));
+  ovToggleEdit(false);
+  showToast('LAYOUT SAVED.');
+}
+function ovResetLayout() {
+  localStorage.removeItem(ovLayoutKey());
+  ovApplyLayout(ovDefaultLayout());
+  ovToggleEdit(false);
+  showToast('LAYOUT RESET TO DEFAULT.');
+}
+function ovToggleEdit(force) {
+  OV_EDIT_ACTIVE = (force !== undefined) ? force : !OV_EDIT_ACTIVE;
+  document.body.classList.toggle('ov-edit-mode', OV_EDIT_ACTIVE);
+  document.getElementById('ov-layout-toolbar').classList.toggle('visible', OV_EDIT_ACTIVE);
+  document.getElementById('ov-edit-btn').classList.toggle('active', OV_EDIT_ACTIVE);
+  if (OV_EDIT_ACTIVE) { ovInitDrag(); ovUpdateTray(ovCaptureLayout().hidden||[]); }
+  else ovRemoveDrag();
+}
+function ovInitDrag() {
+  document.querySelectorAll('.ov-widget').forEach(function(w){
+    w.setAttribute('draggable','true');
+    w.addEventListener('dragstart', ovDragStart);
+    w.addEventListener('dragend',   ovDragEnd);
+  });
+  document.querySelectorAll('.ov-zone').forEach(function(z){
+    z.addEventListener('dragover',  ovDragOver);
+    z.addEventListener('dragleave', ovDragLeave);
+    z.addEventListener('drop',      ovDrop);
+  });
+}
+function ovRemoveDrag() {
+  document.querySelectorAll('.ov-widget').forEach(function(w){
+    w.setAttribute('draggable','false');
+    w.removeEventListener('dragstart', ovDragStart);
+    w.removeEventListener('dragend',   ovDragEnd);
+  });
+  document.querySelectorAll('.ov-zone').forEach(function(z){
+    z.removeEventListener('dragover',  ovDragOver);
+    z.removeEventListener('dragleave', ovDragLeave);
+    z.removeEventListener('drop',      ovDrop);
+  });
+}
+function ovDragStart(e) {
+  OV_DRAG_SRC = this; this.classList.add('dragging');
+  e.dataTransfer.effectAllowed = 'move';
+  e.dataTransfer.setData('text/plain', this.id);
+}
+function ovDragEnd() {
+  this.classList.remove('dragging');
+  ovRemovePH();
+  document.querySelectorAll('.ov-zone').forEach(function(z){ z.classList.remove('drag-over'); });
+  OV_DRAG_SRC = null;
+}
+function ovDragOver(e) {
+  e.preventDefault(); e.dataTransfer.dropEffect='move';
+  this.classList.add('drag-over');
+  var after = ovGetAfterEl(this, e.clientY);
+  ovRemovePH();
+  OV_DRAG_PH = document.createElement('div');
+  OV_DRAG_PH.className = 'ov-widget drag-placeholder';
+  OV_DRAG_PH.style.height = (OV_DRAG_SRC ? OV_DRAG_SRC.offsetHeight+'px' : '80px');
+  after === null ? this.appendChild(OV_DRAG_PH) : this.insertBefore(OV_DRAG_PH, after);
+}
+function ovDragLeave(e) {
+  if (!this.contains(e.relatedTarget)) { this.classList.remove('drag-over'); ovRemovePH(); }
+}
+function ovDrop(e) {
+  e.preventDefault(); this.classList.remove('drag-over');
+  if (!OV_DRAG_SRC || OV_DRAG_SRC === OV_DRAG_PH) return;
+  var after = ovGetAfterEl(this, e.clientY);
+  ovRemovePH();
+  after === null ? this.appendChild(OV_DRAG_SRC) : this.insertBefore(OV_DRAG_SRC, after);
+  ovInitDrag();
+}
+function ovGetAfterEl(zone, y) {
+  var items = Array.from(zone.querySelectorAll('.ov-widget:not(.dragging):not(.drag-placeholder)'));
+  return items.reduce(function(closest, child){
+    var box = child.getBoundingClientRect();
+    var off = y - box.top - box.height/2;
+    if (off < 0 && off > closest.offset) return {offset:off, element:child};
+    return closest;
+  }, {offset:Number.NEGATIVE_INFINITY}).element || null;
+}
+function ovRemovePH() {
+  if (OV_DRAG_PH && OV_DRAG_PH.parentNode) OV_DRAG_PH.parentNode.removeChild(OV_DRAG_PH);
+  OV_DRAG_PH = null;
+}
+function ovCollapse(id) {
+  var w = document.getElementById(id); if (w) w.classList.toggle('collapsed');
+}
+function ovHide(id) {
+  var w = document.getElementById(id); if (!w) return;
+  w.style.display = 'none'; w.setAttribute('data-hidden','true');
+  var hidden = Array.from(document.querySelectorAll('.ov-widget[data-hidden="true"]')).map(function(el){ return el.id; });
+  ovUpdateTray(hidden);
+}
+function ovRestore(id) {
+  var w = document.getElementById(id); if (!w) return;
+  w.style.display = ''; w.removeAttribute('data-hidden');
+  var parent = w.parentElement;
+  if (!parent || !parent.classList.contains('ov-zone')) document.getElementById('ov-zone-b').appendChild(w);
+  var hidden = Array.from(document.querySelectorAll('.ov-widget[data-hidden="true"]')).map(function(el){ return el.id; });
+  ovUpdateTray(hidden);
+  if (OV_EDIT_ACTIVE) ovInitDrag();
+}
+function ovUpdateTray(hiddenIds) {
+  var tray = document.getElementById('ov-hidden-tray'); if (!tray) return;
+  tray.innerHTML = '';
+  if (!hiddenIds || hiddenIds.length === 0) { tray.classList.remove('has-items'); return; }
+  tray.classList.add('has-items');
+  hiddenIds.forEach(function(id){
+    var chip = document.createElement('div');
+    chip.className = 'ov-restore-chip';
+    chip.innerHTML = '+ ' + (OV_WIDGET_LABELS[id] || id);
+    chip.onclick = function(){ ovRestore(id); };
+    tray.appendChild(chip);
+  });
+}
+
+/* ══════════════════════════════════════════════════
+   HOME PAGE MINI WIDGETS
+══════════════════════════════════════════════════ */
+function initHomeWidgets() {
+  ovApplyLayout(ovLoadLayout());
+  renderChatHome();
+  renderWatchlistMini();
+  renderMktMini();
+  drawRadialMini();
+}
+
+/* Mini radial canvas on home page */
+function drawRadialMini() {
+  var canvas = document.getElementById('radialMini');
+  if (!canvas) return;
+  var rCtx = canvas.getContext('2d');
+  var cx = 50, cy = 50, radius = 28;
+  (function miniLoop() {
+    requestAnimationFrame(miniLoop);
+    rCtx.clearRect(0, 0, 100, 100);
+    rCtx.beginPath(); rCtx.arc(cx, cy, radius - 2, 0, Math.PI*2);
+    rCtx.strokeStyle = 'rgba(20,253,206,0.15)'; rCtx.lineWidth = 1; rCtx.stroke();
+    var analyser = window.__avAnalyser;
+    if (analyser) {
+      var arr = new Uint8Array(analyser.frequencyBinCount);
+      analyser.getByteFrequencyData(arr);
+      for (var i = 0; i < 40; i++) {
+        var idx    = Math.floor((i/40)*(arr.length/1.5));
+        var val    = arr[idx];
+        var barLen = (val/255)*22;
+        var angle  = i*(Math.PI*2/40);
+        var hue    = nightOps ? 260+(val/255)*80 : 180+(val/255)*100;
+        rCtx.strokeStyle = 'hsl('+hue+',100%,55%)';
+        rCtx.lineWidth   = 1.5;
+        rCtx.beginPath();
+        rCtx.moveTo(cx+Math.cos(angle)*radius,        cy+Math.sin(angle)*radius);
+        rCtx.lineTo(cx+Math.cos(angle)*(radius+barLen),cy+Math.sin(angle)*(radius+barLen));
+        rCtx.stroke();
+      }
+      var bassAvg=0; for(var j=0;j<10;j++) bassAvg+=arr[j]; bassAvg/=10;
+      rCtx.beginPath(); rCtx.arc(cx,cy,radius-4,0,Math.PI*2);
+      rCtx.fillStyle='rgba(0,243,255,'+(bassAvg/500)+')'; rCtx.fill();
+    } else {
+      var t = Date.now()*0.002;
+      for (var k=0; k<40; k++) {
+        var a2 = (k/40)*Math.PI*2;
+        var b2 = 3+Math.sin(t+k*0.3)*2;
+        rCtx.strokeStyle = nightOps?'rgba(168,85,247,0.25)':'rgba(20,253,206,0.22)';
+        rCtx.lineWidth = 1.2;
+        rCtx.beginPath();
+        rCtx.moveTo(cx+Math.cos(a2)*radius,     cy+Math.sin(a2)*radius);
+        rCtx.lineTo(cx+Math.cos(a2)*(radius+b2),cy+Math.sin(a2)*(radius+b2));
+        rCtx.stroke();
+      }
+    }
+  })();
+}
+
+/* Sync AV state to home mini widget */
+function syncAvMiniState() {
+  var el = document.getElementById('avMediaEl');
+  var np = document.getElementById('avNowPlayingMini');
+  var pb = document.getElementById('avPlayBtnMini');
+  if (np) np.textContent = avCurrent >= 0 && avPlaylist[avCurrent] ? avPlaylist[avCurrent].name : 'NO TRACK LOADED';
+  if (pb) pb.textContent = el && !el.paused ? '⏸ PAUSE' : '▶ PLAY';
+}
+
+function dspVolMiniSync(val) {
+  val = +val;
+  var pct = Math.round(val*100)+'%';
+  var miniVal = document.getElementById('dspVolMiniVal'); if (miniVal) miniVal.textContent = pct;
+  var fullSlider = document.getElementById('dspVol'); if (fullSlider) fullSlider.value = val;
+  var fullLabel  = document.getElementById('dspVolV'); if (fullLabel)  fullLabel.textContent = pct;
+  if (avGain) avGain.gain.setTargetAtTime(val, avCtx.currentTime, 0.05);
+}
+
+/* Home chat */
+function renderChatHome() {
+  var msgs = loadChat();
+  var feed = document.getElementById('chat-feed-home');
+  if (!feed) return;
+  if (!msgs.length) {
+    feed.innerHTML = '<div style="font-family:var(--mono);font-size:11px;color:var(--muted);padding:8px 0;text-align:center;">No messages yet.</div>';
+    return;
+  }
+  feed.innerHTML = msgs.slice(-20).map(function(m){
+    var mine = CURRENT_USER && m.name === CURRENT_USER.name;
+    return '<div class="chat-home-msg' + (mine?' mine':'') + '">' +
+      '<span class="chat-home-author">' + esc(m.name) + '</span>' +
+      '<span class="chat-home-ts" style="float:right">' + m.time + '</span>' +
+      '<div class="chat-home-text">' + esc(m.text) + '</div>' +
+      '</div>';
+  }).join('');
+  feed.scrollTop = feed.scrollHeight;
+}
+
+function sendChatHome() {
+  if (!CURRENT_USER) return;
+  var input = document.getElementById('chatInput-home');
+  var text = input.value.trim();
+  if (!text) return;
+  var msgs = loadChat();
+  var msg  = {name:CURRENT_USER.name,role:CURRENT_USER.role,text:text,
+    time:new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',hour12:false})};
+  msgs.push(msg); saveChat(msgs);
+  input.value = '';
+  renderChatHome();
+  renderChat();
+  if (GAS_URL) {
+    fetch(GAS_URL,{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({action:'postMessage',name:msg.name,role:msg.role,text:msg.text})}).catch(function(){});
+  }
+}
+
+/* Watchlist mini */
+function renderWatchlistMini() {
+  var list = document.getElementById('wl-mini-list');
+  if (!list) return;
+  var items = loadWatchlist();
+  if (!items.length) {
+    list.innerHTML = '<div style="font-family:var(--mono);font-size:11px;color:var(--muted);padding:10px 0;text-align:center;">No symbols tracked.</div>';
+    return;
+  }
+  list.innerHTML = items.slice(0,8).map(function(item){
+    var q   = mktQuotes[item.sym];
+    var px  = q ? (q.price < 10 ? q.price.toFixed(4) : q.price.toFixed(2)) : '—';
+    return '<div class="wl-mini-row">' +
+      '<span class="wl-mini-sym">' + esc(item.sym) + '</span>' +
+      '<span class="wl-mini-note">' + esc(item.note||'') + '</span>' +
+      '<span class="wl-mini-px">' + px + '</span>' +
+      '</div>';
+  }).join('');
+}
+
+/* Market pulse mini */
+function renderMktMini() {
+  var list = document.getElementById('mkt-mini-list');
+  if (!list) return;
+  var symbols = loadWatchlist().map(function(w){ return w.sym; }).filter(Boolean);
+  if (!symbols.length) {
+    list.innerHTML = '<div style="font-family:var(--mono);font-size:11px;color:var(--muted);padding:10px 0;text-align:center;">Add symbols to Watchlist to see prices here.</div>';
+    return;
+  }
+  list.innerHTML = symbols.slice(0,10).map(function(sym){
+    var q = mktQuotes[sym]; if (!q) return '';
+    var chg = q.price - q.prev;
+    var pct = (chg/q.prev*100).toFixed(2);
+    var dir = chg >= 0 ? 'up' : 'dn';
+    var arrow = chg >= 0 ? '▲' : '▼';
+    var px = q.price<10 ? q.price.toFixed(4) : q.price.toFixed(2);
+    return '<div class="mkt-mini-row">' +
+      '<span class="mkt-mini-sym">' + sym + '</span>' +
+      '<span class="mkt-mini-px">' + px + '</span>' +
+      '<span class="mkt-mini-chg ' + dir + '">' + arrow + Math.abs(pct) + '%</span>' +
+      '</div>';
+  }).join('');
+}
+
+/* ══════════════════════════════════════════════════
    VOICE SYSTEM
 ══════════════════════════════════════════════════ */
 function initVoices() {
@@ -1516,6 +2111,7 @@ function avLoadTrack(idx) {
   document.getElementById('avNowPlaying').textContent = avPlaylist[idx].name;
   el.play().then(() => {
     document.getElementById('avPlayBtn').textContent = '⏸ PAUSE';
+    syncAvMiniState();
     if (!avRadialId) avDrawRadial();
   }).catch(() => {});
 }
@@ -1532,6 +2128,7 @@ function avPlayPause() {
     el.pause();
     document.getElementById('avPlayBtn').textContent = '▶ PLAY';
   }
+  syncAvMiniState();
 }
 
 function avPrev() {
@@ -1719,6 +2316,8 @@ async function refreshMarketData() {
   }).join('');
 
   updateMktTicker(symbols.map((sym, i) => ({ sym, q: results[i] })));
+  renderMktMini();
+  renderWatchlistMini();
 }
 
 function updateMktTicker(items) {
@@ -1833,7 +2432,8 @@ function doLogin(name, role, avatar) {
   renderChat();
   startPolling();
   avDrawRadial();
-  setTimeout(refreshMarketData, 1200);
+  setTimeout(function(){ refreshMarketData(); }, 1200);
+  setTimeout(initHomeWidgets, 200);
 
   // Welcome narration
   setTimeout(() => {
@@ -1940,6 +2540,7 @@ function renderChat() {
   }).join('');
   feed.scrollTop = feed.scrollHeight;
   chatLastCount = msgs.length;
+  renderChatHome();
 }
 
 function sendChat() {
