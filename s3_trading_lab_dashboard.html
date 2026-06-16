@@ -564,6 +564,103 @@ body.night-ops .ov-drag-handle{color:var(--signal);}
 .mkt-mini-px{font-size:12px;color:var(--accent);}
 .mkt-mini-chg{font-size:11px;}.mkt-mini-chg.up{color:#22c55e;}.mkt-mini-chg.dn{color:var(--danger);}
 
+/* ── Officer Menu Dropdown ───────────────────────── */
+.officer-chip{cursor:pointer;user-select:none;position:relative;}
+.officer-chip:hover{border-color:rgba(0,180,255,.45);}
+.officer-caret{font-size:10px;color:var(--muted);margin-left:4px;transition:transform .2s;}
+.officer-chip.open .officer-caret{transform:rotate(180deg);}
+.officer-menu{
+  display:none;position:absolute;top:calc(100% + 8px);right:0;min-width:180px;
+  background:rgba(4,12,28,.98);border:1px solid var(--border);border-radius:8px;
+  box-shadow:0 8px 32px rgba(0,0,0,.5);z-index:200;overflow:hidden;
+}
+.officer-chip.open .officer-menu{display:block;}
+.officer-menu-item{
+  display:flex;align-items:center;gap:10px;padding:11px 16px;
+  font-family:var(--mono);font-size:12px;color:rgba(160,200,240,.75);
+  cursor:pointer;transition:all .15s;letter-spacing:.08em;
+}
+.officer-menu-item:hover{background:rgba(0,180,255,.08);color:var(--bright);}
+.officer-menu-item.danger{color:rgba(239,68,68,.70);}
+.officer-menu-item.danger:hover{background:rgba(239,68,68,.08);color:var(--danger);}
+.officer-menu-sep{height:1px;background:var(--border);margin:2px 0;}
+
+/* ── Profile Drawer ──────────────────────────────── */
+.profile-overlay{
+  display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:300;
+  backdrop-filter:blur(2px);
+}
+.profile-overlay.open{display:flex;justify-content:flex-end;}
+.profile-drawer{
+  width:380px;max-width:100%;height:100%;
+  background:linear-gradient(180deg,rgba(4,12,28,.99),rgba(2,8,18,.99));
+  border-left:1px solid var(--border);display:flex;flex-direction:column;
+  box-shadow:-12px 0 60px rgba(0,0,0,.6);
+  animation:drawerIn .22s ease;
+}
+@keyframes drawerIn{from{transform:translateX(100%)}to{transform:translateX(0)}}
+.drawer-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:18px 20px;border-bottom:1px solid var(--border);
+  background:linear-gradient(90deg,rgba(0,180,255,.06),transparent);flex-shrink:0;
+}
+.drawer-title{font-family:var(--display);font-size:17px;font-weight:700;color:var(--bright);letter-spacing:.1em;}
+.drawer-close{
+  width:32px;height:32px;border:1px solid var(--border);background:transparent;
+  color:var(--muted);font-size:18px;border-radius:6px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;transition:all .15s;
+}
+.drawer-close:hover{color:var(--bright);border-color:var(--accent);}
+.drawer-tabs{display:flex;border-bottom:1px solid var(--border);flex-shrink:0;}
+.drawer-tab{
+  flex:1;padding:10px;font-family:var(--mono);font-size:11px;letter-spacing:.14em;
+  color:var(--muted);cursor:pointer;text-align:center;border-bottom:2px solid transparent;
+  transition:all .15s;
+}
+.drawer-tab:hover{color:var(--bright);}
+.drawer-tab.active{color:var(--accent);border-bottom-color:var(--accent);}
+.drawer-body{flex:1;overflow-y:auto;padding:18px 20px;}
+.drawer-section{margin-bottom:20px;}
+.drawer-section-title{
+  font-family:var(--mono);font-size:9px;letter-spacing:.22em;color:var(--muted);
+  text-transform:uppercase;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid rgba(0,180,255,.10);
+}
+.profile-info-row{display:flex;align-items:center;gap:14px;margin-bottom:18px;padding:14px;
+  background:rgba(0,180,255,.04);border:1px solid var(--border);border-radius:8px;}
+.profile-avatar-lg{width:52px;height:52px;border-radius:50%;border:2px solid var(--accent);
+  background:rgba(0,180,255,.1);display:flex;align-items:center;justify-content:center;
+  font-family:var(--display);font-size:22px;font-weight:700;color:var(--accent);flex-shrink:0;}
+.profile-name-block .pn{font-family:var(--display);font-size:18px;font-weight:700;color:var(--bright);}
+.profile-name-block .pr{font-family:var(--mono);font-size:10px;color:var(--accent);letter-spacing:.18em;margin-top:2px;}
+.pref-toggle-row{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:10px 0;border-bottom:1px solid rgba(0,180,255,.06);
+}
+.pref-toggle-label{font-family:var(--mono);font-size:11px;color:rgba(160,200,240,.8);letter-spacing:.06em;}
+.pref-toggle-desc{font-family:var(--mono);font-size:9px;color:var(--muted);margin-top:2px;}
+.pref-switch{
+  position:relative;width:38px;height:22px;flex-shrink:0;cursor:pointer;
+}
+.pref-switch input{opacity:0;width:0;height:0;position:absolute;}
+.pref-switch-track{
+  position:absolute;inset:0;border-radius:11px;background:rgba(0,180,255,.15);
+  border:1px solid var(--border);transition:background .2s;
+}
+.pref-switch input:checked+.pref-switch-track{background:rgba(0,180,255,.35);border-color:var(--accent);}
+.pref-switch-knob{
+  position:absolute;top:3px;left:3px;width:14px;height:14px;border-radius:50%;
+  background:var(--muted);transition:transform .2s,background .2s;
+}
+.pref-switch input:checked~.pref-switch-knob{transform:translateX(16px);background:var(--accent);}
+.signout-confirm{
+  display:none;position:absolute;inset:0;background:rgba(0,0,0,.80);z-index:10;
+  flex-direction:column;align-items:center;justify-content:center;gap:14px;
+  font-family:var(--mono);
+}
+.signout-confirm.show{display:flex;}
+.signout-confirm-msg{font-size:14px;color:var(--bright);letter-spacing:.1em;}
+.signout-confirm-sub{font-size:11px;color:var(--muted);}
+
 /* ── Market Price Ticker Bar ─────────────────────── */
 .mkt-ticker-bar{
   height:26px;background:rgba(0,10,20,.95);border-bottom:1px solid rgba(0,180,255,.14);
@@ -683,13 +780,19 @@ body.night-ops .ov-drag-handle{color:var(--signal);}
     <div class="topbar-right">
       <button class="mode-btn" id="nightBtn" onclick="toggleNightOps()">NIGHT OPS</button>
       <button class="mode-btn" id="voiceBtn" onclick="toggleVoice()">VOICE ON</button>
-      <div class="officer-chip">
+      <div class="officer-chip" id="officerChip" onclick="toggleOfficerMenu(event)">
         <div class="officer-avatar" id="officerInitial">?</div>
         <div>
           <div class="officer-name" id="officerName">---</div>
           <div class="officer-role" id="officerRole">---</div>
         </div>
-        <div class="status-dot"></div>
+        <div class="status-dot" style="margin:0 2px;"></div>
+        <span class="officer-caret">▾</span>
+        <div class="officer-menu" id="officerMenu">
+          <div class="officer-menu-item" onclick="openProfile();event.stopPropagation()">◎ PROFILE &amp; PREFS</div>
+          <div class="officer-menu-sep"></div>
+          <div class="officer-menu-item danger" onclick="confirmSignOut();event.stopPropagation()">⏻ SIGN OUT</div>
+        </div>
       </div>
     </div>
   </div>
@@ -1462,6 +1565,151 @@ body.night-ops .ov-drag-handle{color:var(--signal);}
 
     </main>
   </div><!-- /.body-wrap -->
+
+  <!-- ── PROFILE & PREFS DRAWER ── -->
+  <div class="profile-overlay" id="profileOverlay" onclick="closeProfileIfBg(event)">
+    <div class="profile-drawer" id="profileDrawer">
+      <div class="drawer-header">
+        <span class="drawer-title">PROFILE &amp; PREFERENCES</span>
+        <button class="drawer-close" onclick="closeProfile()">✕</button>
+      </div>
+      <div class="drawer-tabs">
+        <div class="drawer-tab active" id="dtab-profile" onclick="switchDrawerTab('profile')">PROFILE</div>
+        <div class="drawer-tab" id="dtab-notif" onclick="switchDrawerTab('notif')">NOTIFICATIONS</div>
+        <div class="drawer-tab" id="dtab-security" onclick="switchDrawerTab('security')">SECURITY</div>
+      </div>
+      <div class="drawer-body">
+
+        <!-- PROFILE TAB -->
+        <div id="dpane-profile">
+          <div class="profile-info-row">
+            <div class="profile-avatar-lg" id="profileAvatarLg">?</div>
+            <div class="profile-name-block">
+              <div class="pn" id="profileNameDisplay">---</div>
+              <div class="pr" id="profileRoleDisplay">---</div>
+            </div>
+          </div>
+          <div class="drawer-section">
+            <div class="drawer-section-title">DISPLAY NAME</div>
+            <input type="text" class="form-input" id="prefDisplayName" placeholder="Your display name"
+                   style="margin-bottom:10px;">
+          </div>
+          <div class="drawer-section">
+            <div class="drawer-section-title">AVATAR IMAGE URL</div>
+            <input type="url" class="form-input" id="prefAvatarUrl" placeholder="https://… (optional)"
+                   style="margin-bottom:6px;" oninput="previewAvatar()">
+            <div style="font-family:var(--mono);font-size:9px;color:var(--muted);">
+              Must be a public HTTPS image URL. Displayed in topbar officer chip.
+            </div>
+          </div>
+          <div class="drawer-section">
+            <div class="drawer-section-title">THEME</div>
+            <div style="display:flex;gap:10px;">
+              <button class="btn primary" onclick="applyTheme('blue')" style="flex:1;">◈ BLUE OPS</button>
+              <button class="btn" onclick="applyTheme('night')" style="flex:1;">◉ NIGHT OPS</button>
+            </div>
+          </div>
+          <button class="btn primary" style="width:100%;margin-top:6px;" onclick="saveProfile()">SAVE PROFILE</button>
+        </div>
+
+        <!-- NOTIFICATIONS TAB -->
+        <div id="dpane-notif" style="display:none;">
+          <div class="drawer-section">
+            <div class="drawer-section-title">SIGNAL ALERTS</div>
+            <div class="pref-toggle-row">
+              <div><div class="pref-toggle-label">TOAST NOTIFICATIONS</div>
+              <div class="pref-toggle-desc">Pop-up alerts on new Iron Sight signals</div></div>
+              <label class="pref-switch"><input type="checkbox" id="pref-toast-signals" checked onchange="savePrefs()"><div class="pref-switch-track"></div><div class="pref-switch-knob"></div></label>
+            </div>
+            <div class="pref-toggle-row">
+              <div><div class="pref-toggle-label">VOICE NARRATION</div>
+              <div class="pref-toggle-desc">Speak signal details aloud via TTS</div></div>
+              <label class="pref-switch"><input type="checkbox" id="pref-voice-signals" checked onchange="savePrefs()"><div class="pref-switch-track"></div><div class="pref-switch-knob"></div></label>
+            </div>
+            <div class="pref-toggle-row">
+              <div><div class="pref-toggle-label">BROWSER PUSH</div>
+              <div class="pref-toggle-desc">Alert even when tab is in background</div></div>
+              <label class="pref-switch"><input type="checkbox" id="pref-push-signals" onchange="toggleBrowserPush(this)"><div class="pref-switch-track"></div><div class="pref-switch-knob"></div></label>
+            </div>
+          </div>
+          <div class="drawer-section">
+            <div class="drawer-section-title">CHAT</div>
+            <div class="pref-toggle-row">
+              <div><div class="pref-toggle-label">CHAT BADGE COUNT</div>
+              <div class="pref-toggle-desc">Show unread count on sidebar badge</div></div>
+              <label class="pref-switch"><input type="checkbox" id="pref-chat-badge" checked onchange="savePrefs()"><div class="pref-switch-track"></div><div class="pref-switch-knob"></div></label>
+            </div>
+            <div class="pref-toggle-row">
+              <div><div class="pref-toggle-label">CHAT SOUND</div>
+              <div class="pref-toggle-desc">Subtle beep on new messages</div></div>
+              <label class="pref-switch"><input type="checkbox" id="pref-chat-sound" onchange="savePrefs()"><div class="pref-switch-track"></div><div class="pref-switch-knob"></div></label>
+            </div>
+          </div>
+          <div class="drawer-section">
+            <div class="drawer-section-title">MARKET ALERTS</div>
+            <div class="pref-toggle-row">
+              <div><div class="pref-toggle-label">MARKET OPEN / CLOSE</div>
+              <div class="pref-toggle-desc">Alert when NYSE opens or closes</div></div>
+              <label class="pref-switch"><input type="checkbox" id="pref-market-hours" checked onchange="savePrefs()"><div class="pref-switch-track"></div><div class="pref-switch-knob"></div></label>
+            </div>
+            <div class="pref-toggle-row">
+              <div><div class="pref-toggle-label">8AM SWEEP WINDOW</div>
+              <div class="pref-toggle-desc">Alert at 08:00 CT each trade day</div></div>
+              <label class="pref-switch"><input type="checkbox" id="pref-8am-alert" checked onchange="savePrefs()"><div class="pref-switch-track"></div><div class="pref-switch-knob"></div></label>
+            </div>
+          </div>
+          <div class="drawer-section">
+            <div class="drawer-section-title">REFRESH RATE</div>
+            <div style="display:flex;gap:10px;align-items:center;">
+              <label style="font-family:var(--mono);font-size:10px;color:var(--muted);">SIGNAL POLL</label>
+              <select class="form-select" id="pref-poll-rate" style="flex:1;padding:5px 8px;font-size:12px;" onchange="savePrefs()">
+                <option value="30">30 seconds</option>
+                <option value="60" selected>60 seconds</option>
+                <option value="120">2 minutes</option>
+                <option value="300">5 minutes</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- SECURITY TAB -->
+        <div id="dpane-security" style="display:none;">
+          <div class="drawer-section">
+            <div class="drawer-section-title">SESSION</div>
+            <div style="font-family:var(--mono);font-size:11px;line-height:2;color:var(--muted);margin-bottom:14px;">
+              <div>LOGGED IN AS: <span style="color:var(--bright)" id="sec-user">—</span></div>
+              <div>SESSION START: <span style="color:var(--accent)" id="sec-login-time">—</span></div>
+              <div>SESSION ID: <span style="color:var(--muted);font-size:10px;" id="sec-session-id">—</span></div>
+            </div>
+            <button class="btn" style="width:100%;color:var(--danger);border-color:rgba(239,68,68,.35);margin-bottom:10px;"
+                    onclick="confirmSignOut()">⏻ SIGN OUT NOW</button>
+          </div>
+          <div class="drawer-section">
+            <div class="drawer-section-title">SECURITY NOTES</div>
+            <div style="font-family:var(--mono);font-size:10px;color:var(--muted);line-height:2;">
+              <div>• Access codes are hashed (SHA-256) before storage</div>
+              <div>• Session tokens stored in sessionStorage only</div>
+              <div>• Layout prefs stored locally — never transmitted raw</div>
+              <div>• Always sign out on shared devices</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Sign-out confirmation overlay -->
+    <div class="signout-confirm" id="signoutConfirm">
+      <div class="signout-confirm-msg">SIGN OUT?</div>
+      <div class="signout-confirm-sub">Your session will be closed.</div>
+      <div style="display:flex;gap:12px;margin-top:6px;">
+        <button class="btn" style="color:var(--danger);border-color:rgba(239,68,68,.4);padding:8px 24px;"
+                onclick="doSignOut()">YES, SIGN OUT</button>
+        <button class="btn" style="padding:8px 24px;" onclick="closeSignoutConfirm()">CANCEL</button>
+      </div>
+    </div>
+  </div>
+
 </div><!-- /#app -->
 
 <script>
@@ -2340,6 +2588,242 @@ setInterval(() => {
 }, 60000);
 
 /* ══════════════════════════════════════════════════
+   OFFICER MENU + SIGN OUT
+══════════════════════════════════════════════════ */
+function toggleOfficerMenu(e) {
+  e.stopPropagation();
+  const chip = document.getElementById('officerChip');
+  chip.classList.toggle('open');
+}
+// Close menu when clicking outside
+document.addEventListener('click', function(e) {
+  const chip = document.getElementById('officerChip');
+  if (chip && !chip.contains(e.target)) chip.classList.remove('open');
+});
+
+function confirmSignOut() {
+  document.getElementById('officerChip').classList.remove('open');
+  document.getElementById('profileOverlay').classList.add('open');
+  document.getElementById('signoutConfirm').classList.add('show');
+}
+function closeSignoutConfirm() {
+  document.getElementById('signoutConfirm').classList.remove('show');
+  document.getElementById('profileOverlay').classList.remove('open');
+}
+
+function doSignOut() {
+  // Close session record in localStorage
+  try {
+    const sessions = JSON.parse(localStorage.getItem('s3_sessions') || '[]');
+    const idx = sessions.findLastIndex(s => s.name === (CURRENT_USER && CURRENT_USER.name) && s.status === 'OPEN');
+    if (idx >= 0) {
+      sessions[idx].status  = 'CLOSED';
+      sessions[idx].logoutTime = new Date().toISOString();
+      localStorage.setItem('s3_sessions', JSON.stringify(sessions));
+    }
+  } catch(_) {}
+
+  // Stop audio
+  try { document.getElementById('avMediaEl').pause(); } catch(_) {}
+  if (synth && synth.speaking) synth.cancel();
+
+  // Reset user state
+  CURRENT_USER = null;
+
+  // Flip to boot screen
+  document.getElementById('signoutConfirm').classList.remove('show');
+  document.getElementById('profileOverlay').classList.remove('open');
+  document.getElementById('app').style.display = 'none';
+  const boot = document.getElementById('boot');
+  boot.style.display = 'flex';
+  boot.style.opacity  = '1';
+  document.getElementById('bootCode').value = '';
+  document.getElementById('bootMsg').textContent = '';
+  document.getElementById('bootCode').focus();
+}
+
+/* ══════════════════════════════════════════════════
+   PROFILE DRAWER
+══════════════════════════════════════════════════ */
+function openProfile() {
+  document.getElementById('officerChip').classList.remove('open');
+  document.getElementById('profileOverlay').classList.add('open');
+  switchDrawerTab('profile');
+  loadProfileUI();
+  loadPrefsUI();
+  // Security tab info
+  const s = CURRENT_USER || {};
+  const el = v => document.getElementById(v);
+  if (el('sec-user'))        el('sec-user').textContent       = s.name || '—';
+  if (el('sec-login-time'))  el('sec-login-time').textContent = s.loginTime ? new Date(s.loginTime).toLocaleString() : '—';
+  const sessions = JSON.parse(localStorage.getItem('s3_sessions') || '[]');
+  const cur = sessions.filter(x => x.name === s.name && x.status === 'OPEN').slice(-1)[0];
+  if (el('sec-session-id'))  el('sec-session-id').textContent = cur ? cur.sessionId : '—';
+}
+function closeProfile() {
+  document.getElementById('profileOverlay').classList.remove('open');
+  document.getElementById('signoutConfirm').classList.remove('show');
+}
+function closeProfileIfBg(e) {
+  if (e.target === document.getElementById('profileOverlay')) closeProfile();
+}
+function switchDrawerTab(tab) {
+  ['profile','notif','security'].forEach(function(t) {
+    document.getElementById('dtab-'+t).classList.toggle('active', t === tab);
+    document.getElementById('dpane-'+t).style.display = (t === tab) ? '' : 'none';
+  });
+}
+
+/* ── Profile read/write ── */
+function profileKey() {
+  return 's3_profile_' + ((CURRENT_USER && CURRENT_USER.name) || 'default').replace(/\W/g,'_');
+}
+function loadProfileData() {
+  try { return JSON.parse(localStorage.getItem(profileKey()) || '{}'); } catch(_){ return {}; }
+}
+function saveProfile() {
+  var data = loadProfileData();
+  var nameInput = document.getElementById('prefDisplayName');
+  var avatarInput = document.getElementById('prefAvatarUrl');
+  var newName = nameInput ? nameInput.value.trim() : '';
+  var newAvatar = avatarInput ? avatarInput.value.trim() : '';
+  // Sanitize avatar URL — must be https
+  if (newAvatar && !newAvatar.startsWith('https://')) {
+    showToast('Avatar URL must start with https://', true); return;
+  }
+  data.displayName = newName || (CURRENT_USER && CURRENT_USER.name) || '';
+  data.avatarUrl   = newAvatar;
+  localStorage.setItem(profileKey(), JSON.stringify(data));
+  // Update topbar
+  if (newAvatar) {
+    var av = document.getElementById('officerInitial');
+    av.innerHTML = '<img src="'+newAvatar+'" style="width:100%;height:100%;border-radius:50%;object-fit:cover;" onerror="this.remove()">';
+  }
+  if (newName && CURRENT_USER) {
+    document.getElementById('officerName').textContent = newName;
+  }
+  showToast('PROFILE SAVED.');
+  syncProfileToGAS(data);
+}
+function loadProfileUI() {
+  var data = loadProfileData();
+  var ni = document.getElementById('prefDisplayName');
+  var ai = document.getElementById('prefAvatarUrl');
+  if (ni) ni.value = data.displayName || (CURRENT_USER && CURRENT_USER.name) || '';
+  if (ai) ai.value = data.avatarUrl   || '';
+  var nameLbl = document.getElementById('profileNameDisplay');
+  var roleLbl = document.getElementById('profileRoleDisplay');
+  var avatLbl = document.getElementById('profileAvatarLg');
+  if (nameLbl) nameLbl.textContent = (CURRENT_USER && CURRENT_USER.name) || '—';
+  if (roleLbl) roleLbl.textContent = (CURRENT_USER && CURRENT_USER.role) || '—';
+  if (avatLbl) {
+    if (data.avatarUrl) {
+      avatLbl.innerHTML = '<img src="'+data.avatarUrl+'" style="width:100%;height:100%;border-radius:50%;object-fit:cover;" onerror="this.remove()">';
+    } else {
+      avatLbl.textContent = (CURRENT_USER && CURRENT_USER.name && CURRENT_USER.name.charAt(0)) || '?';
+    }
+  }
+}
+function previewAvatar() {
+  var url = document.getElementById('prefAvatarUrl').value.trim();
+  var lv  = document.getElementById('profileAvatarLg');
+  if (!lv) return;
+  if (url && url.startsWith('https://')) {
+    lv.innerHTML = '<img src="'+url+'" style="width:100%;height:100%;border-radius:50%;object-fit:cover;" onerror="this.remove()">';
+  } else {
+    lv.textContent = (CURRENT_USER && CURRENT_USER.name && CURRENT_USER.name.charAt(0)) || '?';
+  }
+}
+function applyTheme(t) {
+  const isNight = t === 'night';
+  nightOps = isNight;
+  document.body.classList.toggle('night-ops', isNight);
+  document.getElementById('nightBtn').classList.toggle('active', isNight);
+  document.getElementById('nightBtn').textContent = isNight ? 'NIGHT OPS ON' : 'NIGHT OPS';
+  var prefs = loadPrefsData(); prefs.theme = t;
+  localStorage.setItem(prefsKey(), JSON.stringify(prefs));
+  showToast('THEME: ' + (isNight ? 'NIGHT OPS' : 'BLUE OPS'));
+}
+function syncProfileToGAS(data) {
+  if (!GAS_URL || !CURRENT_USER) return;
+  fetch(GAS_URL, {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ action:'saveProfile', name: CURRENT_USER.name, profile: data })
+  }).catch(function(){});
+}
+
+/* ── Preferences read/write ── */
+function prefsKey() {
+  return 's3_prefs_' + ((CURRENT_USER && CURRENT_USER.name) || 'default').replace(/\W/g,'_');
+}
+function loadPrefsData() {
+  try { return JSON.parse(localStorage.getItem(prefsKey()) || '{}'); } catch(_){ return {}; }
+}
+function savePrefs() {
+  var prefs = {
+    toastSignals  : document.getElementById('pref-toast-signals')  ? document.getElementById('pref-toast-signals').checked  : true,
+    voiceSignals  : document.getElementById('pref-voice-signals')   ? document.getElementById('pref-voice-signals').checked   : true,
+    pushSignals   : document.getElementById('pref-push-signals')    ? document.getElementById('pref-push-signals').checked    : false,
+    chatBadge     : document.getElementById('pref-chat-badge')      ? document.getElementById('pref-chat-badge').checked      : true,
+    chatSound     : document.getElementById('pref-chat-sound')      ? document.getElementById('pref-chat-sound').checked      : false,
+    marketHours   : document.getElementById('pref-market-hours')    ? document.getElementById('pref-market-hours').checked    : true,
+    alert8am      : document.getElementById('pref-8am-alert')       ? document.getElementById('pref-8am-alert').checked       : true,
+    pollRate      : document.getElementById('pref-poll-rate')       ? +document.getElementById('pref-poll-rate').value        : 60,
+    theme         : nightOps ? 'night' : 'blue'
+  };
+  localStorage.setItem(prefsKey(), JSON.stringify(prefs));
+  applyPrefs(prefs);
+}
+function loadPrefsUI() {
+  var p = loadPrefsData();
+  function setChk(id, val) { var el = document.getElementById(id); if (el) el.checked = (val !== false); }
+  function setVal(id, val) { var el = document.getElementById(id); if (el && val) el.value = val; }
+  setChk('pref-toast-signals', p.toastSignals);
+  setChk('pref-voice-signals', p.voiceSignals);
+  setChk('pref-push-signals',  p.pushSignals);
+  setChk('pref-chat-badge',    p.chatBadge);
+  setChk('pref-chat-sound',    p.chatSound);
+  setChk('pref-market-hours',  p.marketHours);
+  setChk('pref-8am-alert',     p.alert8am);
+  setVal('pref-poll-rate',     p.pollRate);
+}
+function applyPrefs(p) {
+  // Voice gating: if voice signals pref is off, mute the signal narration
+  // (voiceMuted already gates speakText, so we just reflect the pref there)
+  if (p.voiceSignals === false && !voiceMuted) {
+    voiceMuted = true;
+    document.getElementById('voiceBtn').textContent = 'VOICE OFF';
+    document.getElementById('voiceBtn').classList.remove('active');
+  }
+}
+function loadAndApplyPrefs() {
+  var p = loadPrefsData();
+  applyPrefs(p);
+  if (p.theme === 'night' && !nightOps) applyTheme('night');
+}
+
+/* Browser push permission */
+function toggleBrowserPush(checkbox) {
+  if (checkbox.checked) {
+    if (!('Notification' in window)) {
+      showToast('Browser notifications not supported.', true);
+      checkbox.checked = false; return;
+    }
+    Notification.requestPermission().then(function(perm) {
+      if (perm !== 'granted') {
+        showToast('Notification permission denied.', true);
+        checkbox.checked = false;
+      } else {
+        showToast('Browser push enabled.');
+      }
+      savePrefs();
+    });
+  } else {
+    savePrefs();
+  }
+}
+
+/* ══════════════════════════════════════════════════
    NIGHT OPS MODE
 ══════════════════════════════════════════════════ */
 function toggleNightOps() {
@@ -2432,6 +2916,7 @@ function doLogin(name, role, avatar) {
   renderChat();
   startPolling();
   avDrawRadial();
+  loadAndApplyPrefs();
   setTimeout(function(){ refreshMarketData(); }, 1200);
   setTimeout(initHomeWidgets, 200);
 
