@@ -532,6 +532,11 @@ body.ov-edit-mode .ov-widget .ov-edit-bar{display:flex;}
   background:rgba(0,8,20,.60);color:var(--muted);font-family:var(--mono);font-size:13px;
   border-radius:4px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;
 }
+/* Header layout-toggle uses both .btn + .ov-edit-btn — restore natural btn sizing */
+.btn.ov-edit-btn{
+  width:auto;height:auto;padding:9px 18px;
+  font-size:13px;letter-spacing:.1em;white-space:nowrap;
+}
 .ov-edit-btn:hover{color:var(--bright);border-color:var(--accent);}
 .ov-edit-btn.danger-btn{color:rgba(239,68,68,.55);}
 .ov-edit-btn.danger-btn:hover{color:var(--danger);border-color:var(--danger);}
