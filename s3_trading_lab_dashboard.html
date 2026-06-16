@@ -3441,10 +3441,24 @@ function doLogin(name, role, avatar) {
 
   showToast('ACCESS GRANTED — Welcome, ' + name);
 
-  // Log session locally
+  // Log session locally — close any pre-existing OPEN sessions for this user first
   const sessions = JSON.parse(localStorage.getItem('s3_sessions') || '[]');
+  const cutoff = Date.now() - 24 * 60 * 60 * 1000; // auto-expire sessions older than 24h
+  sessions.forEach(s => {
+    if (s.name === name && s.status === 'OPEN') {
+      s.status = 'CLOSED';
+      s.logoutTime = new Date().toISOString();
+      s.closeReason = 'page-reload';
+    }
+    // also expire abandoned sessions that are over 24h old regardless of owner
+    if (s.status === 'OPEN' && new Date(s.loginTime).getTime() < cutoff) {
+      s.status = 'CLOSED';
+      s.logoutTime = new Date().toISOString();
+      s.closeReason = 'expired';
+    }
+  });
   sessions.push({ name, role, sessionId: Math.random().toString(36).slice(2,10).toUpperCase(), loginTime: CURRENT_USER.loginTime, status: 'OPEN' });
-  localStorage.setItem('s3_sessions', JSON.stringify(sessions.slice(-100)));
+  localStorage.setItem('s3_sessions', JSON.stringify(sessions.slice(-200)));
 }
 
 /* ══════════════════════════════════════════════════
@@ -3496,15 +3510,23 @@ function removeWatch(i) {
 ══════════════════════════════════════════════════ */
 function renderTeam() {
   const sessions = JSON.parse(localStorage.getItem('s3_sessions') || '[]');
-  const open = sessions.filter(s => s.status === 'OPEN');
+
+  // Deduplicate — one card per unique name, keeping the most recent OPEN session
+  const byName = {};
+  sessions.filter(s => s.status === 'OPEN').forEach(s => {
+    if (!byName[s.name] || s.loginTime > byName[s.name].loginTime) byName[s.name] = s;
+  });
+  const unique = Object.values(byName);
+
   const grid = document.getElementById('team-grid');
-  if (!open.length) {
+  if (!unique.length) {
     grid.innerHTML = '<div style="font-family:var(--mono);font-size:12px;color:var(--muted);padding:20px;">No active sessions found</div>';
     document.getElementById('team-count-badge').textContent = '0 ONLINE';
     document.getElementById('stat-team').textContent = '0';
+    document.getElementById('stat-team-sub').textContent = 'No members active';
     return;
   }
-  grid.innerHTML = open.map(s =>
+  grid.innerHTML = unique.map(s =>
     '<div class="team-card">' +
     '<div class="team-avatar-circle">' + s.name.charAt(0) + '</div>' +
     '<div class="team-name">' + esc(s.name) + '</div>' +
@@ -3512,9 +3534,9 @@ function renderTeam() {
     '<div class="team-since"><span class="online-dot"></span>Since ' + new Date(s.loginTime).toLocaleTimeString('en-US', {hour:'2-digit',minute:'2-digit',hour12:false}) + '</div>' +
     '</div>'
   ).join('');
-  document.getElementById('team-count-badge').textContent = open.length + ' ONLINE';
-  document.getElementById('stat-team').textContent = open.length;
-  document.getElementById('stat-team-sub').textContent = open.length === 1 ? 'You are connected' : open.length + ' members active';
+  document.getElementById('team-count-badge').textContent = unique.length + ' ONLINE';
+  document.getElementById('stat-team').textContent = unique.length;
+  document.getElementById('stat-team-sub').textContent = unique.length === 1 ? 'You are connected' : unique.length + ' members active';
 }
 function refreshTeam() { renderTeam(); }
 
