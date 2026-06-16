@@ -2653,7 +2653,8 @@ function renderWatchlistMini() {
     return;
   }
   list.innerHTML = items.map(function(item){
-    var q   = mktQuotes[item.sym];
+    var sym = item.symbol || item.sym || '';
+    var q   = mktQuotes[sym];
     var px  = q ? (q.price < 10 ? q.price.toFixed(4) : q.price.toFixed(2)) : '—';
     var chg = q ? (q.price - q.prev) : 0;
     var chgPct = q ? ((chg / q.prev) * 100).toFixed(2) : null;
@@ -2663,7 +2664,7 @@ function renderWatchlistMini() {
         (chg >= 0 ? '▲' : '▼') + Math.abs(chgPct) + '%</span>'
       : '';
     return '<div class="wl-mini-row">' +
-      '<span class="wl-mini-sym">' + esc(item.sym) + '</span>' +
+      '<span class="wl-mini-sym">' + esc(sym) + '</span>' +
       '<span class="wl-mini-note">' + esc(item.note||'') + '</span>' +
       '<span class="wl-mini-px">' + px + chgHtml + '</span>' +
       '</div>';
@@ -2674,7 +2675,7 @@ function renderWatchlistMini() {
 function renderMktMini() {
   var list = document.getElementById('mkt-mini-list');
   if (!list) return;
-  var symbols = loadWatchlist().map(function(w){ return w.sym; }).filter(Boolean);
+  var symbols = loadWatchlist().map(function(w){ return w.symbol || w.sym; }).filter(Boolean);
   if (!symbols.length) {
     list.innerHTML = '<div style="font-family:var(--mono);font-size:11px;color:var(--muted);padding:10px 0;text-align:center;">Add symbols to Watchlist to see prices here.</div>';
     return;
@@ -3016,7 +3017,7 @@ async function fetchQuote(sym) {
 
 async function refreshMarketData() {
   const watchlist = loadWatchlist();
-  const symbols   = watchlist.map(w => w.sym).filter(Boolean);
+  const symbols   = watchlist.map(w => w.symbol || w.sym).filter(Boolean);
   if (symbols.length === 0) {
     document.getElementById('mktGrid').innerHTML =
       '<div style="font-family:var(--mono);font-size:12px;color:var(--muted);padding:20px;grid-column:1/-1;">Add symbols to your Watchlist to see quotes here.</div>';
@@ -3477,6 +3478,8 @@ function addWatchItem() {
   document.getElementById('watchNote').value = '';
   document.getElementById('watchAddRow').style.display = 'none';
   renderWatchlist();
+  renderWatchlistMini();
+  renderMktMini();
   showToast(sym + ' added to watchlist');
 }
 function removeWatch(i) {
@@ -3484,6 +3487,8 @@ function removeWatch(i) {
   items.splice(i, 1);
   saveWatchlist(items);
   renderWatchlist();
+  renderWatchlistMini();
+  renderMktMini();
 }
 
 /* ══════════════════════════════════════════════════
