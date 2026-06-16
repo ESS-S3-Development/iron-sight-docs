@@ -2881,18 +2881,33 @@ async function tryLogin(code) {
   }
 }
 
+/* Avatar map — keyed by uppercase name; GAS can override via the avatar arg */
+const AVATAR_MAP = {
+  'V.CASELLA': 'https://static.wixstatic.com/media/b8ecbb_bda45116574243dba64762a21cac280f~mv2.jpg'
+};
+
 function demoLogin() {
-  doLogin('V.CASELLA', 'ADMIN', '');
+  doLogin('V.CASELLA', 'ADMIN', AVATAR_MAP['V.CASELLA'] || '');
 }
 
 function doLogin(name, role, avatar) {
   CURRENT_USER = { name, role, avatar, loginTime: new Date().toISOString() };
 
+  // Resolve avatar: saved profile > passed arg > AVATAR_MAP > initial letter
+  const savedProfile = (function(){ try { return JSON.parse(localStorage.getItem('s3_profile_' + name.replace(/\W/g,'_')) || '{}'); } catch(_){ return {}; } })();
+  const resolvedAvatar = (savedProfile.avatarUrl && savedProfile.avatarUrl.startsWith('https://'))
+    ? savedProfile.avatarUrl
+    : (avatar && avatar.startsWith('https://') ? avatar : (AVATAR_MAP[name.toUpperCase()] || ''));
+
   // Officer chip
-  document.getElementById('officerName').textContent = name;
+  document.getElementById('officerName').textContent = savedProfile.displayName || name;
   document.getElementById('officerRole').textContent = role;
-  const initial = name.charAt(0);
-  document.getElementById('officerInitial').textContent = initial;
+  const av = document.getElementById('officerInitial');
+  if (resolvedAvatar) {
+    av.innerHTML = '<img src="' + resolvedAvatar + '" style="width:100%;height:100%;border-radius:50%;object-fit:cover;" onerror="this.innerHTML=\''+name.charAt(0)+'\'">';
+  } else {
+    av.textContent = name.charAt(0);
+  }
 
   // Admin nav
   if (role === 'ADMIN') {
