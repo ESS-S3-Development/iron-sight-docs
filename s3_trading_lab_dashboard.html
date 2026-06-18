@@ -1415,7 +1415,10 @@ body.night-ops .av-mini-pl-item:hover{
               <div class="panel">
                 <div class="panel-header">
                   <span class="panel-title">LIVE CHAT</span>
-                  <button class="btn sm" onclick="showPage('chat')">EXPAND ↗</button>
+                  <div style="display:flex;gap:6px;">
+                    <button class="btn sm danger" id="clearChatBtnHome" style="display:none;" onclick="clearChatConfirm()">✕ CLEAR</button>
+                    <button class="btn sm" onclick="showPage('chat')">EXPAND ↗</button>
+                  </div>
                 </div>
                 <div class="panel-body" style="padding:10px 14px;">
                   <div class="chat-home-feed" id="chat-feed-home">
@@ -1662,7 +1665,10 @@ body.night-ops .av-mini-pl-item:hover{
         <div class="panel" style="padding:0;max-width:740px;margin-left:auto;margin-right:auto;">
           <div class="panel-header">
             <span class="panel-title">TEAM CHANNEL</span>
-            <button class="btn sm" onclick="refreshChat()">⟳ REFRESH</button>
+            <div style="display:flex;gap:8px;">
+              <button class="btn sm danger" id="clearChatBtn" style="display:none;" onclick="clearChatConfirm()">✕ CLEAR</button>
+              <button class="btn sm" onclick="refreshChat()">⟳ REFRESH</button>
+            </div>
           </div>
           <div class="chat-wrap">
             <div class="chat-feed" id="chat-feed">
@@ -3411,6 +3417,8 @@ function doLogin(name, role, avatar) {
   if (role === 'ADMIN') {
     document.getElementById('adminSection').style.display = '';
     document.getElementById('adminNav').style.display = '';
+    document.getElementById('clearChatBtn').style.display = '';
+    document.getElementById('clearChatBtnHome').style.display = '';
   }
 
   // Boot out
@@ -3592,6 +3600,23 @@ function sendChat() {
       body: JSON.stringify({ action: 'postMessage', name: msg.name, role: msg.role, text: msg.text })
     }).catch(() => {});
   }
+}
+
+function clearChatConfirm() {
+  if (!confirm('Clear all chat messages? This cannot be undone.')) return;
+  // Wipe local cache
+  localStorage.removeItem('s3_chat');
+  renderChatHome();
+  renderChat();
+  // Wipe GAS sheet
+  if (GAS_URL && CURRENT_USER) {
+    fetch(GAS_URL, {
+      method: 'POST',
+      headers: {'Content-Type':'text/plain'},
+      body: JSON.stringify({ action: 'clearChat', role: CURRENT_USER.role })
+    }).catch(() => {});
+  }
+  showToast('Chat cleared.');
 }
 
 function refreshChat() {
