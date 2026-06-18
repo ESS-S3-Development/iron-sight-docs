@@ -2770,6 +2770,47 @@ function toggleVoice() {
   document.getElementById('voiceBtn').classList.toggle('active', !voiceMuted);
 }
 
+/* ── Hover-to-Read Accessibility ──────────────────────
+   Reads any element the cursor dwells on for 700ms.
+   Prefers aria-label > title > visible text content.
+   Skips form controls, large containers, and duplicates.
+─────────────────────────────────────────────────────── */
+(function() {
+  let _timer = null;
+  let _lastText = '';
+
+  document.addEventListener('mouseover', function(e) {
+    if (voiceMuted || !synth) return;
+    clearTimeout(_timer);
+
+    const el = e.target;
+    // Skip form controls and the voice indicator itself
+    if (/^(INPUT|TEXTAREA|SELECT|OPTION)$/.test(el.tagName)) return;
+    if (el.closest && el.closest('#voice-indicator')) return;
+
+    // Prefer aria-label > title > visible text
+    let text = el.getAttribute('aria-label') || el.getAttribute('title') || '';
+    if (!text) {
+      const raw = (el.innerText || el.textContent || '').replace(/\s+/g, ' ').trim();
+      // Only read leaf-ish nodes: short text, few descendant elements
+      if (raw.length >= 3 && raw.length <= 160 && el.querySelectorAll('*').length < 5) {
+        text = raw;
+      }
+    }
+
+    if (!text || text === _lastText) return;
+
+    _timer = setTimeout(function() {
+      _lastText = text;
+      speakText(text.slice(0, 160));
+    }, 700);
+  });
+
+  document.addEventListener('mouseout', function() {
+    clearTimeout(_timer);
+  });
+})();
+
 /* ── Narration Engine ── */
 let narUtter = null;
 function speakNarration() {
