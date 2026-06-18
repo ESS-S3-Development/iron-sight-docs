@@ -2034,6 +2034,14 @@ body.night-ops .av-mini-pl-item:hover{
                    style="margin-bottom:10px;">
           </div>
           <div class="drawer-section">
+            <div class="drawer-section-title">DISPLAY NICKNAME</div>
+            <input type="text" class="form-input" id="prefNickname" placeholder="Chat alias (optional)"
+                   style="margin-bottom:6px;">
+            <div style="font-family:var(--mono);font-size:9px;color:var(--muted);">
+              Shown in chat instead of your login name.
+            </div>
+          </div>
+          <div class="drawer-section">
             <div class="drawer-section-title">AVATAR IMAGE URL</div>
             <input type="url" class="form-input" id="prefAvatarUrl" placeholder="https://… (optional)"
                    style="margin-bottom:6px;" oninput="previewAvatar()">
@@ -2624,13 +2632,20 @@ function renderChatHome() {
     feed.innerHTML = '<div style="font-family:var(--mono);font-size:11px;color:var(--muted);padding:8px 0;text-align:center;">No messages yet.</div>';
     return;
   }
+  var myName = CURRENT_USER ? (CURRENT_USER.nickname || CURRENT_USER.name) : null;
   feed.innerHTML = msgs.slice(-20).map(function(m){
-    var mine = CURRENT_USER && m.name === CURRENT_USER.name;
-    return '<div class="chat-home-msg' + (mine?' mine':'') + '">' +
+    var mine = myName && m.name === myName;
+    var avatarSrc = m.avatar || SESSION_AVATAR_MAP[m.name] || '';
+    var avHtml = avatarSrc
+      ? '<img src="' + esc(avatarSrc) + '" style="width:18px;height:18px;border-radius:50%;object-fit:cover;flex-shrink:0;margin-right:5px;" onerror="this.remove()">'
+      : '<span style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:var(--muted);font-size:9px;flex-shrink:0;margin-right:5px;">' + esc(m.name.charAt(0)) + '</span>';
+    return '<div class="chat-home-msg' + (mine?' mine':'') + '" style="display:flex;align-items:flex-start;gap:0;">' +
+      avHtml +
+      '<div style="flex:1;min-width:0;">' +
       '<span class="chat-home-author">' + esc(m.name) + '</span>' +
       '<span class="chat-home-ts" style="float:right">' + m.time + '</span>' +
       '<div class="chat-home-text">' + esc(m.text) + '</div>' +
-      '</div>';
+      '</div></div>';
   }).join('');
   feed.scrollTop = feed.scrollHeight;
 }
@@ -2641,15 +2656,20 @@ function sendChatHome() {
   var text = input.value.trim();
   if (!text) return;
   var msgs = loadChat();
-  var msg  = {name:CURRENT_USER.name,role:CURRENT_USER.role,text:text,
-    time:new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',hour12:false})};
+  var msg = {
+    name:   CURRENT_USER.nickname || CURRENT_USER.name,
+    role:   CURRENT_USER.role,
+    avatar: CURRENT_USER.avatar || '',
+    text:   text,
+    time:   new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',hour12:false})
+  };
   msgs.push(msg); saveChat(msgs);
   input.value = '';
   renderChatHome();
   renderChat();
   if (GAS_URL) {
     fetch(GAS_URL,{method:'POST',headers:{'Content-Type':'text/plain'},
-      body:JSON.stringify({action:'postMessage',name:msg.name,role:msg.role,text:msg.text})}).catch(function(){});
+      body:JSON.stringify({action:'postMessage',name:msg.name,role:msg.role,text:msg.text,avatar:msg.avatar})}).catch(function(){});
   }
 }
 
@@ -3183,34 +3203,40 @@ function loadProfileData() {
 }
 function saveProfile() {
   var data = loadProfileData();
-  var nameInput = document.getElementById('prefDisplayName');
-  var avatarInput = document.getElementById('prefAvatarUrl');
-  var newName = nameInput ? nameInput.value.trim() : '';
-  var newAvatar = avatarInput ? avatarInput.value.trim() : '';
-  // Sanitize avatar URL — must be https
+  var nameInput     = document.getElementById('prefDisplayName');
+  var nicknameInput = document.getElementById('prefNickname');
+  var avatarInput   = document.getElementById('prefAvatarUrl');
+  var newName     = nameInput     ? nameInput.value.trim()     : '';
+  var newNickname = nicknameInput ? nicknameInput.value.trim() : '';
+  var newAvatar   = avatarInput   ? avatarInput.value.trim()   : '';
   if (newAvatar && !newAvatar.startsWith('https://')) {
     showToast('Avatar URL must start with https://', true); return;
   }
-  data.displayName = newName || (CURRENT_USER && CURRENT_USER.name) || '';
+  data.displayName = newName    || (CURRENT_USER && CURRENT_USER.name) || '';
+  data.nickname    = newNickname;
   data.avatarUrl   = newAvatar;
   localStorage.setItem(profileKey(), JSON.stringify(data));
-  // Update topbar
+  if (CURRENT_USER) CURRENT_USER.nickname = newNickname;
+  // Update topbar display name
+  if (newName && CURRENT_USER) {
+    document.getElementById('officerName').textContent = newName;
+  }
+  // Update topbar avatar (local override only — does NOT touch Users sheet)
   if (newAvatar) {
     var av = document.getElementById('officerInitial');
     av.innerHTML = '<img src="'+newAvatar+'" style="width:100%;height:100%;border-radius:50%;object-fit:cover;" onerror="this.remove()">';
-  }
-  if (newName && CURRENT_USER) {
-    document.getElementById('officerName').textContent = newName;
   }
   showToast('PROFILE SAVED.');
   syncProfileToGAS(data);
 }
 function loadProfileUI() {
   var data = loadProfileData();
-  var ni = document.getElementById('prefDisplayName');
-  var ai = document.getElementById('prefAvatarUrl');
-  if (ni) ni.value = data.displayName || (CURRENT_USER && CURRENT_USER.name) || '';
-  if (ai) ai.value = data.avatarUrl   || '';
+  var ni  = document.getElementById('prefDisplayName');
+  var ni2 = document.getElementById('prefNickname');
+  var ai  = document.getElementById('prefAvatarUrl');
+  if (ni)  ni.value  = data.displayName || (CURRENT_USER && CURRENT_USER.name) || '';
+  if (ni2) ni2.value = data.nickname    || '';
+  if (ai)  ai.value  = data.avatarUrl   || '';
   var nameLbl = document.getElementById('profileNameDisplay');
   var roleLbl = document.getElementById('profileRoleDisplay');
   var avatLbl = document.getElementById('profileAvatarLg');
@@ -3246,9 +3272,10 @@ function applyTheme(t) {
 }
 function syncProfileToGAS(data) {
   if (!GAS_URL || !CURRENT_USER) return;
+  // Only sync displayName — never overwrite AvatarURL (Users sheet) which is admin-controlled
   fetch(GAS_URL, {
     method:'POST', headers:{'Content-Type':'text/plain'},
-    body: JSON.stringify({ action:'saveProfile', name: CURRENT_USER.name, profile: data })
+    body: JSON.stringify({ action:'saveProfile', name: CURRENT_USER.name, profile: { displayName: data.displayName } })
   }).catch(function(){});
 }
 
@@ -3408,8 +3435,11 @@ function demoLogin() {
 function doLogin(name, role, avatar) {
   CURRENT_USER = { name, role, avatar, loginTime: new Date().toISOString() };
 
-  // Resolve avatar: saved profile > passed arg > AVATAR_MAP > initial letter
+  // Load saved local profile preferences
   const savedProfile = (function(){ try { return JSON.parse(localStorage.getItem('s3_profile_' + name.replace(/\W/g,'_')) || '{}'); } catch(_){ return {}; } })();
+  CURRENT_USER.nickname = savedProfile.nickname || '';
+
+  // Topbar avatar: profile override > login avatar (Users sheet col E) > AVATAR_MAP
   const resolvedAvatar = (savedProfile.avatarUrl && savedProfile.avatarUrl.startsWith('https://'))
     ? savedProfile.avatarUrl
     : (avatar && avatar.startsWith('https://') ? avatar : (AVATAR_MAP[name.toUpperCase()] || ''));
@@ -3484,7 +3514,7 @@ function doLogin(name, role, avatar) {
   // Register session in GAS and start heartbeat
   if (GAS_URL) {
     fetch(GAS_URL, { method:'POST', headers:{'Content-Type':'text/plain'},
-      body: JSON.stringify({ action:'logSession', name, role, sessionId, loginTime: CURRENT_USER.loginTime })
+      body: JSON.stringify({ action:'logSession', name, role, sessionId, loginTime: CURRENT_USER.loginTime, avatar: CURRENT_USER.avatar || '' })
     })
     .then(r => r.json())
     .then(d => {
@@ -3549,6 +3579,9 @@ function removeWatch(i) {
    TEAM
 ══════════════════════════════════════════════════ */
 function renderTeamCards(unique) {
+  // Refresh avatar map so chat can resolve avatars from GAS-fetched messages
+  unique.forEach(function(s) { if (s.avatar) SESSION_AVATAR_MAP[s.name] = s.avatar; });
+
   const grid = document.getElementById('team-grid');
   if (!unique.length) {
     grid.innerHTML = '<div style="font-family:var(--mono);font-size:12px;color:var(--muted);padding:20px;">No active sessions found</div>';
@@ -3557,14 +3590,17 @@ function renderTeamCards(unique) {
     document.getElementById('stat-team-sub').textContent = 'No members active';
     return;
   }
-  grid.innerHTML = unique.map(s =>
-    '<div class="team-card">' +
-    '<div class="team-avatar-circle">' + s.name.charAt(0) + '</div>' +
-    '<div class="team-name">' + esc(s.name) + '</div>' +
-    '<div class="team-role">' + esc(s.role) + '</div>' +
-    '<div class="team-since"><span class="online-dot"></span>Since ' + new Date(s.loginTime).toLocaleTimeString('en-US', {hour:'2-digit',minute:'2-digit',hour12:false}) + '</div>' +
-    '</div>'
-  ).join('');
+  grid.innerHTML = unique.map(s => {
+    const avHtml = s.avatar
+      ? '<img src="' + esc(s.avatar) + '" style="width:100%;height:100%;border-radius:50%;object-fit:cover;" onerror="this.outerHTML=\''+s.name.charAt(0)+'\'">'
+      : s.name.charAt(0);
+    return '<div class="team-card">' +
+      '<div class="team-avatar-circle">' + avHtml + '</div>' +
+      '<div class="team-name">' + esc(s.name) + '</div>' +
+      '<div class="team-role">' + esc(s.role) + '</div>' +
+      '<div class="team-since"><span class="online-dot"></span>Since ' + new Date(s.loginTime).toLocaleTimeString('en-US', {hour:'2-digit',minute:'2-digit',hour12:false}) + '</div>' +
+      '</div>';
+  }).join('');
   document.getElementById('team-count-badge').textContent = unique.length + ' ONLINE';
   document.getElementById('stat-team').textContent = unique.length;
   document.getElementById('stat-team-sub').textContent = unique.length === 1 ? 'You are connected' : unique.length + ' members active';
@@ -3614,6 +3650,8 @@ function refreshTeam() { renderTeam(); }
 ══════════════════════════════════════════════════ */
 let chatLastCount = 0;
 let chatUnread = 0;
+// name → avatar URL map built from getSessions — used to resolve avatars on GAS-fetched messages
+let SESSION_AVATAR_MAP = {};
 
 function renderChat() {
   const msgs = loadChat();
@@ -3622,10 +3660,15 @@ function renderChat() {
     feed.innerHTML = '<div style="text-align:center;font-family:var(--mono);font-size:12px;color:var(--muted);padding:30px;">No messages yet — say hello to your team!</div>';
     return;
   }
+  const myName = CURRENT_USER ? (CURRENT_USER.nickname || CURRENT_USER.name) : null;
   feed.innerHTML = msgs.slice(-80).map(m => {
-    const mine = CURRENT_USER && m.name === CURRENT_USER.name;
+    const mine = myName && m.name === myName;
+    const avatarSrc = m.avatar || SESSION_AVATAR_MAP[m.name] || '';
+    const avatarHtml = avatarSrc
+      ? '<img src="' + esc(avatarSrc) + '" style="width:100%;height:100%;border-radius:50%;object-fit:cover;" onerror="this.outerHTML=\'<span>'+esc(m.name.charAt(0))+'</span>\'">'
+      : m.name.charAt(0);
     return '<div class="chat-msg' + (mine ? ' mine' : '') + '">' +
-      '<div class="chat-avatar">' + m.name.charAt(0) + '</div>' +
+      '<div class="chat-avatar">' + avatarHtml + '</div>' +
       '<div><div class="chat-meta"><span style="color:var(--bright);">' + esc(m.name) + '</span>' +
       '<span class="badge ' + (m.role==='ADMIN'?'warn':'info') + '" style="font-size:9px;padding:1px 5px;">' + esc(m.role) + '</span>' +
       '<span>' + m.time + '</span></div>' +
@@ -3644,8 +3687,9 @@ function sendChat() {
   if (!text) return;
   const msgs = loadChat();
   const msg = {
-    name: CURRENT_USER.name,
-    role: CURRENT_USER.role,
+    name:   CURRENT_USER.nickname || CURRENT_USER.name,
+    role:   CURRENT_USER.role,
+    avatar: CURRENT_USER.avatar || '',
     text,
     time: new Date().toLocaleTimeString('en-US', {hour:'2-digit', minute:'2-digit', hour12:false})
   };
@@ -3658,7 +3702,7 @@ function sendChat() {
     fetch(GAS_URL, {
       method: 'POST',
       headers: {'Content-Type':'text/plain'},
-      body: JSON.stringify({ action: 'postMessage', name: msg.name, role: msg.role, text: msg.text })
+      body: JSON.stringify({ action: 'postMessage', name: msg.name, role: msg.role, text: msg.text, avatar: msg.avatar })
     }).catch(() => {});
   }
 }
