@@ -3112,6 +3112,13 @@ function doSignOut() {
     }
   } catch(_) {}
 
+  // Close session in GAS
+  if (GAS_URL && CURRENT_USER && CURRENT_USER.sessionId) {
+    fetch(GAS_URL, { method:'POST', headers:{'Content-Type':'text/plain'},
+      body: JSON.stringify({ action:'closeSession', sessionId: CURRENT_USER.sessionId })
+    }).catch(() => {});
+  }
+
   // Stop audio
   try { document.getElementById('avMediaEl').pause(); } catch(_) {}
   if (synth && synth.speaking) synth.cancel();
@@ -3465,8 +3472,22 @@ function doLogin(name, role, avatar) {
       s.closeReason = 'expired';
     }
   });
-  sessions.push({ name, role, sessionId: Math.random().toString(36).slice(2,10).toUpperCase(), loginTime: CURRENT_USER.loginTime, status: 'OPEN' });
+  const sessionId = Math.random().toString(36).slice(2,10).toUpperCase();
+  sessions.push({ name, role, sessionId, loginTime: CURRENT_USER.loginTime, status: 'OPEN' });
   localStorage.setItem('s3_sessions', JSON.stringify(sessions.slice(-200)));
+  CURRENT_USER.sessionId = sessionId;
+
+  // Register session in GAS and start heartbeat
+  if (GAS_URL) {
+    fetch(GAS_URL, { method:'POST', headers:{'Content-Type':'text/plain'},
+      body: JSON.stringify({ action:'logSession', name, role, sessionId, loginTime: CURRENT_USER.loginTime })
+    }).catch(() => {});
+    setInterval(function() {
+      fetch(GAS_URL, { method:'POST', headers:{'Content-Type':'text/plain'},
+        body: JSON.stringify({ action:'heartbeat', sessionId: CURRENT_USER && CURRENT_USER.sessionId })
+      }).catch(() => {});
+    }, 2 * 60 * 1000); // every 2 minutes
+  }
 }
 
 /* ══════════════════════════════════════════════════
@@ -3516,16 +3537,7 @@ function removeWatch(i) {
 /* ══════════════════════════════════════════════════
    TEAM
 ══════════════════════════════════════════════════ */
-function renderTeam() {
-  const sessions = JSON.parse(localStorage.getItem('s3_sessions') || '[]');
-
-  // Deduplicate — one card per unique name, keeping the most recent OPEN session
-  const byName = {};
-  sessions.filter(s => s.status === 'OPEN').forEach(s => {
-    if (!byName[s.name] || s.loginTime > byName[s.name].loginTime) byName[s.name] = s;
-  });
-  const unique = Object.values(byName);
-
+function renderTeamCards(unique) {
   const grid = document.getElementById('team-grid');
   if (!unique.length) {
     grid.innerHTML = '<div style="font-family:var(--mono);font-size:12px;color:var(--muted);padding:20px;">No active sessions found</div>';
@@ -3546,6 +3558,27 @@ function renderTeam() {
   document.getElementById('stat-team').textContent = unique.length;
   document.getElementById('stat-team-sub').textContent = unique.length === 1 ? 'You are connected' : unique.length + ' members active';
 }
+
+function renderTeam() {
+  if (GAS_URL) {
+    fetch(GAS_URL + '?action=getSessions')
+      .then(r => r.json())
+      .then(d => { if (d && d.sessions) renderTeamCards(d.sessions); })
+      .catch(() => renderTeamFallback());
+  } else {
+    renderTeamFallback();
+  }
+}
+
+function renderTeamFallback() {
+  const sessions = JSON.parse(localStorage.getItem('s3_sessions') || '[]');
+  const byName = {};
+  sessions.filter(s => s.status === 'OPEN').forEach(s => {
+    if (!byName[s.name] || s.loginTime > byName[s.name].loginTime) byName[s.name] = s;
+  });
+  renderTeamCards(Object.values(byName));
+}
+
 function refreshTeam() { renderTeam(); }
 
 /* ══════════════════════════════════════════════════
