@@ -2638,7 +2638,7 @@ function sendChatHome() {
   renderChatHome();
   renderChat();
   if (GAS_URL) {
-    fetch(GAS_URL,{method:'POST',headers:{'Content-Type':'application/json'},
+    fetch(GAS_URL,{method:'POST',headers:{'Content-Type':'text/plain'},
       body:JSON.stringify({action:'postMessage',name:msg.name,role:msg.role,text:msg.text})}).catch(function(){});
   }
 }
@@ -3230,7 +3230,7 @@ function applyTheme(t) {
 function syncProfileToGAS(data) {
   if (!GAS_URL || !CURRENT_USER) return;
   fetch(GAS_URL, {
-    method:'POST', headers:{'Content-Type':'application/json'},
+    method:'POST', headers:{'Content-Type':'text/plain'},
     body: JSON.stringify({ action:'saveProfile', name: CURRENT_USER.name, profile: data })
   }).catch(function(){});
 }
@@ -3588,7 +3588,7 @@ function sendChat() {
   if (GAS_URL) {
     fetch(GAS_URL, {
       method: 'POST',
-      headers: {'Content-Type':'application/json'},
+      headers: {'Content-Type':'text/plain'},
       body: JSON.stringify({ action: 'postMessage', name: msg.name, role: msg.role, text: msg.text })
     }).catch(() => {});
   }
@@ -3641,7 +3641,7 @@ function submitSupport() {
   if (GAS_URL) {
     fetch(GAS_URL, {
       method: 'POST',
-      headers: {'Content-Type':'application/json'},
+      headers: {'Content-Type':'text/plain'},
       body: JSON.stringify({ action: 'submitSupport', ...item })
     }).catch(() => {});
   }
@@ -3802,7 +3802,7 @@ function adminSaveDefaultTrack() {
     statusEl.textContent = '⟳ Syncing to GAS…';
     fetch(GAS_URL, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'text/plain' },
       body: JSON.stringify({ action: 'setMediaConfig', defaultTrackUrl: url, defaultTrackName: name })
     }).then(function() {
       statusEl.style.color = 'var(--ok)';
