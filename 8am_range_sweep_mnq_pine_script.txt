@@ -1,0 +1,427 @@
+// This source code is subject to the terms of the Mozilla Public License 2.0
+// © S3_Dev | Executive Special Service
+//
+// 8AM RANGE SWEEP MODEL | MNQ CALIBRATED
+// model_id: 8AM-RSM-MNQ-v1.2
+// Sentinel Status: OBSERVATION
+//
+// ══════════════════════════════════════════════════════════════
+// MNQ CALIBRATION REFERENCE
+// ══════════════════════════════════════════════════════════════
+// Instrument  : MNQ1! — Micro Nasdaq Futures
+// Tick Size   : 0.25 NQ points
+// Tick Value  : $0.50 per tick / per contract
+// Recommended TF : 1m or 5m
+// Signal Window  : 9:00 AM – 12:00 PM New York
+// ══════════════════════════════════════════════════════════════
+
+//@version=6
+strategy(
+    title             = "8AM Range Sweep Model | MNQ",
+    shorttitle        = "8AM-RSM-MNQ",
+    overlay           = true,
+    initial_capital   = 10000,
+    default_qty_type  = strategy.fixed,
+    default_qty_value = 1,
+    commission_type   = strategy.commission.cash_per_contract,
+    commission_value  = 0.62,
+    slippage          = 2,
+    max_lines_count   = 500,
+    max_boxes_count   = 500,
+    max_labels_count  = 200
+)
+
+// ─────────────────────────────────────────────
+// INPUTS
+// ─────────────────────────────────────────────
+string grp_sess     = "Session"
+string tz           = input.string("America/New_York", "Timezone",                  group=grp_sess)
+int    sig_hr_open  = input.int(9,  "Signal Window Open (Hour)",  minval=8, maxval=12, group=grp_sess)
+int    sig_hr_close = input.int(12, "Signal Window Close (Hour)", minval=9, maxval=16, group=grp_sess)
+
+string grp_model    = "Model Parameters"
+float  fvg_min      = input.float(0.25, "Min FVG Size (points)", minval=0, step=0.25, group=grp_model, tooltip="Filter FVGs smaller than this. 0 = all.")
+int    ob_len       = input.int(10, "OB Lookback (bars)", minval=3, maxval=50, group=grp_model, tooltip="Bars to look back when finding the Order Block candle.")
+
+string grp_vis      = "Visuals"
+bool   show_fvg     = input.bool(true,  "Show FVG Boxes",    group=grp_vis)
+bool   show_ifvg    = input.bool(true,  "Show IFVG Zones",   group=grp_vis)
+bool   show_ob      = input.bool(true,  "Show Order Blocks", group=grp_vis)
+bool   show_dash    = input.bool(true,  "Show Dashboard",    group=grp_vis)
+
+string grp_test     = "Testing"
+bool   test_trigger = input.bool(false, "FORCE MANUAL TRIGGER", group=grp_test, tooltip="Toggle ON + set alert to 'Once Per Bar' to fire a test webhook.")
+
+string grp_alert    = "Alerts"
+string wh_key       = input.string("tac_com_alpha_9", "Webhook Secret", group=grp_alert)
+
+// ─────────────────────────────────────────────
+// TIME HELPERS
+// ─────────────────────────────────────────────
+int  h          = hour(time, tz)
+bool in_8am     = h == 8
+bool new_8am    = in_8am and not in_8am[1]           // first bar of 8AM hour each day
+bool in_sigwin  = h >= sig_hr_open and h < sig_hr_close
+
+// ─────────────────────────────────────────────
+// STEP 1 — 8AM RANGE
+// Capture the high/low of the full 8AM hour.
+// Range locks when the signal window opens.
+// ─────────────────────────────────────────────
+var float rng_hi  = na
+var float rng_lo  = na
+var bool  rng_set = false
+var int   rng_bar = na
+
+if new_8am
+    rng_hi  := high
+    rng_lo  := low
+    rng_set := false
+    rng_bar := bar_index
+
+if in_8am and not new_8am
+    rng_hi := math.max(rng_hi, high)
+    rng_lo := math.min(rng_lo, low)
+
+if h == sig_hr_open and h[1] != sig_hr_open
+    rng_set := true
+
+// Range lines — aqua high, yellow low; drawn fresh each day, visible to 12PM
+var line line_hi = na
+var line line_lo = na
+
+if new_8am
+    line_hi := line.new(bar_index, high, bar_index + 1, high, color=color.aqua,   width=2, style=line.style_dashed)
+    line_lo := line.new(bar_index, low,  bar_index + 1, low,  color=color.yellow, width=2, style=line.style_dashed)
+
+if (in_8am or in_sigwin) and not na(line_hi)
+    line.set_y1(line_hi, rng_hi)
+    line.set_y2(line_hi, rng_hi)
+    line.set_x2(line_hi, bar_index)
+    line.set_y1(line_lo, rng_lo)
+    line.set_y2(line_lo, rng_lo)
+    line.set_x2(line_lo, bar_index)
+
+// ─────────────────────────────────────────────
+// STEP 2 — SWEEP DETECTION
+// Price takes out one side of the 8AM range.
+// ─────────────────────────────────────────────
+var bool swept_hi = false
+var bool swept_lo = false
+
+if new_8am
+    swept_hi := false
+    swept_lo := false
+
+if rng_set and not swept_hi and high > rng_hi
+    swept_hi := true
+    label.new(bar_index, high,
+              "HIGH SWEPT\n\u2192 Target: " + str.tostring(math.round(rng_lo, 2)),
+              style=label.style_label_down, color=color.new(color.red, 20),
+              textcolor=color.white, size=size.small)
+
+if rng_set and not swept_lo and low < rng_lo
+    swept_lo := true
+    label.new(bar_index, low,
+              "LOW SWEPT\n\u2192 Target: " + str.tostring(math.round(rng_hi, 2)),
+              style=label.style_label_up, color=color.new(color.green, 20),
+              textcolor=color.white, size=size.small)
+
+// ─────────────────────────────────────────────
+// STEP 3 — FVG DETECTION (Key Level Identification)
+// 3-bar imbalance near the sweep zone.
+// Bullish FVG : low[0] > high[2]  — gap up
+// Bearish FVG : high[0] < low[2]  — gap down
+// ─────────────────────────────────────────────
+bool bull_fvg_fired = low  > high[2] and (low  - high[2]) >= fvg_min
+bool bear_fvg_fired = high < low[2]  and (low[2] - high)  >= fvg_min
+
+// Track most recent FVG of each type for IFVG detection
+var float bfvg_top = na   // bullish FVG top    = low (of trigger bar)
+var float bfvg_bot = na   // bullish FVG bottom = high[2]
+var float dfvg_top = na   // bearish FVG top    = low[2]
+var float dfvg_bot = na   // bearish FVG bottom = high (of trigger bar)
+
+if new_8am
+    bfvg_top := na
+    bfvg_bot := na
+    dfvg_top := na
+    dfvg_bot := na
+
+if bull_fvg_fired
+    bfvg_top := low
+    bfvg_bot := high[2]
+    if show_fvg
+        box.new(bar_index - 2, bfvg_top, bar_index + 30, bfvg_bot,
+                bgcolor=color.new(color.green, 85), border_color=color.new(color.green, 50), border_width=1)
+
+if bear_fvg_fired
+    dfvg_top := low[2]
+    dfvg_bot := high
+    if show_fvg
+        box.new(bar_index - 2, dfvg_top, bar_index + 30, dfvg_bot,
+                bgcolor=color.new(color.red, 85), border_color=color.new(color.red, 50), border_width=1)
+
+// ─────────────────────────────────────────────
+// STEP 4 — IFVG DETECTION (Entry Zone)
+// Price reclaims a FVG — closing back through it
+// in the opposite direction.
+// Bullish IFVG : reclaims bearish FVG from below (teal box)
+// Bearish IFVG : reclaims bullish FVG from above (purple box)
+// ─────────────────────────────────────────────
+var bool  bull_ifvg     = false
+var float bull_ifvg_top = na
+var float bull_ifvg_bot = na
+var bool  bear_ifvg     = false
+var float bear_ifvg_top = na
+var float bear_ifvg_bot = na
+
+if new_8am
+    bull_ifvg     := false
+    bear_ifvg     := false
+    bull_ifvg_top := na
+    bull_ifvg_bot := na
+    bear_ifvg_top := na
+    bear_ifvg_bot := na
+
+// Bullish IFVG: close above top of most recent bearish FVG
+bool new_bull_ifvg = not na(dfvg_top) and close > dfvg_top and not bull_ifvg
+// Bearish IFVG: close below bottom of most recent bullish FVG
+bool new_bear_ifvg = not na(bfvg_bot) and close < bfvg_bot and not bear_ifvg
+
+if new_bull_ifvg
+    bull_ifvg     := true
+    bull_ifvg_top := dfvg_top
+    bull_ifvg_bot := dfvg_bot
+    if show_ifvg
+        box.new(bar_index, bull_ifvg_top, bar_index + 20, bull_ifvg_bot,
+                bgcolor=color.new(color.teal, 65), border_color=color.new(color.teal, 20), border_width=2)
+
+if new_bear_ifvg
+    bear_ifvg     := true
+    bear_ifvg_top := bfvg_top
+    bear_ifvg_bot := bfvg_bot
+    if show_ifvg
+        box.new(bar_index, bear_ifvg_top, bar_index + 20, bear_ifvg_bot,
+                bgcolor=color.new(color.purple, 65), border_color=color.new(color.purple, 20), border_width=2)
+
+// ─────────────────────────────────────────────
+// ORDER BLOCK DETECTION (supporting confluence)
+// Bullish OB : last bearish candle before upside displacement
+// Bearish OB : last bullish candle before downside displacement
+// ─────────────────────────────────────────────
+var bool  bull_ob    = false
+var float bull_ob_hi = na
+var float bull_ob_lo = na
+var bool  bear_ob    = false
+var float bear_ob_hi = na
+var float bear_ob_lo = na
+
+if new_8am
+    bull_ob    := false
+    bear_ob    := false
+    bull_ob_hi := na
+    bull_ob_lo := na
+    bear_ob_hi := na
+    bear_ob_lo := na
+
+bool up_disp   = close > ta.highest(high[1], ob_len)
+bool down_disp = close < ta.lowest(low[1],   ob_len)
+
+if up_disp and not bull_ob
+    for i = 1 to ob_len
+        if close[i] < open[i]
+            bull_ob    := true
+            bull_ob_hi := high[i]
+            bull_ob_lo := low[i]
+            if show_ob
+                box.new(bar_index - i, bull_ob_hi, bar_index + 30, bull_ob_lo,
+                        bgcolor=color.new(color.blue, 82), border_color=color.new(color.blue, 40), border_width=1)
+            break
+
+if down_disp and not bear_ob
+    for i = 1 to ob_len
+        if close[i] > open[i]
+            bear_ob    := true
+            bear_ob_hi := high[i]
+            bear_ob_lo := low[i]
+            if show_ob
+                box.new(bar_index - i, bear_ob_hi, bar_index + 30, bear_ob_lo,
+                        bgcolor=color.new(color.orange, 82), border_color=color.new(color.orange, 40), border_width=1)
+            break
+
+// ─────────────────────────────────────────────
+// STEP 5 — ENTRY SIGNAL
+// All three must align: sweep + IFVG + OB.
+// SL  : beyond the confirming Order Block.
+// TP  : opposite end of the 8AM range.
+// R:R : calculated dynamically and shown on label.
+// ─────────────────────────────────────────────
+bool can_trade  = rng_set and in_sigwin and strategy.position_size == 0
+
+bool long_sig   = can_trade and swept_lo and bull_ifvg and bull_ob
+bool short_sig  = can_trade and swept_hi and bear_ifvg and bear_ob
+
+float long_sl   = bull_ob_lo
+float long_tp   = rng_hi
+float short_sl  = bear_ob_hi
+float short_tp  = rng_lo
+
+float long_rr   = long_sig  and not na(long_sl)  and (close - long_sl)  > 0 ? math.round((long_tp  - close)    / (close - long_sl),  1) : float(na)
+float short_rr  = short_sig and not na(short_sl) and (short_sl - close) > 0 ? math.round((close    - short_tp) / (short_sl - close), 1) : float(na)
+
+// Alert payloads (dynamic — used with strategy.entry)
+string long_payload  = '{"secret":"' + wh_key + '","model_id":"8AM-RSM-MNQ-V1","ticker":"' + syminfo.tickerid + '","action":"BUY","price":'   + str.tostring(close) + ',"metadata":{"tier":"8AM_SWEEP_REVERSAL","sl":' + str.tostring(math.round(long_sl,  2)) + ',"tp":' + str.tostring(math.round(long_tp,  2)) + ',"note":"Low swept + bull IFVG + bull OB","timestamp":' + str.tostring(timenow) + '}}'
+string short_payload = '{"secret":"' + wh_key + '","model_id":"8AM-RSM-MNQ-V1","ticker":"' + syminfo.tickerid + '","action":"SELL","price":' + str.tostring(close) + ',"metadata":{"tier":"8AM_SWEEP_REVERSAL","sl":' + str.tostring(math.round(short_sl, 2)) + ',"tp":' + str.tostring(math.round(short_tp, 2)) + ',"note":"High swept + bear IFVG + bear OB","timestamp":' + str.tostring(timenow) + '}}'
+
+if long_sig
+    label.new(bar_index, low,
+              "BUY\nSL: "  + str.tostring(math.round(long_sl, 2)) +
+              "\nTP: "     + str.tostring(math.round(long_tp,  2)) +
+              "\nR:R "     + str.tostring(na(long_rr)  ? 0.0 : long_rr,  "#.#") + ":1",
+              style=label.style_triangleup, color=color.new(color.lime, 0),
+              textcolor=color.white, size=size.large)
+    strategy.entry("LONG",  strategy.long,  alert_message=long_payload)
+    strategy.exit("LONG-X",  from_entry="LONG",  stop=long_sl,  limit=long_tp)
+
+if short_sig
+    label.new(bar_index, high,
+              "SELL\nSL: " + str.tostring(math.round(short_sl, 2)) +
+              "\nTP: "     + str.tostring(math.round(short_tp,  2)) +
+              "\nR:R "     + str.tostring(na(short_rr) ? 0.0 : short_rr, "#.#") + ":1",
+              style=label.style_triangledown, color=color.new(color.red, 0),
+              textcolor=color.white, size=size.large)
+    strategy.entry("SHORT", strategy.short, alert_message=short_payload)
+    strategy.exit("SHORT-X", from_entry="SHORT", stop=short_sl, limit=short_tp)
+
+// ─────────────────────────────────────────────
+// ALERT CONDITIONS (6 total)
+// Static payloads — detailed data flows via strategy.entry alert_message
+// ─────────────────────────────────────────────
+alertcondition(swept_hi and not swept_hi[1], "8AM High Swept",      '{"model_id":"8AM-RSM-MNQ-V1","event":"HIGH_SWEPT"}')
+alertcondition(swept_lo and not swept_lo[1], "8AM Low Swept",       '{"model_id":"8AM-RSM-MNQ-V1","event":"LOW_SWEPT"}')
+alertcondition(new_bull_ifvg,                "Bullish IFVG Formed", '{"model_id":"8AM-RSM-MNQ-V1","event":"BULL_IFVG"}')
+alertcondition(new_bear_ifvg,                "Bearish IFVG Formed", '{"model_id":"8AM-RSM-MNQ-V1","event":"BEAR_IFVG"}')
+alertcondition(long_sig,                     "Long Entry Signal",   '{"model_id":"8AM-RSM-MNQ-V1","action":"BUY"}')
+alertcondition(short_sig,                    "Short Entry Signal",  '{"model_id":"8AM-RSM-MNQ-V1","action":"SELL"}')
+
+// ─────────────────────────────────────────────
+// MANUAL TEST TRIGGER
+// ─────────────────────────────────────────────
+if test_trigger and barstate.islast
+    string test_msg = '{"secret":"' + wh_key + '","model_id":"8AM-RSM-MNQ-V1","ticker":"' + syminfo.tickerid + '","action":"TEST","metadata":{"note":"MANUAL_TRIGGER","timestamp":' + str.tostring(timenow) + '}}'
+    log.info("8AM-RSM: Manual Test Triggered. Payload: {0}", test_msg)
+    alert(test_msg, alert.freq_all)
+
+// ─────────────────────────────────────────────
+// BACKGROUND — signal window highlight
+// ─────────────────────────────────────────────
+bgcolor(in_sigwin and rng_set ? color.new(color.blue, 95) : color(na), title="Signal Window")
+
+// ─────────────────────────────────────────────
+// DASHBOARD — live status table
+// ─────────────────────────────────────────────
+var table dash = table.new(position.top_right, 2, 15,
+                           bgcolor=color.new(color.black, 60),
+                           border_width=1, border_color=color.new(color.gray, 65),
+                           frame_width=1, frame_color=color.new(color.gray, 50))
+
+if show_dash and barstate.islast
+    // ── Color palette ──
+    color cHdr = color.new(#0a1628,        0)
+    color cDiv = color.new(#141a0e,       15)
+    color cGn  = color.new(color.green,   40)
+    color cRd  = color.new(color.red,     40)
+    color cOr  = color.new(color.orange,  45)
+    color cTl  = color.new(color.teal,    35)
+    color cPu  = color.new(color.purple,  35)
+    color cBl  = color.new(color.blue,    40)
+    color cN   = color.new(color.gray,    75)
+
+    // ── Row 0: Title ──
+    table.cell(dash, 0, 0, "8AM RANGE SWEEP MODEL", text_color=color.white, text_size=size.small, bgcolor=cHdr, text_halign=text.align_center)
+    table.cell(dash, 1, 0, syminfo.ticker,           text_color=color.aqua,  text_size=size.small, bgcolor=cHdr, text_halign=text.align_center)
+
+    // ── Row 1: 8AM RANGE divider ──
+    table.cell(dash, 0, 1, "— 8AM RANGE —", text_color=color.orange, text_size=size.tiny, bgcolor=cDiv, text_halign=text.align_center)
+    table.cell(dash, 1, 1, "",              text_color=color.orange, text_size=size.tiny, bgcolor=cDiv)
+
+    // ── Row 2: Range Set (show actual hi / lo) ──
+    string rng_str = rng_set ? str.tostring(math.round(rng_hi, 2)) + " / " + str.tostring(math.round(rng_lo, 2)) : "Not Set"
+    table.cell(dash, 0, 2, (rng_set ? "\u2713 " : "\u25cb ") + "Range Set", text_color=rng_set ? color.white : color.gray, text_size=size.small, bgcolor=rng_set ? cGn : cN)
+    table.cell(dash, 1, 2, rng_str, text_color=rng_set ? color.white : color.gray, text_size=size.small)
+
+    // ── Row 3: SWEEPS divider ──
+    table.cell(dash, 0, 3, "— SWEEPS —", text_color=color.orange, text_size=size.tiny, bgcolor=cDiv, text_halign=text.align_center)
+    table.cell(dash, 1, 3, "",           text_color=color.orange, text_size=size.tiny, bgcolor=cDiv)
+
+    // ── Row 4: High Swept ──
+    table.cell(dash, 0, 4, (swept_hi ? "\u2713 " : "\u25cb ") + "High Swept", text_color=swept_hi ? color.white : color.gray, text_size=size.small, bgcolor=swept_hi ? cRd : cN)
+    table.cell(dash, 1, 4, swept_hi ? "YES" : "—", text_color=swept_hi ? color.red : color.gray, text_size=size.small)
+
+    // ── Row 5: Low Swept ──
+    table.cell(dash, 0, 5, (swept_lo ? "\u2713 " : "\u25cb ") + "Low Swept", text_color=swept_lo ? color.white : color.gray, text_size=size.small, bgcolor=swept_lo ? cGn : cN)
+    table.cell(dash, 1, 5, swept_lo ? "YES" : "—", text_color=swept_lo ? color.lime : color.gray, text_size=size.small)
+
+    // ── Row 6: ENTRY CONDITIONS divider ──
+    table.cell(dash, 0, 6, "— ENTRY CONDITIONS —", text_color=color.orange, text_size=size.tiny, bgcolor=cDiv, text_halign=text.align_center)
+    table.cell(dash, 1, 6, "",                     text_color=color.orange, text_size=size.tiny, bgcolor=cDiv)
+
+    // ── Row 7: IFVG Formed (type or None) ──
+    string ifvg_str = bull_ifvg ? "Bull IFVG" : bear_ifvg ? "Bear IFVG" : "None"
+    color  ifvg_bg  = bull_ifvg ? cTl : bear_ifvg ? cPu : cN
+    color  ifvg_tc  = (bull_ifvg or bear_ifvg) ? color.white : color.gray
+    color  ifvg_vc  = bull_ifvg ? color.teal   : bear_ifvg ? color.new(color.purple, 0) : color.orange
+    table.cell(dash, 0, 7, ((bull_ifvg or bear_ifvg) ? "\u2713 " : "\u25cb ") + "IFVG Formed", text_color=ifvg_tc, text_size=size.small, bgcolor=ifvg_bg)
+    table.cell(dash, 1, 7, ifvg_str, text_color=ifvg_vc, text_size=size.small)
+
+    // ── Row 8: OB Formed (Bull OB ▲ / Bear OB ▼ / None) ──
+    string ob_str = bull_ob ? "Bull OB \u25b2" : bear_ob ? "Bear OB \u25bc" : "None"
+    color  ob_bg  = bull_ob ? cBl : bear_ob ? cOr : cN
+    color  ob_tc  = (bull_ob or bear_ob) ? color.white : color.gray
+    color  ob_vc  = bull_ob ? color.blue : bear_ob ? color.orange : color.orange
+    table.cell(dash, 0, 8, ((bull_ob or bear_ob) ? "\u2713 " : "\u25cb ") + "OB Formed", text_color=ob_tc, text_size=size.small, bgcolor=ob_bg)
+    table.cell(dash, 1, 8, ob_str, text_color=ob_vc, text_size=size.small)
+
+    // ── Row 9: BIAS divider ──
+    table.cell(dash, 0, 9, "— BIAS —", text_color=color.orange, text_size=size.tiny, bgcolor=cDiv, text_halign=text.align_center)
+    table.cell(dash, 1, 9, "",          text_color=color.orange, text_size=size.tiny, bgcolor=cDiv)
+
+    // ── Row 10: Bias with TP target ──
+    string bias_str = long_sig               ? "\u2191 LONG  — TP: Range Hi"       :
+                      short_sig              ? "\u2193 SHORT — TP: Range Lo"        :
+                      swept_lo and bull_ifvg ? "\u2191 LONG BIAS — TP: Range Hi"   :
+                      swept_hi and bear_ifvg ? "\u2193 SHORT BIAS — TP: Range Lo"  :
+                      swept_lo               ? "\u2191 LONG BIAS — Awaiting IFVG"  :
+                      swept_hi               ? "\u2193 SHORT BIAS — Awaiting IFVG" : "WAIT"
+    color  bias_c   = (long_sig or swept_lo)  ? color.lime :
+                      (short_sig or swept_hi) ? color.red  : color.gray
+    table.cell(dash, 0, 10, "Bias:", text_color=color.gray, text_size=size.small)
+    table.cell(dash, 1, 10, bias_str, text_color=bias_c,   text_size=size.small)
+
+    // ── Row 11: SIGNAL divider ──
+    table.cell(dash, 0, 11, "— SIGNAL —", text_color=color.orange, text_size=size.tiny, bgcolor=cDiv, text_halign=text.align_center)
+    table.cell(dash, 1, 11, "",            text_color=color.orange, text_size=size.tiny, bgcolor=cDiv)
+
+    // ── Row 12: Entry status ──
+    string entry_str = long_sig ? "LONG \u25b2" : short_sig ? "SHORT \u25bc" : "Waiting..."
+    color  entry_bg  = long_sig ? cGn : short_sig ? cRd : cN
+    color  entry_tc  = (long_sig or short_sig) ? color.white : color.gray
+    color  entry_vc  = long_sig ? color.lime : short_sig ? color.red : color.orange
+    table.cell(dash, 0, 12, ((long_sig or short_sig) ? "\u2713 " : "\u25cb ") + "Entry:", text_color=entry_tc, text_size=size.small, bgcolor=entry_bg)
+    table.cell(dash, 1, 12, entry_str, text_color=entry_vc, text_size=size.small)
+
+    // ── Row 13: Steps pipeline (shows which conditions are done) ──
+    string steps_str = (rng_set               ? "\u2713Rng"   : "Rng")   + "\u2192" +
+                       ((swept_hi or swept_lo) ? "\u2713Sweep" : "Sweep") + "\u2192" +
+                       ((bull_ifvg or bear_ifvg) ? "\u2713IFVG" : "IFVG") + "\u2192" +
+                       ((bull_ob or bear_ob)   ? "\u2713OB"   : "OB")   + "\u2192Entry"
+    table.cell(dash, 0, 13, "Steps:", text_color=color.gray, text_size=size.tiny)
+    table.cell(dash, 1, 13, steps_str, text_color=color.gray, text_size=size.tiny)
+
+    // ── Row 14: Signal Window ──
+    string win_str = in_sigwin ? "ACTIVE" : "Outside Window"
+    color  win_bg  = in_sigwin ? cGn : color.new(color.red, 50)
+    color  win_vc  = in_sigwin ? color.lime : color.red
+    table.cell(dash, 0, 14, (in_sigwin ? "\u2713 " : "\u2298 ") + "Signal Window:", text_color=color.white, text_size=size.small, bgcolor=win_bg)
+    table.cell(dash, 1, 14, win_str, text_color=win_vc, text_size=size.small)

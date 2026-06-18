@@ -1,0 +1,1172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>APEX-8AM-SWEEP-V1 | Developer Guide | S3 Development</title>
+  <style>
+    :root {
+      --bg:       #0d0f14;
+      --surface:  #13161e;
+      --card:     #1a1e2a;
+      --border:   #2a2f40;
+      --accent:   #00c2ff;
+      --green:    #22d35e;
+      --red:      #ff4560;
+      --yellow:   #ffc107;
+      --purple:   #9b59b6;
+      --text:     #cdd3e0;
+      --muted:    #7a849a;
+      --white:    #ffffff;
+      --code-bg:  #0a0c12;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      font-size: 15px;
+      line-height: 1.7;
+    }
+
+    header {
+      background: linear-gradient(135deg, #0d0f14 0%, #13161e 60%, #1a1e2a 100%);
+      border-bottom: 1px solid var(--border);
+      padding: 36px 48px;
+      display: flex;
+      align-items: center;
+      gap: 24px;
+    }
+    .logo-badge {
+      background: var(--accent);
+      color: #000;
+      font-weight: 800;
+      font-size: 18px;
+      letter-spacing: 1px;
+      padding: 8px 14px;
+      border-radius: 6px;
+      white-space: nowrap;
+    }
+    header h1 { font-size: 22px; font-weight: 700; color: var(--white); }
+    header p  { color: var(--muted); font-size: 13px; margin-top: 4px; }
+    .model-tag {
+      margin-left: auto;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 8px 16px;
+      font-size: 12px;
+      color: var(--accent);
+      letter-spacing: 1px;
+      white-space: nowrap;
+    }
+
+    .page-wrap {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 48px 24px 80px;
+    }
+
+    .section-label {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 56px;
+      margin-bottom: 16px;
+    }
+    .section-label .num {
+      background: var(--accent);
+      color: #000;
+      font-weight: 800;
+      font-size: 11px;
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .section-label h2 { font-size: 18px; font-weight: 700; color: var(--white); }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 24px 28px;
+      margin-bottom: 16px;
+    }
+    .card h3 {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: .8px;
+      margin-bottom: 10px;
+    }
+    .card p { color: var(--text); margin-bottom: 8px; }
+    .card p:last-child { margin-bottom: 0; }
+
+    .two-col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    @media (max-width: 700px) { .two-col { grid-template-columns: 1fr; } }
+
+    .code-block {
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--accent);
+      border-radius: 8px;
+      overflow-x: auto;
+      margin: 16px 0;
+    }
+    .code-block .cb-header {
+      background: #11141d;
+      padding: 8px 16px;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      border-bottom: 1px solid var(--border);
+    }
+    pre {
+      padding: 16px 20px;
+      font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+      font-size: 13px;
+      line-height: 1.7;
+      white-space: pre;
+      color: var(--text);
+    }
+
+    .kw  { color: #569cd6; }
+    .fn  { color: #dcdcaa; }
+    .str { color: #ce9178; }
+    .num { color: #b5cea8; }
+    .cmt { color: #6a9955; }
+    .op  { color: #d4d4d4; }
+    .grn { color: var(--green); }
+    .red { color: var(--red); }
+    .ylw { color: var(--yellow); }
+    .blu { color: var(--accent); }
+
+    .explain {
+      background: #141720;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 18px 22px;
+      margin-bottom: 16px;
+    }
+    .explain .ex-title {
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 8px;
+    }
+    .explain.what .ex-title { color: var(--accent); }
+    .explain.why  .ex-title { color: var(--green); }
+
+    .pill {
+      display: inline-block;
+      padding: 2px 10px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .5px;
+      margin: 2px 3px;
+    }
+    .pill-green  { background: rgba(34,211,94,.15);  color: var(--green);  border: 1px solid rgba(34,211,94,.3); }
+    .pill-red    { background: rgba(255,69,96,.15);   color: var(--red);    border: 1px solid rgba(255,69,96,.3); }
+    .pill-blue   { background: rgba(0,194,255,.12);   color: var(--accent); border: 1px solid rgba(0,194,255,.3); }
+    .pill-yellow { background: rgba(255,193,7,.12);   color: var(--yellow); border: 1px solid rgba(255,193,7,.3); }
+    .pill-purple { background: rgba(155,89,182,.15);  color: var(--purple); border: 1px solid rgba(155,89,182,.3); }
+
+    .intro-box {
+      background: linear-gradient(135deg, #141a24, #1a1e2a);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 28px;
+      margin-bottom: 32px;
+    }
+    .intro-box h2 { color: var(--white); font-size: 18px; margin-bottom: 12px; }
+    .step-row { display: flex; gap: 12px; margin-top: 20px; flex-wrap: wrap; }
+    .step-box {
+      flex: 1;
+      min-width: 180px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px;
+      text-align: center;
+    }
+    .step-box .step-num  { font-size: 28px; font-weight: 800; color: var(--accent); }
+    .step-box .step-lbl  { font-size: 12px; color: var(--muted); margin-top: 4px; text-transform: uppercase; letter-spacing: .6px; }
+    .step-box .step-desc { font-size: 13px; color: var(--text); margin-top: 6px; }
+
+    .tv-dash {
+      display: inline-grid;
+      grid-template-columns: auto auto;
+      border: 1px solid #444;
+      border-radius: 6px;
+      overflow: hidden;
+      font-size: 12px;
+      font-family: monospace;
+    }
+    .tv-dash .dh { background: #333; color: #fff; padding: 5px 14px; font-weight: 700; }
+    .tv-dash .dr { padding: 4px 14px; background: #1e1e1e; color: #ccc; }
+    .tv-dash .dg { padding: 4px 14px; background: rgba(34,211,94,.25);  color: var(--green); }
+    .tv-dash .db { padding: 4px 14px; background: rgba(255,69,96,.25);   color: var(--red); }
+    .tv-dash .dy { padding: 4px 14px; background: rgba(255,193,7,.25);   color: var(--yellow); }
+    .tv-dash .dd { padding: 4px 14px; background: #2a2a2a; color: #888; }
+
+    hr { border: none; border-top: 1px solid var(--border); margin: 40px 0; }
+
+    .pipeline {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      flex-wrap: wrap;
+      margin: 20px 0;
+    }
+    .pipe-box {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 10px 16px;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--white);
+      text-align: center;
+      white-space: nowrap;
+    }
+    .pipe-box small { display: block; color: var(--muted); font-weight: 400; font-size: 10px; margin-top: 2px; }
+    .pipe-arrow { color: var(--accent); font-size: 18px; padding: 0 8px; flex-shrink: 0; }
+
+    .risk-bar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 10px 0;
+      font-size: 13px;
+    }
+    .risk-label { width: 160px; flex-shrink: 0; color: var(--muted); }
+    .risk-track { flex: 1; height: 8px; background: #1e2230; border-radius: 4px; overflow: hidden; }
+    .risk-fill  { height: 100%; border-radius: 4px; }
+    .risk-val   { width: 60px; text-align: right; font-weight: 700; }
+
+    footer {
+      border-top: 1px solid var(--border);
+      text-align: center;
+      padding: 24px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+    .back-btn {
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      background: var(--card);
+      color: var(--accent);
+      border: 1px solid var(--border);
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      text-decoration: none;
+      z-index: 100;
+    }
+    .back-btn:hover { border-color: var(--accent); }
+  </style>
+  <link rel="icon" type="image/png" href="https://static.wixstatic.com/media/b8ecbb_c254c40181bc4637be4f42d42eb682f0~mv2.png" />
+</head>
+<body>
+
+<a class="back-btn" href="index.html">&larr; Library</a>
+
+<header>
+  <div class="logo-badge">S3</div>
+  <div>
+    <h1>Apex 8am Sweep &mdash; MNQ Eval Pass Strategy</h1>
+    <p>Project Black-Box &mdash; Iron Sight Developer Guide &mdash; APEX-8AM-SWEEP-V1</p>
+  </div>
+  <div class="model-tag">model_id: APEX-8AM-SWEEP-V1</div>
+</header>
+
+<div class="page-wrap">
+
+  <!-- ── Strategy Overview ────────────────────────────────────── -->
+  <div class="intro-box">
+    <h2>What does this strategy do?</h2>
+    <p style="color:var(--muted)">
+      This plan targets the <strong style="color:var(--white)">8am ET liquidity sweep</strong> on the MNQ futures contract
+      to pass the Apex Trader Funding 50k EOD evaluation ($45 promo + $99 PA activation).
+      It combines three automated layers — Pine Script signal detection, GCP middleware validation,
+      and Tradovate bracket order execution — that must all clear before a trade fires.
+    </p>
+    <div class="step-row">
+      <div class="step-box">
+        <div class="step-num">1</div>
+        <div class="step-lbl">Sweep Zone</div>
+        <div class="step-desc">ONH or ONL wick forms and closes back inside range</div>
+      </div>
+      <div class="step-box">
+        <div class="step-num">2</div>
+        <div class="step-lbl">GCP Gate</div>
+        <div class="step-desc">Middleware validates time window, DLL headroom &amp; account state</div>
+      </div>
+      <div class="step-box">
+        <div class="step-num">3</div>
+        <div class="step-lbl">Execution</div>
+        <div class="step-desc">Bracket order fires to Tradovate with hard stop + scaled target</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════ BLOCK 1 — Account Parameters ═══════════════════════ -->
+  <div class="section-label">
+    <div class="num">1</div>
+    <h2>Account Parameters &mdash; Apex 50k EOD</h2>
+  </div>
+
+  <div class="two-col">
+    <div class="card">
+      <h3>Eval targets</h3>
+      <p>Profit target: <span class="pill pill-green">+$3,000</span></p>
+      <p>EOD trailing drawdown: <span class="pill pill-red">$2,000</span></p>
+      <p>Daily loss limit (DLL): <span class="pill pill-yellow">$1,000 / session</span></p>
+      <p>No minimum trading days &mdash; pass as fast as your edge allows.</p>
+    </div>
+    <div class="card">
+      <h3>PA activation &amp; total cost</h3>
+      <p>Eval fee (promo): <span class="pill pill-blue">$45</span></p>
+      <p>PA activation fee: <span class="pill pill-yellow">$99</span> &mdash; due within 7 days of passing</p>
+      <p>Total all-in: <span class="pill pill-blue">$144</span></p>
+      <p style="color:var(--muted); font-size:13px; margin-top:8px;">The $99 PA fee is NOT discounted by promo codes. Budget for it before you pass.</p>
+    </div>
+    <div class="card">
+      <h3>MNQ tick math</h3>
+      <p>Tick value: <span class="pill pill-blue">$0.50 / contract</span></p>
+      <p>Point value: <span class="pill pill-blue">$2.00 / contract</span></p>
+      <p>Suggested size: <span class="pill pill-green">2&ndash;3 contracts</span> &mdash; scale up as cushion grows</p>
+    </div>
+    <div class="card">
+      <h3>Tradovate-specific rule</h3>
+      <p style="color:var(--yellow); font-weight:700; font-size:13px;">Drawdown never stops trailing on Tradovate evals.</p>
+      <p>On Rithmic, the floor locks once threshold reaches the profit target. On Tradovate it trails
+      your <em>peak unrealized balance</em> indefinitely &mdash; a runner that hits +$800 then closes at +$400
+      permanently raises your floor to reflect the $800 peak.</p>
+    </div>
+  </div>
+
+  <!-- ════ BLOCK 2 — The Tradovate Drawdown Trap ═══════════════ -->
+  <div class="section-label">
+    <div class="num">2</div>
+    <h2>Tradovate EOD Trailing Drawdown &mdash; The Cliff vs. The Cushion</h2>
+  </div>
+
+  <div class="card" style="padding:0; overflow:hidden;">
+    <div style="padding:14px 20px; border-bottom:1px solid var(--border); font-size:12px; color:var(--muted); font-weight:700; text-transform:uppercase; letter-spacing:1px;">
+      Visual &mdash; How Unrealized Gains Destroy Your Buffer
+    </div>
+    <div style="padding:24px; background:#0d0f14;">
+      <svg viewBox="0 0 720 240" xmlns="http://www.w3.org/2000/svg" style="width:100%; max-width:720px; display:block; margin:0 auto;">
+        <!-- Grid -->
+        <line x1="0" y1="50"  x2="720" y2="50"  stroke="#1e2230" stroke-width="1"/>
+        <line x1="0" y1="100" x2="720" y2="100" stroke="#1e2230" stroke-width="1"/>
+        <line x1="0" y1="150" x2="720" y2="150" stroke="#1e2230" stroke-width="1"/>
+        <line x1="0" y1="200" x2="720" y2="200" stroke="#1e2230" stroke-width="1"/>
+
+        <!-- Balance axis labels -->
+        <text x="4" y="54"  fill="#7a849a" font-size="9" font-family="monospace">$51k</text>
+        <text x="4" y="104" fill="#7a849a" font-size="9" font-family="monospace">$50k</text>
+        <text x="4" y="154" fill="#7a849a" font-size="9" font-family="monospace">$49k</text>
+        <text x="4" y="204" fill="#7a849a" font-size="9" font-family="monospace">$48k</text>
+
+        <!-- Starting floor ($48k = y200) dashed red -->
+        <line x1="44" y1="200" x2="720" y2="200" stroke="#ff4560" stroke-width="1.5" stroke-dasharray="8,4"/>
+        <text x="650" y="196" fill="#ff4560" font-size="10" font-family="sans-serif">Floor ($48k)</text>
+
+        <!-- Balance line: steady climb, spike unrealized, close lower, floor ratchets up -->
+        <!-- Start $50k -->
+        <circle cx="50" cy="100" r="3" fill="#00c2ff"/>
+        <!-- Trade 1: unrealized spike to $50,800 (y=60 approx) then closes $50,400 (y=80) -->
+        <polyline points="50,100 120,80 180,60 240,80" fill="none" stroke="#ffc107" stroke-width="1.5" stroke-dasharray="5,3"/>
+        <text x="185" y="52" fill="#ffc107" font-size="9" font-family="sans-serif">Peak: $50,800</text>
+        <!-- Closed at $50,400 -->
+        <circle cx="240" cy="80" r="4" fill="#22d35e"/>
+        <text x="248" y="76" fill="#22d35e" font-size="9" font-family="sans-serif">Closed +$400</text>
+
+        <!-- New floor after peak ($50,800 - $2,000 = $48,800 = y192) -->
+        <line x1="180" y1="192" x2="720" y2="192" stroke="#ff4560" stroke-width="1" stroke-dasharray="4,3" opacity="0.6"/>
+        <text x="620" y="189" fill="#ff4560" font-size="9" font-family="sans-serif">New floor: $48,800</text>
+        <!-- Ratchet arrow -->
+        <line x1="180" y1="200" x2="180" y2="194" stroke="#ff4560" stroke-width="1.5" marker-end="url(#arr)"/>
+
+        <!-- Trade 2: balance at 80 ($50,400), drops on next trade -->
+        <polyline points="240,80 300,90 360,110 420,130" fill="none" stroke="#cdd3e0" stroke-width="1.5"/>
+        <!-- DLL warning zone -->
+        <rect x="300" y="160" width="120" height="50" fill="rgba(255,193,7,0.06)" stroke="#ffc107" stroke-width="0.5" rx="3"/>
+        <text x="310" y="178" fill="#ffc107" font-size="9" font-family="sans-serif">DLL zone</text>
+        <text x="310" y="190" fill="#ffc107" font-size="9" font-family="sans-serif">(-$1,000 = $49k)</text>
+
+        <!-- Danger: approaching new floor -->
+        <circle cx="420" cy="130" r="4" fill="#ff4560"/>
+        <text x="430" y="126" fill="#ff4560" font-size="9" font-family="sans-serif">Only $1,200</text>
+        <text x="430" y="138" fill="#ff4560" font-size="9" font-family="sans-serif">to new floor!</text>
+
+        <!-- Defs for marker -->
+        <defs>
+          <marker id="arr" viewBox="0 0 8 8" refX="6" refY="4" markerWidth="5" markerHeight="5" orient="auto">
+            <path d="M1 1L7 4L1 7" fill="none" stroke="#ff4560" stroke-width="1.5"/>
+          </marker>
+        </defs>
+
+        <!-- Axis label -->
+        <text x="360" y="232" fill="#7a849a" font-size="10" font-family="sans-serif" text-anchor="middle">Time &rarr; (Tradovate: floor moves with peak unrealized, not just closed P&amp;L)</text>
+      </svg>
+    </div>
+  </div>
+
+  <div class="two-col">
+    <div class="explain what">
+      <div class="ex-title">What this means</div>
+      <p>On Tradovate, the moment your account <em>peaks</em> at $50,800 intraday — even on an open trade
+      you haven't closed — your drawdown floor permanently moves to $48,800. If that trade then
+      reverses and closes at $50,400, you've <em>spent</em> $800 of your $2,000 drawdown buffer
+      for a $400 gain. The floor does not come back down.</p>
+    </div>
+    <div class="explain why">
+      <div class="ex-title">Why it favours the steady approach</div>
+      <p>Small, closed targets (40&ndash;80pts) keep unrealized excursions tight. The floor moves
+      predictably with closed P&amp;L. Large runners (150pt targets) spike the unrealized peak,
+      ratchet up the floor, then leave almost no cushion if the trade partially retraces.
+      The steady approach preserves your $2,000 buffer across the full eval period.</p>
+    </div>
+  </div>
+
+  <!-- ════ BLOCK 3 — The 8am Sweep Setup ═══════════════════════ -->
+  <div class="section-label">
+    <div class="num">3</div>
+    <h2>The 8am Sweep Setup &mdash; Overnight High / Low Liquidity Grab</h2>
+  </div>
+
+  <div class="card" style="padding:0; overflow:hidden;">
+    <div style="padding:14px 20px; border-bottom:1px solid var(--border); font-size:12px; color:var(--muted); font-weight:700; text-transform:uppercase; letter-spacing:1px;">
+      Visual &mdash; Classic ONH Sweep &amp; Reversal (Bearish Example)
+    </div>
+    <div style="padding:24px; background:#0d0f14;">
+      <svg viewBox="0 0 720 230" xmlns="http://www.w3.org/2000/svg" style="width:100%; max-width:720px; display:block; margin:0 auto;">
+        <defs>
+          <marker id="arrowb" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </marker>
+        </defs>
+
+        <!-- Grid lines -->
+        <line x1="0" y1="50"  x2="720" y2="50"  stroke="#1e2230" stroke-width="1"/>
+        <line x1="0" y1="100" x2="720" y2="100" stroke="#1e2230" stroke-width="1"/>
+        <line x1="0" y1="150" x2="720" y2="150" stroke="#1e2230" stroke-width="1"/>
+
+        <!-- ONH dashed line -->
+        <line x1="30" y1="60" x2="690" y2="60" stroke="#ff4560" stroke-width="1.5" stroke-dasharray="8,5"/>
+        <text x="4" y="56" fill="#ff4560" font-size="10" font-family="monospace">ONH</text>
+
+        <!-- Pre-8am context candles (Asian range, approaching ONH) -->
+        <line x1="60"  y1="115" x2="60"  y2="85"  stroke="#ccc" stroke-width="1.5"/>
+        <rect x="53"  y="95"  width="14" height="18" fill="#22d35e" rx="1"/>
+
+        <line x1="100" y1="100" x2="100" y2="72"  stroke="#ccc" stroke-width="1.5"/>
+        <rect x="93"  y="80"  width="14" height="16" fill="#22d35e" rx="1"/>
+
+        <line x1="140" y1="88"  x2="140" y2="62"  stroke="#ccc" stroke-width="1.5"/>
+        <rect x="133" y="70"  width="14" height="15" fill="#22d35e" rx="1"/>
+
+        <!-- 8am divider -->
+        <line x1="175" y1="20" x2="175" y2="210" stroke="#00c2ff" stroke-width="1" stroke-dasharray="4,3" opacity="0.5"/>
+        <text x="165" y="16" fill="#00c2ff" font-size="9" font-family="sans-serif">8:00am</text>
+
+        <!-- SWEEP candle: wick above ONH, closes back inside -->
+        <line x1="210" y1="78"  x2="210" y2="42"  stroke="#ccc" stroke-width="1.5"/>
+        <rect x="203" y="65"  width="14" height="13" fill="#ff4560" rx="1"/>
+        <circle cx="210" cy="50" r="16" fill="none" stroke="#00c2ff" stroke-width="1.5" stroke-dasharray="4,3"/>
+        <text x="230" y="40" fill="#00c2ff" font-size="10" font-family="sans-serif">Sweep wick</text>
+        <text x="230" y="52" fill="#00c2ff" font-size="10" font-family="sans-serif">above ONH</text>
+
+        <!-- Condition 1 label -->
+        <text x="193" y="175" fill="#00c2ff" font-size="9" font-family="sans-serif">Cond 1: ONH swept</text>
+
+        <!-- Reaction candle: closes well below sweep candle's low -->
+        <line x1="255" y1="95"  x2="255" y2="62"  stroke="#ccc" stroke-width="1.5"/>
+        <rect x="248" y="75"  width="14" height="20" fill="#ff4560" rx="1"/>
+        <circle cx="255" cy="85" r="18" fill="none" stroke="#ff4560" stroke-width="2"/>
+        <text x="275" y="80" fill="#ff4560" font-size="10" font-family="sans-serif">Cond 2: Close back inside</text>
+        <text x="275" y="92" fill="#ff4560" font-size="10" font-family="sans-serif">&amp; bearish candle</text>
+
+        <!-- Entry arrow -->
+        <polygon points="255,195 245,180 265,180" fill="#ff4560"/>
+        <text x="255" y="178" fill="#ff4560" font-size="11" font-family="sans-serif" font-weight="700" text-anchor="middle">SELL</text>
+
+        <!-- Post-entry decline candles -->
+        <line x1="310" y1="110" x2="310" y2="85"  stroke="#ccc" stroke-width="1.5"/>
+        <rect x="303" y="92"  width="14" height="16" fill="#ff4560" rx="1"/>
+
+        <line x1="355" y1="125" x2="355" y2="100" stroke="#ccc" stroke-width="1.5"/>
+        <rect x="348" y="107" width="14" height="16" fill="#ff4560" rx="1"/>
+
+        <line x1="400" y1="138" x2="400" y2="115" stroke="#ccc" stroke-width="1.5"/>
+        <rect x="393" y="120" width="14" height="16" fill="#ff4560" rx="1"/>
+
+        <!-- Scale-out marker at 50% -->
+        <circle cx="355" cy="110" r="6" fill="none" stroke="#22d35e" stroke-width="1.5"/>
+        <text x="370" y="108" fill="#22d35e" font-size="9" font-family="sans-serif">Scale out 50%</text>
+        <text x="370" y="118" fill="#22d35e" font-size="9" font-family="sans-serif">+ move to BE</text>
+
+        <!-- TP line -->
+        <line x1="255" y1="138" x2="490" y2="138" stroke="#22d35e" stroke-width="1" stroke-dasharray="5,4"/>
+        <text x="498" y="142" fill="#22d35e" font-size="10" font-family="sans-serif">TP &mdash;80pts</text>
+
+        <!-- SL line -->
+        <line x1="255" y1="50" x2="490" y2="50" stroke="#ff4560" stroke-width="1" stroke-dasharray="5,4"/>
+        <text x="498" y="54" fill="#ff4560" font-size="10" font-family="sans-serif">SL above sweep wick</text>
+
+        <!-- R:R bracket -->
+        <line x1="480" y1="52" x2="480" y2="136" stroke="#7a849a" stroke-width="1"/>
+        <line x1="476" y1="52"  x2="484" y2="52"  stroke="#7a849a" stroke-width="1"/>
+        <line x1="476" y1="136" x2="484" y2="136" stroke="#7a849a" stroke-width="1"/>
+        <text x="486" y="94"  fill="#7a849a" font-size="9" font-family="sans-serif">2:1</text>
+        <text x="486" y="106" fill="#7a849a" font-size="9" font-family="sans-serif">R:R</text>
+      </svg>
+    </div>
+  </div>
+
+  <div class="two-col">
+    <div class="explain what">
+      <div class="ex-title">What it does</div>
+      <p>Around 8am ET, institutional algorithms probe <em>above</em> the Overnight High or <em>below</em>
+      the Overnight Low to trigger resting stop orders. The resulting wick is the sweep.
+      When price closes back inside the overnight range, those stops have been hunted
+      and the move reverses. The Pine script identifies this wick-close pattern on the 1m or 3m chart.</p>
+    </div>
+    <div class="explain why">
+      <div class="ex-title">Why it matters for the eval</div>
+      <p>The sweep is a <em>time-boxed</em> event (7:55&ndash;8:30am window). There is no ambiguity about
+      whether a setup exists &mdash; it either fires in that window or the session is skipped entirely.
+      This hard time gate protects the DLL ($1,000/day) by eliminating random midday trades
+      that don't have an identifiable edge.</p>
+    </div>
+  </div>
+
+  <!-- ════ BLOCK 4 — Pine Script Implementation ════════════════ -->
+  <div class="section-label">
+    <div class="num">4</div>
+    <h2>Pine Script Implementation &mdash; ONH/ONL &amp; Sweep Detection</h2>
+  </div>
+
+  <div class="code-block">
+    <div class="cb-header">Pine Script &mdash; Strategy Declaration &amp; Inputs</div>
+    <pre><span class="cmt">// @S3 Development | Project Black-Box</span>
+<span class="cmt">// Apex 8am Sweep Strategy — MNQ EOD 50k Eval</span>
+<span class="cmt">//@version=6</span>
+<span class="fn">strategy</span>(<span class="str">"Apex 8am Sweep — MNQ"</span>, overlay=<span class="kw">true</span>,
+  initial_capital=<span class="num">50000</span>, default_qty_type=strategy.fixed,
+  default_qty_value=<span class="num">2</span>, currency=currency.USD)
+
+<span class="cmt">// ── Session &amp; Window ──────────────────────────────────────────</span>
+sweep_open   = <span class="fn">input.session</span>(<span class="str">"0755-0830"</span>, <span class="str">"Sweep Window (ET)"</span>)
+show_levels  = <span class="fn">input.bool</span>(<span class="kw">true</span>,  <span class="str">"Show ONH/ONL Lines"</span>)
+
+<span class="cmt">// ── Sweep Detection ───────────────────────────────────────────</span>
+vol_mult     = <span class="fn">input.float</span>(<span class="num">1.5</span>,  <span class="str">"Volume Filter Multiplier"</span>, minval=<span class="num">1.0</span>)
+sweep_buffer = <span class="fn">input.int</span>(<span class="num">5</span>,    <span class="str">"Sweep Buffer (pts above/below ONH/ONL)"</span>)
+
+<span class="cmt">// ── Risk Management ───────────────────────────────────────────</span>
+stop_buffer  = <span class="fn">input.int</span>(<span class="num">8</span>,    <span class="str">"Stop Buffer Beyond Sweep Wick (pts)"</span>)
+target_pts   = <span class="fn">input.int</span>(<span class="num">80</span>,   <span class="str">"Full Target (pts) &mdash; Steady Mode"</span>)
+scale_pct    = <span class="fn">input.float</span>(<span class="num">0.5</span>,  <span class="str">"Scale-Out at % of Target"</span>)
+daily_loss   = <span class="fn">input.int</span>(<span class="num">500</span>,  <span class="str">"GCP Daily Loss Limit ($)"</span>)</pre>
+  </div>
+
+  <div class="code-block">
+    <div class="cb-header">Pine Script &mdash; Overnight High/Low Detection</div>
+    <pre><span class="cmt">// Overnight session = 6pm ET prior day to 9:30am ET (RTH open)</span>
+overnight_session = <span class="str">"1800-0930"</span>
+
+<span class="kw">var float</span> onh = <span class="kw">na</span>   <span class="cmt">// Overnight High</span>
+<span class="kw">var float</span> onl = <span class="kw">na</span>   <span class="cmt">// Overnight Low</span>
+
+in_overnight = <span class="fn">not</span> <span class="fn">na</span>(<span class="fn">time</span>(timeframe.period, overnight_session))
+
+<span class="cmt">// Reset ONH/ONL each day at 6pm ET</span>
+new_overnight = <span class="fn">ta.change</span>(<span class="fn">dayofweek</span>) <span class="kw">or</span> (hour == <span class="num">18</span> <span class="kw">and</span> minute == <span class="num">0</span>)
+<span class="kw">if</span> new_overnight
+    onh := <span class="kw">na</span>
+    onl := <span class="kw">na</span>
+
+<span class="cmt">// Track ONH and ONL throughout overnight session</span>
+<span class="kw">if</span> in_overnight
+    onh := <span class="fn">na</span>(onh) ? high : <span class="fn">math.max</span>(onh, high)
+    onl := <span class="fn">na</span>(onl) ? low  : <span class="fn">math.min</span>(onl, low)
+
+<span class="cmt">// Plot on chart</span>
+<span class="fn">plot</span>(show_levels ? onh : <span class="kw">na</span>, <span class="str">"ONH"</span>, <span class="fn">color.new</span>(color.red,   <span class="num">30</span>), linewidth=<span class="num">2</span>, style=plot.style_linebr)
+<span class="fn">plot</span>(show_levels ? onl : <span class="kw">na</span>, <span class="str">"ONL"</span>, <span class="fn">color.new</span>(color.green, <span class="num">30</span>), linewidth=<span class="num">2</span>, style=plot.style_linebr)</pre>
+  </div>
+
+  <div class="two-col">
+    <div class="explain what">
+      <div class="ex-title">What it does</div>
+      <p>Tracks the rolling high and low of the overnight session (6pm&ndash;9:30am ET) using <code>var float</code>
+      persistent variables that reset each day. The levels are plotted as dashed horizontal lines on the chart,
+      visible in the 7:55&ndash;8:30am window when the sweep typically occurs.</p>
+    </div>
+    <div class="explain why">
+      <div class="ex-title">Why it matters</div>
+      <p>The ONH and ONL are the precise price levels where stop-loss clusters from overnight traders accumulate.
+      Algorithms sweep these levels to grab that liquidity. Without accurately tracking these levels per session,
+      the sweep detection has no reference point to measure against.</p>
+    </div>
+  </div>
+
+  <!-- ════ BLOCK 5 — Sweep Detection Logic ════════════════════ -->
+  <div class="section-label">
+    <div class="num">5</div>
+    <h2>Sweep Detection &amp; Volume Filter</h2>
+  </div>
+
+  <div class="code-block">
+    <div class="cb-header">Pine Script &mdash; Sweep Candle Identification</div>
+    <pre><span class="cmt">// Are we inside the sweep window?</span>
+in_window = <span class="fn">not</span> <span class="fn">na</span>(<span class="fn">time</span>(timeframe.period, sweep_open))
+
+<span class="cmt">// Average volume over last 20 bars for comparison</span>
+avg_vol = <span class="fn">ta.sma</span>(volume, <span class="num">20</span>)
+
+<span class="cmt">// Volume filter: sweep candle must have above-average volume</span>
+vol_ok = volume > avg_vol * vol_mult
+
+<span class="cmt">// ONH Sweep: wick pierces above ONH, candle closes BACK INSIDE range</span>
+<span class="cmt">// — wick above, body below: the classic liquidity grab pattern</span>
+bear_sweep = in_window
+           <span class="kw">and</span> <span class="fn">not</span> <span class="fn">na</span>(onh)
+           <span class="kw">and</span> high > onh + sweep_buffer  <span class="cmt">// Wick cleared ONH</span>
+           <span class="kw">and</span> close < onh               <span class="cmt">// Candle closed back inside</span>
+           <span class="kw">and</span> close < open              <span class="cmt">// Bearish close</span>
+           <span class="kw">and</span> vol_ok                     <span class="cmt">// Volume confirms conviction</span>
+
+<span class="cmt">// ONL Sweep: wick pierces below ONL, candle closes BACK INSIDE range</span>
+bull_sweep = in_window
+           <span class="kw">and</span> <span class="fn">not</span> <span class="fn">na</span>(onl)
+           <span class="kw">and</span> low < onl - sweep_buffer   <span class="cmt">// Wick cleared ONL</span>
+           <span class="kw">and</span> close > onl               <span class="cmt">// Candle closed back inside</span>
+           <span class="kw">and</span> close > open              <span class="cmt">// Bullish close</span>
+           <span class="kw">and</span> vol_ok                     <span class="cmt">// Volume confirms conviction</span>
+
+<span class="cmt">// Highlight sweep candles on chart</span>
+<span class="fn">bgcolor</span>(bear_sweep ? <span class="fn">color.new</span>(color.red,   <span class="num">80</span>) : <span class="kw">na</span>)
+<span class="fn">bgcolor</span>(bull_sweep ? <span class="fn">color.new</span>(color.green, <span class="num">80</span>) : <span class="kw">na</span>)</pre>
+  </div>
+
+  <div class="card">
+    <h3>The Volume Filter — Why It's Critical</h3>
+    <p>A wick that sweeps ONH on thin volume is a <em>trap signal</em>, not a real sweep.
+    Institutional liquidity grabs leave a volume signature: the sweep candle spikes volume
+    as stops are triggered. Set <code>vol_mult</code> to 1.5&times; average as a baseline.
+    For MNQ, calibrate to your chart timeframe:</p>
+    <p style="margin-top:10px;">
+      <span class="pill pill-green">1m chart</span> vol_mult = 2.0&ndash;2.5 &nbsp;
+      <span class="pill pill-blue">3m chart</span> vol_mult = 1.5&ndash;2.0 &nbsp;
+      <span class="pill pill-yellow">5m chart</span> vol_mult = 1.2&ndash;1.5
+    </p>
+  </div>
+
+  <div class="two-col">
+    <div class="explain what">
+      <div class="ex-title">The "and" chain</div>
+      <p>Every condition in <code>bear_sweep</code> must be simultaneously true. The time window gate
+      (<code>in_window</code>) prevents any signal firing outside 7:55&ndash;8:30am.
+      The volume gate eliminates low-conviction wicks. All five conditions together
+      produce a high-specificity signal with very few false positives.</p>
+    </div>
+    <div class="explain why">
+      <div class="ex-title">Why close matters more than wick</div>
+      <p>The <em>close</em> back inside the range is the confirmation that the sweep completed.
+      A candle that wicked above ONH and closed <em>above</em> ONH is a breakout, not a sweep.
+      The close condition is what distinguishes a liquidity grab from a trend continuation.</p>
+    </div>
+  </div>
+
+  <!-- ════ BLOCK 6 — Entry Signals & Bracket Order ════════════ -->
+  <div class="section-label">
+    <div class="num">6</div>
+    <h2>Entry Signals &amp; Bracket Order Logic</h2>
+  </div>
+
+  <div class="code-block">
+    <div class="cb-header">Pine Script &mdash; Entry + NIGHTHAWK Payload Construction</div>
+    <pre><span class="cmt">// Entry on close of the sweep candle (market order)</span>
+<span class="kw">if</span> bull_sweep <span class="kw">and</span> strategy.position_size == <span class="num">0</span>
+    sl_price = onl - (stop_buffer * syminfo.mintick * <span class="num">4</span>)
+    tp_price = close + (target_pts * syminfo.mintick * <span class="num">4</span>)
+
+    msg = <span class="str">'{"secret": "tac_com_alpha_9", "model_id": "APEX-8AM-SWEEP-V1", '</span>
+        + <span class="str">'"ticker": "'</span> + syminfo.tickerid + <span class="str">'", "action": "BUY", '</span>
+        + <span class="str">'"contracts": 2, "price": '</span> + <span class="fn">str.tostring</span>(close) + <span class="str">', '</span>
+        + <span class="str">'"sl": '</span> + <span class="fn">str.tostring</span>(sl_price) + <span class="str">', '</span>
+        + <span class="str">'"tp": '</span> + <span class="fn">str.tostring</span>(tp_price) + <span class="str">', '</span>
+        + <span class="str">'"metadata": {"type": "ONL_Sweep_Bull", "onl": '</span>
+        + <span class="fn">str.tostring</span>(onl) + <span class="str">', "timestamp": '</span>
+        + <span class="fn">str.tostring</span>(timenow) + <span class="str">'}}'</span>
+
+    <span class="fn">log.error</span>(<span class="str">"SWEEP SIGNAL: Bull sweep ONL. Payload: {0}"</span>, msg)
+    strategy.entry(<span class="str">"SWEEP_LONG"</span>, strategy.long, alert_message=msg)
+
+<span class="kw">if</span> bear_sweep <span class="kw">and</span> strategy.position_size == <span class="num">0</span>
+    sl_price = onh + (stop_buffer * syminfo.mintick * <span class="num">4</span>)
+    tp_price = close - (target_pts * syminfo.mintick * <span class="num">4</span>)
+
+    msg = <span class="str">'{"secret": "tac_com_alpha_9", "model_id": "APEX-8AM-SWEEP-V1", '</span>
+        + <span class="str">'"action": "SELL", "contracts": 2, "price": '</span>
+        + <span class="fn">str.tostring</span>(close) + <span class="str">', "sl": '</span> + <span class="fn">str.tostring</span>(sl_price)
+        + <span class="str">', "tp": '</span> + <span class="fn">str.tostring</span>(tp_price) + <span class="str">'}'</span>
+
+    strategy.entry(<span class="str">"SWEEP_SHORT"</span>, strategy.short, alert_message=msg)</pre>
+  </div>
+
+  <div class="card">
+    <h3>JSON Payload Structure — Tradovate Bracket</h3>
+    <pre style="background:var(--code-bg); padding:14px; border-radius:6px; font-size:13px; overflow-x:auto;">{
+  <span style="color:#9cdcfe">"secret"</span>:     <span class="str">"tac_com_alpha_9"</span>,          <span class="cmt">// Auth token — NIGHTHAWK rejects if wrong</span>
+  <span style="color:#9cdcfe">"model_id"</span>:   <span class="str">"APEX-8AM-SWEEP-V1"</span>,       <span class="cmt">// Strategy routing key</span>
+  <span style="color:#9cdcfe">"ticker"</span>:     <span class="str">"CME_MINI:MNQ1!"</span>,           <span class="cmt">// MNQ front-month contract</span>
+  <span style="color:#9cdcfe">"action"</span>:     <span class="str">"BUY"</span>,                      <span class="cmt">// or "SELL"</span>
+  <span style="color:#9cdcfe">"contracts"</span>:  <span class="num">2</span>,                          <span class="cmt">// Scale up once cushion &gt; $500</span>
+  <span style="color:#9cdcfe">"price"</span>:      <span class="num">19842.50</span>,                   <span class="cmt">// Entry close price</span>
+  <span style="color:#9cdcfe">"sl"</span>:         <span class="num">19812.50</span>,                   <span class="cmt">// Stop: 8pts below ONL + buffer</span>
+  <span style="color:#9cdcfe">"tp"</span>:         <span class="num">20002.50</span>,                   <span class="cmt">// Target: 80pts above entry</span>
+  <span style="color:#9cdcfe">"metadata"</span>:   {
+    <span style="color:#9cdcfe">"type"</span>:        <span class="str">"ONL_Sweep_Bull"</span>,
+    <span style="color:#9cdcfe">"onl"</span>:         <span class="num">19838.00</span>,               <span class="cmt">// ONL level swept</span>
+    <span style="color:#9cdcfe">"timestamp"</span>:   <span class="num">1745312400000</span>          <span class="cmt">// Unix ms from TradingView</span>
+  }
+}</pre>
+  </div>
+
+  <div class="explain what">
+    <div class="ex-title">Tradovate bracket order requirement (Apex 4.0)</div>
+    <p>As of March 2026, Tradovate <em>enforces</em> bracket orders at the platform level on all Apex accounts.
+    Any order submitted without an attached stop-loss and take-profit is automatically rejected.
+    Your GCP middleware must always send <code>sl</code> and <code>tp</code> in the payload &mdash; no naked entries.</p>
+  </div>
+
+  <!-- ════ BLOCK 7 — GCP Middleware Validation ════════════════ -->
+  <div class="section-label">
+    <div class="num">7</div>
+    <h2>GCP Middleware &mdash; NIGHTHAWK Gate Logic</h2>
+  </div>
+
+  <div class="card">
+    <h3>Signal Pipeline</h3>
+    <div class="pipeline">
+      <div class="pipe-box">TradingView<small>strategy.entry() fires</small></div>
+      <div class="pipe-arrow">&#8594;</div>
+      <div class="pipe-box">Webhook POST<small>JSON to GCP endpoint</small></div>
+      <div class="pipe-arrow">&#8594;</div>
+      <div class="pipe-box">NIGHTHAWK<small>validates 5-point gate</small></div>
+      <div class="pipe-arrow">&#8594;</div>
+      <div class="pipe-box">Tradovate API<small>fires bracket order</small></div>
+      <div class="pipe-arrow">&#8594;</div>
+      <div class="pipe-box">Firestore<small>logs fill + P&amp;L</small></div>
+    </div>
+  </div>
+
+  <div class="code-block">
+    <div class="cb-header">GCP Python — NIGHTHAWK Validation Gate (Pseudocode)</div>
+    <pre><span class="kw">def</span> <span class="fn">validate_signal</span>(payload, account_state):
+    <span class="cmt"># 1. Auth check</span>
+    <span class="kw">if</span> payload[<span class="str">"secret"</span>] != SECRET_TOKEN:
+        <span class="kw">return</span> <span class="fn">reject</span>(<span class="str">"401 — bad secret"</span>)
+
+    <span class="cmt"># 2. Model routing</span>
+    <span class="kw">if</span> payload[<span class="str">"model_id"</span>] != <span class="str">"APEX-8AM-SWEEP-V1"</span>:
+        <span class="kw">return</span> <span class="fn">reject</span>(<span class="str">"404 — unknown model"</span>)
+
+    <span class="cmt"># 3. Time window gate (ET) — no trades outside sweep window</span>
+    et_now = <span class="fn">datetime_et</span>()
+    <span class="kw">if not</span> (<span class="fn">time</span>(<span class="num">7</span>,<span class="num">55</span>) <= et_now <= <span class="fn">time</span>(<span class="num">8</span>,<span class="num">30</span>)):
+        <span class="kw">return</span> <span class="fn">reject</span>(<span class="str">"OUTSIDE SWEEP WINDOW — signal ignored"</span>)
+
+    <span class="cmt"># 4. Daily loss limit gate</span>
+    <span class="kw">if</span> account_state[<span class="str">"daily_pnl"</span>] <= -DAILY_LOSS_LIMIT:
+        <span class="kw">return</span> <span class="fn">reject</span>(<span class="str">"DLL HIT — trading paused for session"</span>)
+
+    <span class="cmt"># 5. Position gate — no pyramiding</span>
+    <span class="kw">if</span> account_state[<span class="str">"open_positions"</span>] > <span class="num">0</span>:
+        <span class="kw">return</span> <span class="fn">reject</span>(<span class="str">"POSITION OPEN — max 1 trade at a time"</span>)
+
+    <span class="kw">return</span> <span class="fn">approve</span>(payload)</pre>
+  </div>
+
+  <div class="two-col">
+    <div class="explain what">
+      <div class="ex-title">What it does</div>
+      <p>The GCP middleware runs five sequential checks before any order reaches Tradovate.
+      The time window check (#3) is the most important for the eval — it enforces the 7:55&ndash;8:30am
+      gate at the infrastructure level, independent of the Pine Script logic.
+      Double-gating prevents any edge-case order that slips through late.</p>
+    </div>
+    <div class="explain why">
+      <div class="ex-title">The DLL gate is your eval insurance</div>
+      <p>If a bad sweep trade hits the GCP-configured daily loss limit ($500 recommended, well within
+      Apex's $1,000 DLL), the middleware blocks all further orders for the rest of the session.
+      The account stays alive. Next day, the GCP daily P&amp;L counter resets automatically at 6pm ET.</p>
+    </div>
+  </div>
+
+  <!-- ════ BLOCK 8 — Exit Logic & Scale-Out ════════════════════ -->
+  <div class="section-label">
+    <div class="num">8</div>
+    <h2>Exit Logic &mdash; Scale-Out &amp; Breakeven Trail</h2>
+  </div>
+
+  <div class="code-block">
+    <div class="cb-header">Pine Script &mdash; Scale Out at 50% Target + BE Trail</div>
+    <pre><span class="cmt">// Scale out half position at 50% of target</span>
+scale_target = target_pts * scale_pct   <span class="cmt">// Default: 40pts</span>
+
+strategy.exit(<span class="str">"SCALE_LONG"</span>, <span class="str">"SWEEP_LONG"</span>,
+    qty_percent = <span class="num">50</span>,                   <span class="cmt">// Close half the position</span>
+    profit      = scale_target * <span class="num">4</span>,     <span class="cmt">// In ticks (4 ticks per point)</span>
+    comment     = <span class="str">"SCALE_OUT_50"</span>)
+
+<span class="cmt">// Once scaled, trail remaining 50% to full target with BE stop</span>
+<span class="cmt">// Move stop to breakeven after scale-out fires</span>
+be_triggered = strategy.closedtrades > <span class="num">0</span> <span class="kw">and</span>
+               strategy.closedtrades.exit_comment(strategy.closedtrades - <span class="num">1</span>) == <span class="str">"SCALE_OUT_50"</span>
+
+<span class="kw">if</span> be_triggered <span class="kw">and</span> strategy.position_size > <span class="num">0</span>
+    strategy.exit(<span class="str">"RUNNER_LONG"</span>, <span class="str">"SWEEP_LONG"</span>,
+        profit   = target_pts * <span class="num">4</span>,      <span class="cmt">// Full target on runner</span>
+        loss     = <span class="num">0</span>,                    <span class="cmt">// BE stop (0 loss from entry)</span>
+        trail_points = <span class="num">20</span> * <span class="num">4</span>,          <span class="cmt">// Trail by 20pts once at BE</span>
+        comment  = <span class="str">"RUNNER_TP"</span>)</pre>
+  </div>
+
+  <div class="card">
+    <h3>Scale-Out Mechanics</h3>
+    <p>
+      Partial exit at 40pts: <span class="pill pill-green">50% of position closed</span>
+      &nbsp;Runner to 80pts: <span class="pill pill-blue">trail stop 20pts</span>
+      &nbsp;R:R on full trade: <span class="pill pill-blue">~2:1</span>
+    </p>
+    <p style="margin-top:10px; color:var(--muted); font-size:13px;">
+      Scaling out at 50% of target and moving to breakeven means the worst-case outcome on any trade
+      that reaches the first target is <strong style="color:var(--green);">+40pts locked</strong>.
+      This directly protects the EOD trailing drawdown floor from ratcheting up on an unrealized runner
+      that reverses before the full target.
+    </p>
+  </div>
+
+  <div class="card" style="border-left: 3px solid var(--yellow);">
+    <h3>Auto-Flatten: 3:55pm ET Failsafe</h3>
+    <div class="two-col" style="margin-top:8px;">
+      <div>
+        <p style="color:var(--yellow); font-weight:700; font-size:13px;">GCP Cloud Task — Scheduled Close-All</p>
+        <p>A Cloud Scheduler job fires at 3:55pm ET daily and calls the Tradovate REST API
+        to flatten all MNQ positions. No exceptions. This is the last line of defence against
+        holding into 4:59pm and having the EOD drawdown snapshot a bad unrealized position.</p>
+      </div>
+      <div>
+        <p style="color:var(--accent); font-weight:700; font-size:13px;">Why 3:55pm and not 4:59pm</p>
+        <p>The Apex 4:59pm position close rule has a hard cutoff. A GCP task at 3:55pm gives a
+        4-minute buffer for any order latency, partial fills, or Tradovate API delays. Never rely
+        on the exchange to close for you — the automated flatten is mandatory infrastructure.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════ BLOCK 9 — Pass Scenario Math ═══════════════════════ -->
+  <div class="section-label">
+    <div class="num">9</div>
+    <h2>Pass Scenario Math &mdash; Steady vs Quick Approach</h2>
+  </div>
+
+  <div class="two-col">
+    <div class="card" style="border-top: 3px solid var(--green);">
+      <h3 style="color:var(--green);">Steady Approach (Recommended)</h3>
+      <p>Target per trade: <span class="pill pill-blue">40&ndash;80pts × 2 contracts</span></p>
+      <p>Per-trade P&amp;L: <span class="pill pill-green">$160&ndash;$320</span></p>
+      <p>Required winning trades: <span class="pill pill-blue">~10&ndash;19 to pass</span></p>
+      <p>Sessions needed (1 trade/day): <span class="pill pill-green">10&ndash;15 sessions</span></p>
+      <p style="margin-top:10px; color:var(--muted); font-size:13px;">
+        Each winning trade naturally qualifies as a PA $250+ day. By the time you pass the eval
+        with the steady approach, you've already rehearsed the PA payout mechanics.
+        Max unrealized exposure per trade: ~80pts = $160. Floor never ratchets more than $160 per trade.
+      </p>
+    </div>
+    <div class="card" style="border-top: 3px solid var(--yellow);">
+      <h3 style="color:var(--yellow);">Quick Approach (High-Conviction Only)</h3>
+      <p>Target per trade: <span class="pill pill-yellow">75&ndash;150pts × 2&ndash;3 contracts</span></p>
+      <p>Per-trade P&amp;L: <span class="pill pill-green">$300&ndash;$900</span></p>
+      <p>Required winning trades: <span class="pill pill-blue">4&ndash;10 to pass</span></p>
+      <p>Sessions needed: <span class="pill pill-yellow">2&ndash;4 sessions</span></p>
+      <p style="margin-top:10px; color:var(--muted); font-size:13px;">
+        Faster but floor ratchets aggressively on runners. A trade that peaks +$800 unrealized
+        and closes at +$400 uses $800 of drawdown for a $400 gain. Requires pipeline to be
+        fully battle-tested. One bad trade can consume 40% of the eval drawdown.
+      </p>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Drawdown Cushion Consumption — Side-by-Side</h3>
+    <div style="margin-top:12px;">
+      <p style="font-size:12px; color:var(--muted); margin-bottom:12px; text-transform:uppercase; letter-spacing:1px;">After 3 trades (all winners)</p>
+
+      <div class="risk-bar">
+        <div class="risk-label">Steady (3 × $200)</div>
+        <div class="risk-track"><div class="risk-fill" style="width:18%; background:#22d35e;"></div></div>
+        <div class="risk-val" style="color:var(--green);">$1,640 left</div>
+      </div>
+      <div class="risk-bar">
+        <div class="risk-label">Quick (3 × $500, peaks $800)</div>
+        <div class="risk-track"><div class="risk-fill" style="width:60%; background:#ff4560;"></div></div>
+        <div class="risk-val" style="color:var(--red);">$800 left</div>
+      </div>
+      <div class="risk-bar">
+        <div class="risk-label">DLL limit ($1,000)</div>
+        <div class="risk-track"><div class="risk-fill" style="width:50%; background:#ffc107;"></div></div>
+        <div class="risk-val" style="color:var(--yellow);">$1,000</div>
+      </div>
+
+      <p style="font-size:12px; color:var(--muted); margin-top:14px;">
+        Bars show drawdown buffer consumed. Steady traders still have $1,640 of the original
+        $2,000 buffer intact after 3 profitable trades. Quick traders with runners that spike
+        unrealized may have consumed $1,200 of buffer even with net positive P&amp;L.
+      </p>
+    </div>
+  </div>
+
+  <!-- ════ BLOCK 10 — PA Payout Rules ══════════════════════════ -->
+  <div class="section-label">
+    <div class="num">10</div>
+    <h2>Performance Account &mdash; Payout Rules (Apex 4.0)</h2>
+  </div>
+
+  <div class="card" style="border-left: 3px solid var(--purple);">
+    <h3 style="color:var(--purple);">The 50% Consistency Rule — PA Only</h3>
+    <p>The eval has <strong style="color:var(--white);">zero</strong> consistency requirement. The PA does. Before you can request a payout:</p>
+    <div style="margin-top:12px;">
+      <p><span class="pill pill-green">Condition 1</span> Minimum 5 trading days with $250+ profit each</p>
+      <p style="margin-top:6px;"><span class="pill pill-blue">Condition 2</span> No single day may represent 50% or more of total profit since last payout</p>
+      <p style="margin-top:6px;"><span class="pill pill-yellow">Condition 3</span> Balance must be above the safety net: starting balance + $2,100 ($50k EOD)</p>
+    </div>
+    <p style="margin-top:14px; color:var(--muted); font-size:13px;">
+      This is why the steady approach is superior end-to-end: trading 40&ndash;80pt targets in the eval
+      naturally produces $160&ndash;$320 qualifying days. In the PA, you continue the same style and
+      accumulate the 5 qualifying days without changing your approach. The quick-approach eval style
+      does not transfer to the PA payout mechanics.
+    </p>
+  </div>
+
+  <div class="two-col">
+    <div>
+      <p style="color:var(--muted); font-size:12px; margin-bottom:10px; text-transform:uppercase; letter-spacing:1px;">PA Dashboard Preview — Ready for Payout</p>
+      <div class="tv-dash">
+        <div class="dh">PA Condition</div>      <div class="dh">Status</div>
+        <div class="dr">Safety Net Cleared</div>  <div class="dg">&#10003;</div>
+        <div class="dr">Qualifying Days</div>     <div class="dg">5 / 5</div>
+        <div class="dr">50% Consistency</div>     <div class="dg">&#10003;</div>
+        <div class="dg">Payout Available</div>    <div class="dg">REQUEST</div>
+        <div class="dr">Account Bias</div>        <div class="dg">FUNDED</div>
+      </div>
+    </div>
+    <div>
+      <p style="color:var(--muted); font-size:12px; margin-bottom:10px; text-transform:uppercase; letter-spacing:1px;">PA Dashboard Preview — Waiting on Consistency</p>
+      <div class="tv-dash">
+        <div class="dh">PA Condition</div>        <div class="dh">Status</div>
+        <div class="dr">Safety Net Cleared</div>  <div class="dg">&#10003;</div>
+        <div class="dr">Qualifying Days</div>     <div class="dy">2 / 5</div>
+        <div class="dr">50% Consistency</div>     <div class="db">&#10007;</div>
+        <div class="dd">Payout Available</div>    <div class="dd">WAIT</div>
+        <div class="dr">Account Bias</div>        <div class="dd">NEUTRAL</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════ BLOCK 11 — Hard Risk Rules ══════════════════════════ -->
+  <div class="section-label">
+    <div class="num">11</div>
+    <h2>Hard Risk Rules &mdash; Non-Negotiable Gates</h2>
+  </div>
+
+  <div class="card" style="border-left: 3px solid var(--red);">
+    <h3>Eval Protection Rules</h3>
+    <div style="margin-top:8px;">
+      <p><span class="pill pill-red">RULE 1</span> GCP daily loss limit: <strong style="color:var(--white);">$500 max</strong>. Hit it &rarr; GCP blocks all orders for the session.</p>
+      <p style="margin-top:8px;"><span class="pill pill-red">RULE 2</span> No trades outside 7:55&ndash;8:30am ET. No exceptions. GCP time gate enforces this independently of Pine Script.</p>
+      <p style="margin-top:8px;"><span class="pill pill-yellow">RULE 3</span> Max 2 trades per day. Second trade only if T1 stopped out cleanly and a new distinct sweep forms.</p>
+      <p style="margin-top:8px;"><span class="pill pill-green">RULE 4</span> Auto-flatten at 3:55pm ET via GCP Cloud Scheduler. All MNQ positions closed regardless of P&amp;L.</p>
+      <p style="margin-top:8px;"><span class="pill pill-blue">RULE 5</span> Scale-out at 50% target mandatory. Move stop to BE immediately. Never hold a full position to TP.</p>
+    </div>
+  </div>
+
+  <div class="card" style="border-left: 3px solid var(--yellow);">
+    <h3>EOD Trailing Drawdown — Daily Snapshot Math</h3>
+    <div style="overflow-x:auto; margin-top:10px;">
+      <table style="width:100%; border-collapse:collapse; font-size:13px;">
+        <thead>
+          <tr style="background:var(--surface); border-bottom:2px solid var(--border);">
+            <th style="padding:10px 14px; text-align:left; color:var(--accent); font-size:11px; text-transform:uppercase; letter-spacing:1px;">Day End Balance</th>
+            <th style="padding:10px 14px; text-align:left; color:var(--accent); font-size:11px; text-transform:uppercase; letter-spacing:1px;">High-Water Mark</th>
+            <th style="padding:10px 14px; text-align:left; color:var(--accent); font-size:11px; text-transform:uppercase; letter-spacing:1px;">Remaining Buffer</th>
+            <th style="padding:10px 14px; text-align:left; color:var(--accent); font-size:11px; text-transform:uppercase; letter-spacing:1px;">Effective Floor</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr style="border-bottom:1px solid var(--border);">
+            <td style="padding:9px 14px;">$50,000 (start)</td>
+            <td style="padding:9px 14px; color:var(--muted);">$50,000</td>
+            <td style="padding:9px 14px;"><span class="pill pill-green">$2,000</span></td>
+            <td style="padding:9px 14px; color:var(--muted);">$48,000</td>
+          </tr>
+          <tr style="border-bottom:1px solid var(--border);">
+            <td style="padding:9px 14px;">$50,500 (+$500)</td>
+            <td style="padding:9px 14px; color:var(--muted);">$50,500</td>
+            <td style="padding:9px 14px;"><span class="pill pill-green">$2,000</span></td>
+            <td style="padding:9px 14px; color:var(--muted);">$48,500</td>
+          </tr>
+          <tr style="border-bottom:1px solid var(--border);">
+            <td style="padding:9px 14px;">$51,500 (+$1,500)</td>
+            <td style="padding:9px 14px; color:var(--muted);">$51,500</td>
+            <td style="padding:9px 14px;"><span class="pill pill-green">$2,000</span></td>
+            <td style="padding:9px 14px; color:var(--muted);">$49,500</td>
+          </tr>
+          <tr style="border-bottom:1px solid var(--border);">
+            <td style="padding:9px 14px;">$52,500 (+$2,500)</td>
+            <td style="padding:9px 14px; color:var(--muted);">$52,500</td>
+            <td style="padding:9px 14px;"><span class="pill pill-yellow">$2,000</span></td>
+            <td style="padding:9px 14px; color:var(--muted);">$50,500</td>
+          </tr>
+          <tr>
+            <td style="padding:9px 14px; color:var(--green); font-weight:700;">$53,000+ &mdash; PASSED</td>
+            <td style="padding:9px 14px; color:var(--green);">$53,000</td>
+            <td style="padding:9px 14px;"><span class="pill pill-green">$2,000</span></td>
+            <td style="padding:9px 14px; color:var(--green);">$51,000</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="font-size:12px; color:var(--muted); margin-top:10px;">
+      The EOD snapshot only moves the floor on <em>closed</em> balance at 4:59pm. An intraday winner
+      that reverses to flat by EOD does not move the floor. Never let an intraday winner turn
+      into an EOD loss &mdash; that permanently raises your floor without a corresponding gain.
+    </p>
+  </div>
+
+  <!-- ════ BLOCK 12 — Debug Logging ════════════════════════════ -->
+  <div class="section-label">
+    <div class="num">12</div>
+    <h2>Debug Logging &mdash; SYSLOG Telemetry</h2>
+  </div>
+
+  <div class="code-block">
+    <div class="cb-header">Pine Script &mdash; Bar-by-Bar Console Logging</div>
+    <pre><span class="fn">log.info</span>(<span class="str">"SYSLOG | {0} | TF:{1} | Price:{2} | ONH:{3} ONL:{4} | Win:{5} | Vol:{6}x | Sweep:[B:{7}/S:{8}] | Signal:{9}"</span>,
+  syminfo.ticker, timeframe.period, <span class="fn">str.tostring</span>(close),
+  <span class="fn">str.tostring</span>(<span class="fn">math.round</span>(onh, <span class="num">2</span>)), <span class="fn">str.tostring</span>(<span class="fn">math.round</span>(onl, <span class="num">2</span>)),
+  in_window ? <span class="str">"Y"</span> : <span class="str">"N"</span>,
+  <span class="fn">str.tostring</span>(<span class="fn">math.round</span>(volume / avg_vol, <span class="num">2</span>)),
+  bull_sweep ? <span class="str">"Y"</span> : <span class="str">"N"</span>, bear_sweep ? <span class="str">"Y"</span> : <span class="str">"N"</span>,
+  bull_sweep ? <span class="str">"LONG"</span> : bear_sweep ? <span class="str">"SHORT"</span> : <span class="str">"NONE"</span>)</pre>
+  </div>
+
+  <div class="card">
+    <h3>Example SYSLOG Output</h3>
+    <pre style="background:var(--code-bg); padding:12px; border-radius:6px; font-size:12px; overflow-x:auto; color:var(--text);">SYSLOG | MNQ1! | TF:1 | Price:19855.00 | ONH:19862.00 ONL:19820.00 | Win:Y | Vol:1.2x | Sweep:[B:N/S:N] | Signal:NONE
+SYSLOG | MNQ1! | TF:1 | Price:19864.50 | ONH:19862.00 ONL:19820.00 | Win:Y | Vol:2.4x | Sweep:[B:N/S:Y] | Signal:SHORT
+SYSLOG | MNQ1! | TF:1 | Price:19851.00 | ONH:19862.00 ONL:19820.00 | Win:Y | Vol:0.8x | Sweep:[B:N/S:N] | Signal:NONE</pre>
+    <p style="margin-top:10px; color:var(--muted); font-size:13px;">
+      Line 2 shows the SHORT signal firing: price swept above ONH (19864.50 &gt; 19862.00), volume 2.4&times; average.
+      GCP receives this payload and validates the 5-point gate before firing the bracket order to Tradovate.
+    </p>
+  </div>
+
+  <hr/>
+
+  <!-- ════ Quick Reference ══════════════════════════════════════ -->
+  <div class="section-label" style="margin-top:24px;">
+    <div class="num" style="background:var(--purple);">&#9733;</div>
+    <h2>Quick Reference &mdash; Variables Cheat Sheet</h2>
+  </div>
+
+  <div style="overflow-x:auto;">
+    <table style="width:100%; border-collapse:collapse; font-size:13px;">
+      <thead>
+        <tr style="background:var(--card); border-bottom:2px solid var(--border);">
+          <th style="padding:10px 14px; text-align:left; color:var(--accent); font-size:11px; text-transform:uppercase; letter-spacing:1px;">Variable</th>
+          <th style="padding:10px 14px; text-align:left; color:var(--accent); font-size:11px; text-transform:uppercase; letter-spacing:1px;">Type</th>
+          <th style="padding:10px 14px; text-align:left; color:var(--accent); font-size:11px; text-transform:uppercase; letter-spacing:1px;">Meaning</th>
+          <th style="padding:10px 14px; text-align:left; color:var(--accent); font-size:11px; text-transform:uppercase; letter-spacing:1px;">Used For</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr style="border-bottom:1px solid var(--border);">
+          <td style="padding:9px 14px;"><code style="color:var(--yellow);">onh</code></td>
+          <td style="padding:9px 14px; color:var(--muted);">float</td>
+          <td style="padding:9px 14px;">Overnight High — max high since 6pm prior session</td>
+          <td style="padding:9px 14px; color:var(--muted);">bear_sweep condition, SL calc, chart plot</td>
+        </tr>
+        <tr style="border-bottom:1px solid var(--border);">
+          <td style="padding:9px 14px;"><code style="color:var(--yellow);">onl</code></td>
+          <td style="padding:9px 14px; color:var(--muted);">float</td>
+          <td style="padding:9px 14px;">Overnight Low — min low since 6pm prior session</td>
+          <td style="padding:9px 14px; color:var(--muted);">bull_sweep condition, SL calc, chart plot</td>
+        </tr>
+        <tr style="border-bottom:1px solid var(--border);">
+          <td style="padding:9px 14px;"><code style="color:var(--yellow);">in_window</code></td>
+          <td style="padding:9px 14px; color:var(--muted);">bool</td>
+          <td style="padding:9px 14px;">True if current bar is inside 7:55&ndash;8:30am ET</td>
+          <td style="padding:9px 14px; color:var(--muted);">Time gate for sweep detection</td>
+        </tr>
+        <tr style="border-bottom:1px solid var(--border);">
+          <td style="padding:9px 14px;"><code style="color:var(--yellow);">vol_ok</code></td>
+          <td style="padding:9px 14px; color:var(--muted);">bool</td>
+          <td style="padding:9px 14px;">True if volume &gt; avg_vol &times; vol_mult</td>
+          <td style="padding:9px 14px; color:var(--muted);">Volume filter gate on sweep detection</td>
+        </tr>
+        <tr style="border-bottom:1px solid var(--border);">
+          <td style="padding:9px 14px;"><code style="color:var(--yellow);">avg_vol</code></td>
+          <td style="padding:9px 14px; color:var(--muted);">float</td>
+          <td style="padding:9px 14px;">20-bar SMA of volume</td>
+          <td style="padding:9px 14px; color:var(--muted);">Baseline for vol_ok comparison</td>
+        </tr>
+        <tr style="border-bottom:1px solid var(--border);">
+          <td style="padding:9px 14px;"><code style="color:var(--green);">bull_sweep</code></td>
+          <td style="padding:9px 14px; color:var(--muted);">bool</td>
+          <td style="padding:9px 14px;">All ONL sweep conditions met — bullish reversal setup</td>
+          <td style="padding:9px 14px; color:var(--muted);">Fires LONG to NIGHTHAWK</td>
+        </tr>
+        <tr>
+          <td style="padding:9px 14px;"><code style="color:var(--red);">bear_sweep</code></td>
+          <td style="padding:9px 14px; color:var(--muted);">bool</td>
+          <td style="padding:9px 14px;">All ONH sweep conditions met — bearish reversal setup</td>
+          <td style="padding:9px 14px; color:var(--muted);">Fires SHORT to NIGHTHAWK</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+</div><!-- /page-wrap -->
+
+<footer>
+  &copy; 2026 S3 Development &mdash; Project Black-Box &mdash; APEX-8AM-SWEEP-V1 &mdash; Internal Developer Reference
+</footer>
+
+</body>
+</html>

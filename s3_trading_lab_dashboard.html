@@ -373,6 +373,24 @@ body.night-ops{
   text-align:center;text-shadow:0 0 24px rgba(245,158,11,.3);margin:12px 0;}
 .timer-controls{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;}
 
+/* ── Alarm ───────────────────────────────────────── */
+.alarm-block{
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--r);
+  padding:20px;margin-top:14px;
+}
+.alarm-status{
+  font-family:var(--mono);font-size:13px;color:var(--muted);
+  text-align:center;margin:10px 0 0;letter-spacing:.12em;min-height:20px;
+}
+.alarm-ringing{
+  animation:alarmPulse 0.6s ease-in-out infinite alternate;
+  border-color:var(--warn) !important;
+}
+@keyframes alarmPulse{
+  from{box-shadow:0 0 0 0 rgba(245,158,11,.4);}
+  to{box-shadow:0 0 0 10px rgba(245,158,11,0);}
+}
+
 /* ── AV Studio ───────────────────────────────────── */
 .vwrap{position:relative;background:var(--bg);border:1px solid var(--border);
   border-radius:var(--r);overflow:hidden;height:160px;margin-bottom:12px;}
@@ -1778,6 +1796,28 @@ body.night-ops .av-mini-pl-item:hover{
             </div>
           </div>
         </div>
+
+        <!-- ── ALARM ── -->
+        <div class="alarm-block" id="alarmBlock">
+          <div class="panel-header" style="padding:12px 0 12px;border-bottom:1px solid var(--border);">
+            <span class="panel-title">ALARM</span>
+            <span id="alarmRingLabel" style="font-family:var(--mono);font-size:11px;color:var(--warn);letter-spacing:.14em;display:none;">◉ RINGING</span>
+          </div>
+          <div class="timer-controls" style="margin-top:16px;">
+            <input type="time" class="form-input" id="alarmTimeInput" style="max-width:130px;text-align:center;">
+            <select class="form-input form-select" id="alarmTZSelect" style="max-width:160px;">
+              <option value="America/New_York">New York / ET</option>
+              <option value="America/Los_Angeles">Los Angeles / PT</option>
+              <option value="Europe/London">London / GMT</option>
+              <option value="Asia/Tokyo">Tokyo / JST</option>
+            </select>
+            <button class="btn primary" onclick="setAlarm()">SET ALARM</button>
+            <button class="btn" id="alarmDismissBtn" onclick="dismissAlarm()" style="display:none;">DISMISS</button>
+            <button class="btn" onclick="clearAlarm()">CLEAR</button>
+          </div>
+          <div class="alarm-status" id="alarmStatus">NO ALARM SET</div>
+        </div>
+
       </div>
 
       <!-- ── AV STUDIO ── -->
@@ -2295,9 +2335,72 @@ function tickClocks() {
 
   document.getElementById('stat-market').textContent = nyseOpen ? 'OPEN' : 'CLOSED';
   document.getElementById('stat-market-sub').textContent = nyseOpen ? 'NYSE/NASDAQ trading' : 'Market closed';
+
+  _checkAlarm();
 }
+/* ══════════════════════════════════════════════════
+   ALARM
+══════════════════════════════════════════════════ */
+const ALARM_MP3 = 'https://static.wixstatic.com/mp3/b8ecbb_c2903345e21847a7aadc6ae0ab4ab08c.mp3';
+let _alarmTime   = '';   // 'HH:MM'
+let _alarmTZ     = 'America/New_York';
+let _alarmFired  = false;
+let _alarmAudio  = null;
+
 setInterval(tickClocks, 1000);
 tickClocks();
+
+function setAlarm() {
+  const t  = document.getElementById('alarmTimeInput').value;
+  const tz = document.getElementById('alarmTZSelect').value;
+  if (!t) { showToast('Enter a time first.', true); return; }
+  _alarmTime  = t;
+  _alarmTZ    = tz;
+  _alarmFired = false;
+  const tzLabel = document.getElementById('alarmTZSelect').options[document.getElementById('alarmTZSelect').selectedIndex].text;
+  document.getElementById('alarmStatus').textContent = 'ALARM SET — ' + t + '  (' + tzLabel + ')';
+  document.getElementById('alarmStatus').style.color = 'var(--accent)';
+  showToast('ALARM SET FOR ' + t);
+}
+
+function clearAlarm() {
+  _alarmTime  = '';
+  _alarmFired = false;
+  dismissAlarm();
+  document.getElementById('alarmStatus').textContent = 'NO ALARM SET';
+  document.getElementById('alarmStatus').style.color = '';
+}
+
+function dismissAlarm() {
+  if (_alarmAudio) { _alarmAudio.pause(); _alarmAudio.currentTime = 0; _alarmAudio = null; }
+  document.getElementById('alarmBlock').classList.remove('alarm-ringing');
+  document.getElementById('alarmRingLabel').style.display = 'none';
+  document.getElementById('alarmDismissBtn').style.display = 'none';
+  if (_alarmTime) {
+    const tzLabel = document.getElementById('alarmTZSelect').options[document.getElementById('alarmTZSelect').selectedIndex].text;
+    document.getElementById('alarmStatus').textContent = 'ALARM SET — ' + _alarmTime + '  (' + tzLabel + ')';
+    document.getElementById('alarmStatus').style.color = 'var(--accent)';
+  }
+}
+
+function _checkAlarm(nyT) {
+  if (!_alarmTime || _alarmFired) return;
+  const currentHHMM = new Date().toLocaleTimeString('en-US', {
+    hour: '2-digit', minute: '2-digit', hour12: false, timeZone: _alarmTZ
+  }).slice(0, 5);
+  if (currentHHMM === _alarmTime) {
+    _alarmFired = true;
+    _alarmAudio = new Audio(ALARM_MP3);
+    _alarmAudio.loop = true;
+    _alarmAudio.play().catch(() => {});
+    document.getElementById('alarmBlock').classList.add('alarm-ringing');
+    document.getElementById('alarmRingLabel').style.display = '';
+    document.getElementById('alarmDismissBtn').style.display = '';
+    document.getElementById('alarmStatus').textContent = '◉  ALARM RINGING — ' + _alarmTime;
+    document.getElementById('alarmStatus').style.color = 'var(--warn)';
+    showToast('ALARM — ' + _alarmTime);
+  }
+}
 
 /* ══════════════════════════════════════════════════
    COUNTDOWN TIMER
@@ -3053,13 +3156,56 @@ function avDrawRadial() {
    MARKET DATA — QUOTES + TICKER
 ══════════════════════════════════════════════════ */
 const MKT_SEEDS = {
-  'MNQ1!':20500,'NQ1!':20520,'ES1!':5600,'MES1!':5600,
+  'MNQ1!':20500,'MNQ':20500,'NQ1!':20520,'NQ':20520,
+  'ES1!':5600,  'ES':5600,  'MES1!':5600,'MES':5600,
   'SPY':560,'QQQ':480,'AAPL':210,'TSLA':195,'NVDA':130,
-  'AMZN':185,'MSFT':415,'GOOGL':178,'META':520,'BTC-USD':67000,
-  'ETH-USD':3500,'GLD':235,'SLV':28,'TLT':92,'UNG':2.5,'USO':74
+  'AMZN':185,'MSFT':415,'GOOGL':178,'META':520,
+  'BTC-USD':100000,'BTC':100000,'BTCUSD':100000,
+  'ETH-USD':3800,  'ETH':3800,  'ETHUSD':3800,
+  'SOL-USD':180,   'SOL':180,
+  'BNB-USD':680,   'BNB':680,
+  'XRP-USD':2.5,   'XRP':2.5,
+  'DOGE-USD':0.18, 'DOGE':0.18,
+  'GLD':235,'GC=F':2700,'SLV':28,'TLT':92,'UNG':2.5,'USO':74,
+  'CL=F':78,'CL':78,'NQ=F':20520,'MNQ=F':20500,'ES=F':5600,'MES=F':5600
 };
 let mktQuotes = {};
 let mktLastTs = 0;
+
+// CoinCap asset ID map — CORS-open public API, no key required
+const CRYPTO_COINCAP = {
+  'BTC-USD':'bitcoin',     'BTC':'bitcoin',      'BTCUSD':'bitcoin',
+  'ETH-USD':'ethereum',    'ETH':'ethereum',     'ETHUSD':'ethereum',
+  'SOL-USD':'solana',      'SOL':'solana',
+  'BNB-USD':'binance-coin','BNB':'binance-coin',
+  'XRP-USD':'xrp',         'XRP':'xrp',
+  'ADA-USD':'cardano',     'ADA':'cardano',
+  'DOGE-USD':'dogecoin',   'DOGE':'dogecoin',
+  'AVAX-USD':'avalanche',  'AVAX':'avalanche',
+  'LINK-USD':'chainlink',  'LINK':'chainlink',
+  'DOT-USD':'polkadot',    'DOT':'polkadot',
+};
+
+function cryptoId(sym) { return CRYPTO_COINCAP[sym] || CRYPTO_COINCAP[sym.toUpperCase()] || null; }
+
+async function fetchCryptoQuotes(syms) {
+  const ids = [...new Set(syms.map(cryptoId).filter(Boolean))];
+  if (!ids.length) return;
+  try {
+    const url = 'https://api.coincap.io/v2/assets?ids=' + ids.join(',');
+    const r = await fetch(url, { signal: AbortSignal.timeout(6000) });
+    const json = await r.json();
+    if (!json.data || !Array.isArray(json.data)) return;
+    json.data.forEach(asset => {
+      const price  = parseFloat(asset.priceUsd);
+      const chgPct = parseFloat(asset.changePercent24Hr) || 0;
+      const prev   = price / (1 + chgPct / 100);
+      syms.forEach(sym => {
+        if (cryptoId(sym) === asset.id) mktQuotes[sym] = { price, prev };
+      });
+    });
+  } catch (_) {}
+}
 
 function mktRandWalk(sym) {
   const seed = MKT_SEEDS[sym] || 100;
@@ -3071,9 +3217,25 @@ function mktRandWalk(sym) {
   return q;
 }
 
+// Normalize watchlist symbols → Yahoo Finance format
+const FUTURES_YF = {
+  'MNQ1!':'MNQ=F','MNQ':'MNQ=F',
+  'NQ1!': 'NQ=F', 'NQ': 'NQ=F',
+  'ES1!': 'ES=F', 'ES': 'ES=F',
+  'MES1!':'MES=F','MES':'MES=F',
+  'GC1!': 'GC=F', 'GOLD':'GC=F',
+  'CL1!': 'CL=F', 'OIL': 'CL=F',
+  'SI1!': 'SI=F',
+  'ZB1!': 'ZB=F',
+};
+
 async function fetchQuote(sym) {
+  // Crypto: served from cache populated by fetchCryptoQuotes batch call
+  if (cryptoId(sym)) return mktQuotes[sym] || mktRandWalk(sym);
+  // Equities / futures: Yahoo Finance (normalize futures symbols first)
+  const yfSym = FUTURES_YF[sym] || FUTURES_YF[sym.toUpperCase()] || sym;
   try {
-    const proxy = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(sym)}?interval=1m&range=1d`;
+    const proxy = `https://query1.finance.yahoo.com/v8/finance/chart/${yfSym}?interval=1m&range=1d`;
     const r = await fetch(proxy, { signal: AbortSignal.timeout(4000) });
     const d = await r.json();
     const meta = d?.chart?.result?.[0]?.meta;
@@ -3096,6 +3258,8 @@ async function refreshMarketData() {
     return;
   }
   document.getElementById('mktLastUpdate').textContent = 'Fetching…';
+  const cryptoSyms = symbols.filter(s => cryptoId(s));
+  if (cryptoSyms.length) await fetchCryptoQuotes(cryptoSyms);
   const results = await Promise.all(symbols.map(s => fetchQuote(s)));
   mktLastTs = Date.now();
   document.getElementById('mktLastUpdate').textContent =
