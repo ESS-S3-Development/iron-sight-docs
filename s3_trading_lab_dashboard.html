@@ -1648,7 +1648,11 @@ body.night-ops .av-mini-pl-item:hover{
         <div class="panel">
           <div class="panel-header">
             <span class="panel-title">ACTIVE SESSIONS</span>
-            <span class="badge ok" id="team-count-badge">1 ONLINE</span>
+            <div style="display:flex;align-items:center;gap:10px;">
+              <span id="team-status" style="font-family:var(--mono);font-size:10px;color:var(--muted);"></span>
+              <button class="btn sm" onclick="refreshTeam()">⟳ REFRESH</button>
+              <span class="badge ok" id="team-count-badge">0 ONLINE</span>
+            </div>
           </div>
           <div class="panel-body">
             <div class="team-grid" id="team-grid">
@@ -3481,12 +3485,19 @@ function doLogin(name, role, avatar) {
   if (GAS_URL) {
     fetch(GAS_URL, { method:'POST', headers:{'Content-Type':'text/plain'},
       body: JSON.stringify({ action:'logSession', name, role, sessionId, loginTime: CURRENT_USER.loginTime })
-    }).catch(() => {});
+    })
+    .then(r => r.json())
+    .then(d => {
+      if (!d.ok) showToast('Session log warning: ' + (d.error || 'unknown error'));
+      else renderTeam(); // refresh team immediately after session registered
+    })
+    .catch(e => showToast('Session log failed: ' + e.message));
+
     setInterval(function() {
       fetch(GAS_URL, { method:'POST', headers:{'Content-Type':'text/plain'},
         body: JSON.stringify({ action:'heartbeat', sessionId: CURRENT_USER && CURRENT_USER.sessionId })
       }).catch(() => {});
-    }, 2 * 60 * 1000); // every 2 minutes
+    }, 2 * 60 * 1000);
   }
 }
 
@@ -3563,11 +3574,28 @@ function renderTeam() {
   if (GAS_URL) {
     fetch(GAS_URL + '?action=getSessions')
       .then(r => r.json())
-      .then(d => { if (d && d.sessions) renderTeamCards(d.sessions); })
-      .catch(() => renderTeamFallback());
+      .then(d => {
+        if (d && d.sessions) {
+          renderTeamCards(d.sessions);
+          setTeamStatus('GAS — ' + d.sessions.length + ' active / ' + (d.total || '?') + ' total rows');
+        } else {
+          setTeamStatus('GAS returned no sessions data');
+          renderTeamFallback();
+        }
+      })
+      .catch(e => {
+        setTeamStatus('GAS fetch failed — ' + e.message);
+        renderTeamFallback();
+      });
   } else {
+    setTeamStatus('GAS_URL not set — using local cache');
     renderTeamFallback();
   }
+}
+
+function setTeamStatus(msg) {
+  var el = document.getElementById('team-status');
+  if (el) el.textContent = msg;
 }
 
 function renderTeamFallback() {
