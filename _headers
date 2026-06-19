@@ -1,0 +1,20 @@
+# CF Pages custom response headers
+# HTML: never cache at edge so fresh deployments are immediate
+/
+  Cache-Control: no-cache, must-revalidate
+
+/*.html
+  Cache-Control: no-cache, must-revalidate
+
+# Static assets: cache long-term (hashed filenames or versioned)
+/*.css
+  Cache-Control: public, max-age=31536000
+
+/*.js
+  Cache-Control: public, max-age=31536000
+
+/*.png
+  Cache-Control: public, max-age=604800
+
+/*.ico
+  Cache-Control: public, max-age=604800
