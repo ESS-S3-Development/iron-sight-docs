@@ -1724,19 +1724,19 @@ body.night-ops .av-mini-pl-item:hover{
           </div>
           <div class="panel">
             <div class="panel-header">
-              <button class="panel-title-btn" onclick="openCodePanel('phantom')">PHANTOM-MNQ</button>
+              <button class="panel-title-btn" onclick="openCodePanel('aapl')">AAPL-IB-TEST</button>
               <span class="badge warn">OBSERVATION</span>
             </div>
             <div class="panel-body">
               <div style="font-family:var(--mono);font-size:12px;line-height:2;">
-                <div>TICKER: <span style="color:var(--bright)">CME:MNQ</span></div>
+                <div>TICKER: <span style="color:var(--bright)">NASDAQ:AAPL</span></div>
                 <div>TIMEFRAME: <span style="color:var(--bright)">5-min</span></div>
-                <div>SIGNAL TYPE: <span style="color:var(--bright)">LSTM + Agent Council</span></div>
-                <div>VERSION: <span style="color:var(--accent)">v0.1 (Dev)</span></div>
-                <div>LAST SIGNAL: <span style="color:var(--muted)" id="detail-phantom">—</span></div>
+                <div>SIGNAL TYPE: <span style="color:var(--bright)">Limit Buy / IB Paper</span></div>
+                <div>VERSION: <span style="color:var(--accent)">v1.0</span></div>
+                <div>LAST SIGNAL: <span style="color:var(--muted)" id="detail-aapl">—</span></div>
               </div>
               <div class="sep"></div>
-              <p style="font-size:13px;color:var(--muted);line-height:1.7;">Python autonomous trading system. LSTM price prediction + multi-agent council (Gatekeeper, Risk, Reaper). NT8 ATI bridge for bracket order execution. NT8 Windows install pending.</p>
+              <p style="font-size:13px;color:var(--muted);line-height:1.7;">End-to-end execution test: TradingView → NIGHTHAWK → Interactive Brokers paper account. Fires one GTC limit order per day at a target price over a configurable test window. Manual trigger for pipeline verification.</p>
             </div>
           </div>
         </div>
@@ -4935,65 +4935,160 @@ alertcondition(trig3, "BTC-ACCUM L3 (-25%)", "BTC crossed below 200 SMA L3 grid 
 alertcondition(trig4, "BTC-ACCUM L4 (-40%)", "BTC crossed below 200 SMA L4 grid — ACCUMULATE")
 </script>
 
-<script type="text/plain" id="pine-phantom">
-// PHANTOM-MNQ — Autonomous AI Execution System
-// © S3 Development / Executive Special Service
-//
-// PHANTOM-MNQ is a Python-based autonomous trading system.
-// It does not use Pine Script for execution.
-//
-// ── System Architecture ───────────────────────────────────────
-//
-//   Iron Sight (TradingView Pine Script)
-//     └─► NIGHTHAWK (Node.js webhook receiver — port 8080)
-//           ├─► SENTINEL (PostgreSQL audit log)
-//           └─► PHANTOM-MNQ (FastAPI — port 8081)
-//                 └─► 10-agent AI council
-//                       ├─► LSTM inference (ONNX Runtime)
-//                       ├─► Claude language model (quorum vote)
-//                       └─► Quorum: 6/10 CONFIRM → execute
-//                             └─► NT8 ATI Bridge (Flask — port 8082)
-//                                   └─► NinjaTrader 8 ATI TCP (port 36973)
-//                                         └─► Apex Trader Funding eval
-//
-// ── Key Parameters ────────────────────────────────────────────
-//
-//   QUORUM_THRESHOLD : 6   (of 10 agents must CONFIRM)
-//   MAX_CONTRACTS    : 1   (live execution, Apex eval)
-//   BRIDGE_URL       : https://phantom-bridge.S-3.us/execute
-//   SENTINEL_DB      : sentinel_db @ 127.0.0.1 (PostgreSQL)
-//
-// ── Signal Source ─────────────────────────────────────────────
-//
-//   Pine Script: TRNQL_8AMsweep.v3 (8AM Range Sweep Model)
-//   Fires JSON webhook → NIGHTHAWK → PHANTOM pipeline
-//
-//   Webhook payload format:
-//   {
-//     "secret":   "tac_com_alpha_9",
-//     "model_id": "8AM-RSM-MNQ-V1",
-//     "ticker":   "NASDAQ:MNQ1!",
-//     "action":   "BUY" | "SELL",
-//     "price":    <float>,
-//     "metadata": {
-//       "tier": "8AM_SWEEP_REVERSAL",
-//       "sl":   <float>,
-//       "tp":   <float>
-//     }
-//   }
-//
-// ── Full source code ──────────────────────────────────────────
-//
-//   phantom_mnq/agents/   — council.py, gatekeeper.py,
-//                           pipeline.py, reaper.py, risk.py
-//   phantom_mnq/core/     — candle_buffer.py, data_feed.py,
-//                           lstm_runner.py, model_manager.py
-//   bridge/bridge.py      — NT8 ATI TCP bridge (Flask)
-//
-// ── Reference ────────────────────────────────────────────────
-//
-//   Full architecture: phantom_mnq_architecture.html
-//   Build log:         phantom_mnq/PHANTOM_MNQ_BUILD_LOG.md
+<script type="text/plain" id="pine-aapl">
+// @S3 Development | Project Black-Box
+// AAPL IB Paper Trade — Execution Test v1.0
+// Purpose: Validates end-to-end trade execution from TradingView → NIGHTHAWK → Interactive Brokers
+// Timeframe: 5-min | Symbol: NASDAQ:AAPL
+//@version=6
+strategy("AAPL IB Paper Trade — Execution Test", shorttitle="AAPL-IB-TEST", overlay=true, pyramiding=30, initial_capital=10000, default_qty_type=strategy.fixed, default_qty_value=1, currency=currency.USD)
+
+// ══════════════════════════════════════════════════════════════════
+//  INPUTS
+// ══════════════════════════════════════════════════════════════════
+grp            = "Test Configuration"
+target_price   = input.float(295.00, "Limit Buy Price ($)",         step=0.01, group=grp)
+start_date     = input.time(timestamp("2026-05-14 00:00 +0000"),    "Test Start Date", group=grp)
+max_days       = input.int(30,       "Test Duration (Trading Days)", minval=1, maxval=60, group=grp)
+manual_trigger = input.bool(false,   "⚡ FORCE MANUAL TRIGGER",      group=grp)
+
+// ══════════════════════════════════════════════════════════════════
+//  DAY TRACKING
+//  Uses a date integer (YYYYMMDD) so month/year rollovers are safe
+// ══════════════════════════════════════════════════════════════════
+cur_date = year(time) * 10000 + month(time) * 100 + dayofmonth(time)
+
+var int  prev_date    = -1
+var int  days_elapsed = 0
+var bool order_placed = false
+
+new_day = cur_date != prev_date and session.ismarket
+
+if new_day and time >= start_date
+    strategy.cancel_all()
+    prev_date    := cur_date
+    order_placed := false
+    if days_elapsed < max_days
+        days_elapsed += 1
+
+// ══════════════════════════════════════════════════════════════════
+//  ENTRY — one limit order per day, held indefinitely
+// ══════════════════════════════════════════════════════════════════
+in_window = time >= start_date
+         and days_elapsed > 0
+         and days_elapsed <= max_days
+         and session.ismarket
+
+if in_window and not order_placed
+    entry_id = "AAPL_D" + str.tostring(days_elapsed)
+
+    msg = '{'                                                        +
+          '"secret":"tac_com_alpha_9",'                             +
+          '"model_id":"AAPL-IB-TEST-V1",'                           +
+          '"ticker":"NASDAQ:AAPL",'                                  +
+          '"action":"BUY",'                                          +
+          '"qty":1,'                                                 +
+          '"order_type":"LMT",'                                      +
+          '"price":'    + str.tostring(target_price, "#.00") + ','  +
+          '"metadata":{'                                             +
+          '"type":"IB_PAPER_TEST",'                                  +
+          '"day":'      + str.tostring(days_elapsed) + ','           +
+          '"of":'       + str.tostring(max_days)     + ','           +
+          '"timestamp":' + str.tostring(timenow)                    +
+          '}}'
+
+    strategy.entry(entry_id, strategy.long, qty=1, limit=target_price, alert_message=msg)
+
+    log.info("IB-TEST | Day {0}/{1} | LMT order placed @ ${2} | ID: {3}",
+             days_elapsed, max_days,
+             str.tostring(target_price, "#.00"),
+             entry_id)
+
+    alert(msg, alert.freq_once_per_bar_close)
+    order_placed := true
+
+// ══════════════════════════════════════════════════════════════════
+//  MANUAL TEST FUNCTION — Tactical Injection
+//  HOW TO USE:
+//    1. Gear icon ⚙ → Test Configuration → toggle ON "⚡ FORCE MANUAL TRIGGER"
+//    2. Alert must be set to "Any alert() function call"
+//    3. Fires on next bar close — check Pine Logs for TACTICAL
+//    4. Toggle OFF after confirming logs and traffic in Sentinel
+//  NOTE: action="TEST" — NIGHTHAWK logs it, does NOT route to IB.
+// ══════════════════════════════════════════════════════════════════
+if manual_trigger and barstate.islast
+    test_msg = '{'                                                       +
+               '"secret":"tac_com_alpha_9",'                            +
+               '"model_id":"AAPL-IB-TEST-V1",'                         +
+               '"ticker":"NASDAQ:AAPL",'                                +
+               '"action":"TEST",'                                       +
+               '"qty":1,'                                               +
+               '"order_type":"LMT",'                                    +
+               '"price":' + str.tostring(close, "#.00")         + ','  +
+               '"metadata":{'                                           +
+               '"type":"MANUAL_TRIGGER",'                               +
+               '"day":'   + str.tostring(days_elapsed)          + ','  +
+               '"of":'    + str.tostring(max_days)              + ','  +
+               '"note":"Pipeline verification — not a live order",'    +
+               '"timestamp":' + str.tostring(timenow)                  +
+               '}}'
+    log.info("TACTICAL: Manual test triggered. Payload: {0}", test_msg)
+    alert(test_msg, alert.freq_all)
+
+// ══════════════════════════════════════════════════════════════════
+//  SYSLOG — bar-by-bar telemetry
+// ══════════════════════════════════════════════════════════════════
+log.info("SYSLOG | {0} | {1} | Price: {2} | Day: {3}/{4} | Order: {5} | Position: {6}",
+  syminfo.ticker, timeframe.period,
+  str.tostring(close, "#.00"),
+  days_elapsed, max_days,
+  order_placed ? "PLACED" : "PENDING",
+  str.tostring(int(strategy.position_size)))
+
+// ══════════════════════════════════════════════════════════════════
+//  DASHBOARD
+// ══════════════════════════════════════════════════════════════════
+var table dash = table.new(
+  position.top_right, 2, 7,
+  bgcolor      = color.new(#13161e, 5),
+  border_width = 1,
+  border_color = #2a2f40,
+  frame_width  = 1,
+  frame_color  = #2a2f40)
+
+if barstate.islast
+    test_done   = days_elapsed >= max_days
+    shares_held = int(strategy.position_size)
+    avg_price   = strategy.position_avg_price
+
+    table.cell(dash, 0, 0, "AAPL IB PAPER TEST",
+      text_color=#00c2ff, text_size=size.small, bgcolor=#1a1e2a)
+    table.cell(dash, 1, 0, "v1.0",
+      text_color=#7a849a, text_size=size.small, bgcolor=#1a1e2a)
+
+    table.cell(dash, 0, 1, "Day",         text_color=#7a849a, text_size=size.small)
+    table.cell(dash, 1, 1, str.tostring(days_elapsed) + " / " + str.tostring(max_days),
+      text_color=#cdd3e0, text_size=size.small)
+
+    table.cell(dash, 0, 2, "Limit Price", text_color=#7a849a, text_size=size.small)
+    table.cell(dash, 1, 2, "$" + str.tostring(target_price, "#.00"),
+      text_color=#ffc107, text_size=size.small)
+
+    table.cell(dash, 0, 3, "Order Today", text_color=#7a849a, text_size=size.small)
+    table.cell(dash, 1, 3, order_placed ? "PLACED" : "PENDING",
+      text_color=order_placed ? #22d35e : #7a849a, text_size=size.small)
+
+    table.cell(dash, 0, 4, "Shares Held", text_color=#7a849a, text_size=size.small)
+    table.cell(dash, 1, 4, str.tostring(shares_held),
+      text_color=#cdd3e0, text_size=size.small)
+
+    table.cell(dash, 0, 5, "Avg Entry",   text_color=#7a849a, text_size=size.small)
+    table.cell(dash, 1, 5, shares_held > 0 ? "$" + str.tostring(avg_price, "#.00") : "—",
+      text_color=#cdd3e0, text_size=size.small)
+
+    table.cell(dash, 0, 6, "Test Status", text_color=#7a849a, text_size=size.small)
+    table.cell(dash, 1, 6, test_done ? "COMPLETE" : "RUNNING",
+      text_color=test_done ? #ff4560 : #22d35e, text_size=size.small)
 </script>
 
 <script>
@@ -5004,7 +5099,7 @@ var CODE_META = {
   trnql:   { name: 'TRNQL_8AMSWEEP.v3',  sub: '8AM Range Sweep  ·  NASDAQ:MNQ1!  ·  Pine Script v6',          src: 'pine-trnql'   },
   orb:     { name: 'ORB-PUT-v1.5',        sub: 'NVDA ORB Short → Put  ·  NASDAQ:NVDA  ·  Pine Script v6',       src: 'pine-orb'     },
   btc:     { name: 'BTC-ACCUM-v1',        sub: 'BTC Accumulation Grid  ·  COINBASE:BTCUSD  ·  Pine Script v5',  src: 'pine-btc'     },
-  phantom: { name: 'PHANTOM-MNQ',         sub: 'Python Autonomous System  ·  10-Agent AI Council  ·  FastAPI',  src: 'pine-phantom' }
+  aapl:    { name: 'AAPL-IB-TEST',         sub: 'IB Paper Trade Test  ·  NASDAQ:AAPL  ·  Pine Script v6',          src: 'pine-aapl'    }
 };
 
 function openCodePanel(id) {
