@@ -262,6 +262,38 @@ body.night-ops{
 .script-mode.live{background:rgba(16,185,129,.09);border:1px solid rgba(16,185,129,.3);color:var(--ok);}
 .script-last{font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:8px;}
 
+/* ── Video Library ──────────────────────────────── */
+.vid-panel-body{display:grid;grid-template-columns:1fr 240px;gap:0;background:#070b10;}
+@media(max-width:780px){.vid-panel-body{grid-template-columns:1fr;}}
+.vid-embed-wrap{position:relative;padding-bottom:56.25%;height:0;background:#0a0a0a;}
+.vid-embed-wrap iframe{position:absolute;top:0;left:0;width:100%;height:100%;border:none;display:block;}
+.vid-playlist{background:#0a0d13;border-left:1px solid var(--border);overflow-y:auto;max-height:405px;}
+.vid-item{
+  display:flex;align-items:flex-start;gap:10px;padding:10px 12px;
+  border-bottom:1px solid var(--border);cursor:pointer;transition:background .15s;
+}
+.vid-item:hover{background:rgba(0,212,255,.05);}
+.vid-item.active{background:rgba(0,212,255,.08);border-left:2px solid var(--accent);}
+.vid-thumb{
+  width:74px;height:42px;flex-shrink:0;border-radius:3px;
+  background:#0d1117;border:1px solid var(--border);object-fit:cover;
+}
+.vid-thumb-placeholder{
+  width:74px;height:42px;flex-shrink:0;border-radius:3px;
+  background:#0d1117;border:1px solid var(--border);
+  display:flex;align-items:center;justify-content:center;
+  font-size:16px;color:var(--muted);
+}
+.vid-meta{flex:1;min-width:0;}
+.vid-meta-title{font-family:var(--display);font-size:11px;font-weight:600;color:var(--bright);
+  line-height:1.4;margin-bottom:3px;overflow:hidden;display:-webkit-box;
+  -webkit-line-clamp:2;-webkit-box-orient:vertical;}
+.vid-meta-sub{font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:.08em;}
+.vid-meta-badge{display:inline-block;margin-top:4px;padding:1px 5px;border-radius:2px;
+  font-family:var(--mono);font-size:8px;letter-spacing:.1em;}
+.vid-meta-badge.sotw{background:rgba(0,212,255,.1);border:1px solid rgba(0,212,255,.25);color:var(--accent);}
+.vid-meta-badge.strategy{background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.2);color:var(--warn);}
+
 /* ── Table ───────────────────────────────────────── */
 .tbl-wrap{overflow-x:auto;}
 .data-table{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:14px;}
@@ -1554,6 +1586,59 @@ body.night-ops .av-mini-pl-item:hover{
       <div class="page" id="page-scripts">
         <div class="page-eyebrow">IRON SIGHT // SCRIPTS</div>
         <div class="page-title">SCRIPT STATUS</div>
+
+        <!-- ── VIDEO LIBRARY ── -->
+        <div class="panel" style="margin-bottom:16px;">
+          <div class="panel-header">
+            <span class="panel-title">VIDEO LIBRARY</span>
+            <span class="badge ok">S3 STRATEGY CONTENT</span>
+            <a id="vid-yt-link" href="https://www.youtube.com/watch?v=ugBcGLcFonk" target="_blank" rel="noopener"
+               style="margin-left:auto;font-family:var(--mono);font-size:11px;color:var(--accent);text-decoration:none;">
+              ↗ OPEN ON YOUTUBE
+            </a>
+          </div>
+          <div class="vid-panel-body">
+            <div class="vid-embed-wrap">
+              <iframe id="vid-main"
+                src="https://www.youtube.com/embed/ugBcGLcFonk"
+                title="PHANTOM-MNQ — AI Quorum Execution on Apex Eval"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowfullscreen>
+              </iframe>
+            </div>
+            <div class="vid-playlist" id="vid-playlist">
+
+              <div class="vid-item active" onclick="loadVid('ugBcGLcFonk','PHANTOM-MNQ — AI Quorum Execution on Apex Eval','PHANTOM-MNQ · Jun 2026',this)">
+                <img class="vid-thumb" src="https://img.youtube.com/vi/ugBcGLcFonk/mqdefault.jpg" alt="" onerror="this.style.display='none'">
+                <div class="vid-meta">
+                  <div class="vid-meta-title">PHANTOM-MNQ — AI Quorum Execution on Apex Eval</div>
+                  <div class="vid-meta-sub">PHANTOM-MNQ · Jun 2026</div>
+                  <span class="vid-meta-badge sotw">SOTW</span>
+                </div>
+              </div>
+
+              <div class="vid-item" onclick="loadVid('9oP17NzmsbA','S3 PHANTOM MNQ STRATEGY w/ Multi-AI Agent Execution','PHANTOM-MNQ · Jun 2026',this)">
+                <img class="vid-thumb" src="https://img.youtube.com/vi/9oP17NzmsbA/mqdefault.jpg" alt="" onerror="this.style.display='none'">
+                <div class="vid-meta">
+                  <div class="vid-meta-title">S3 PHANTOM MNQ STRATEGY w/ Multi-AI Agent Execution</div>
+                  <div class="vid-meta-sub">PHANTOM-MNQ · Jun 2026</div>
+                  <span class="vid-meta-badge strategy">STRATEGY</span>
+                </div>
+              </div>
+
+              <div class="vid-item" onclick="loadVid('-sXC7-sgFFI','TRNQL_8AMsweep.v2 — Strategy of the Week','TRNQL · May 2026',this)">
+                <img class="vid-thumb" src="https://img.youtube.com/vi/-sXC7-sgFFI/mqdefault.jpg" alt="" onerror="this.style.display='none'">
+                <div class="vid-meta">
+                  <div class="vid-meta-title">TRNQL_8AMsweep.v2 — Strategy of the Week</div>
+                  <div class="vid-meta-sub">TRNQL · May 2026</div>
+                  <span class="vid-meta-badge strategy">STRATEGY</span>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+
         <div class="grid-2">
           <div class="panel">
             <div class="panel-header">
@@ -1622,6 +1707,27 @@ body.night-ops .av-mini-pl-item:hover{
               <div class="sep"></div>
               <p style="font-size:13px;color:var(--muted);line-height:1.7;">Python autonomous trading system. LSTM price prediction + multi-agent council (Gatekeeper, Risk, Reaper). NT8 ATI bridge for bracket order execution. NT8 Windows install pending.</p>
             </div>
+          </div>
+        </div>
+
+        <!-- ── GCP VM Live Desktop ── -->
+        <div class="panel" style="margin-top:16px;">
+          <div class="panel-header">
+            <span class="panel-title">GCP VM — LIVE DESKTOP</span>
+            <span class="badge ok">noVNC · project-black-box-vm</span>
+            <a href="http://35.221.12.143:6080/vnc.html" target="_blank" rel="noopener"
+               style="margin-left:auto;font-family:var(--mono);font-size:11px;color:var(--accent);text-decoration:none;">
+              ↗ OPEN FULL
+            </a>
+          </div>
+          <div class="panel-body" style="padding:0;overflow:hidden;border-radius:0 0 8px 8px;">
+            <iframe
+              id="vnc-frame"
+              src="http://35.221.12.143:6080/vnc.html"
+              style="width:100%;height:620px;border:none;display:block;background:#0a0a0a;"
+              allow="clipboard-read; clipboard-write"
+              title="GCP VM noVNC">
+            </iframe>
           </div>
         </div>
       </div>
@@ -2435,6 +2541,16 @@ function resetTimer() { pauseTimer(); timerSec = 0; renderTimer(); }
 /* ══════════════════════════════════════════════════
    NAVIGATION
 ══════════════════════════════════════════════════ */
+/* ══════════════════════════════════════════════════
+   VIDEO LIBRARY
+══════════════════════════════════════════════════ */
+function loadVid(id, title, sub, el) {
+  document.getElementById('vid-main').src = 'https://www.youtube.com/embed/' + id + '?autoplay=1';
+  document.getElementById('vid-yt-link').href = 'https://www.youtube.com/watch?v=' + id;
+  document.querySelectorAll('.vid-item').forEach(function(i){ i.classList.remove('active'); });
+  el.classList.add('active');
+}
+
 function showPage(id) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
