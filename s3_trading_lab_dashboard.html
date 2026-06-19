@@ -3767,6 +3767,20 @@ const AVATAR_MAP = {
   'V.CASELLA': 'https://static.wixstatic.com/media/b8ecbb_bda45116574243dba64762a21cac280f~mv2.jpg'
 };
 
+/* ── Role helpers ──────────────────────────────────────────────────────────
+   ADMIN / DEVELOPER/ADMIN  → full admin access (clear chat, all tickets)
+   DEVELOPER                → Admin Panel visible; no destructive actions
+   MEMBER                   → standard access
+────────────────────────────────────────────────────────────────────────── */
+function isAdminRole(role) {
+  var r = String(role || '').trim().toUpperCase();
+  return r === 'ADMIN' || r === 'DEVELOPER/ADMIN';
+}
+function isDevRole(role) {
+  var r = String(role || '').trim().toUpperCase();
+  return r === 'DEVELOPER' || isAdminRole(r);
+}
+
 function demoLogin() {
   doLogin('V.CASELLA', 'ADMIN', AVATAR_MAP['V.CASELLA'] || '');
 }
@@ -3793,10 +3807,12 @@ function doLogin(name, role, avatar) {
     av.textContent = name.charAt(0);
   }
 
-  // Admin nav
-  if (role === 'ADMIN') {
+  // Role-gated UI
+  if (isDevRole(role)) {
     document.getElementById('adminSection').style.display = '';
     document.getElementById('adminNav').style.display = '';
+  }
+  if (isAdminRole(role)) {
     document.getElementById('clearChatBtn').style.display = '';
     document.getElementById('clearChatBtnHome').style.display = '';
   }
@@ -4117,7 +4133,7 @@ function submitSupport() {
 }
 
 function refreshSupport() {
-  const items = loadSupport().filter(i => !CURRENT_USER || CURRENT_USER.role === 'ADMIN' ? true : i.name === CURRENT_USER.name);
+  const items = loadSupport().filter(i => !CURRENT_USER || isAdminRole(CURRENT_USER.role) ? true : i.name === CURRENT_USER.name);
   const el = document.getElementById('support-list');
   if (!items.length) { el.innerHTML = '<div style="color:var(--muted);font-size:12px;">No requests on file.</div>'; return; }
   el.innerHTML = items.slice().reverse().map(i =>
