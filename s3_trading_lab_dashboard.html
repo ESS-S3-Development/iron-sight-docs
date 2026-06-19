@@ -296,6 +296,34 @@ body.night-ops{
 .vid-meta-badge.sotw{background:rgba(0,212,255,.1);border:1px solid rgba(0,212,255,.25);color:var(--accent);}
 .vid-meta-badge.strategy{background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.2);color:var(--warn);}
 
+/* ── Code Side Panel ─────────────────────────────── */
+.code-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:900;
+  opacity:0;pointer-events:none;transition:opacity .25s ease;}
+.code-overlay.open{opacity:1;pointer-events:all;}
+.code-panel{position:fixed;top:0;right:0;width:min(700px,94vw);height:100vh;
+  background:#0a0d13;border-left:1px solid var(--border);z-index:901;
+  display:flex;flex-direction:column;transform:translateX(100%);
+  transition:transform .32s cubic-bezier(.4,0,.2,1);}
+.code-panel.open{transform:translateX(0);}
+.code-panel-hdr{display:flex;align-items:flex-start;gap:12px;padding:14px 16px;
+  border-bottom:1px solid var(--border);flex-shrink:0;background:#060910;}
+.code-panel-meta{flex:1;min-width:0;}
+.code-panel-name{font-family:var(--display);font-size:15px;font-weight:700;
+  color:var(--bright);margin-bottom:3px;}
+.code-panel-sub{font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:.09em;}
+.code-panel-acts{display:flex;gap:6px;flex-shrink:0;}
+.code-body{flex:1;overflow-y:auto;padding:14px;}
+.code-pre{font-family:'Courier New',Courier,monospace;font-size:11.5px;line-height:1.75;
+  color:#c9d1d9;background:#020409;border:1px solid var(--border);border-radius:6px;
+  padding:16px 18px;overflow-x:auto;white-space:pre;tab-size:4;margin:0;}
+.panel-title-btn{background:none;border:none;padding:0;cursor:pointer;text-align:left;
+  font-family:var(--display);font-size:inherit;font-weight:inherit;
+  color:var(--bright);letter-spacing:inherit;transition:color .15s;}
+.panel-title-btn:hover{color:var(--accent);}
+.panel-title-btn::after{content:' ⟨/⟩';font-size:9px;color:var(--accent);
+  opacity:0;transition:opacity .15s;vertical-align:middle;}
+.panel-title-btn:hover::after{opacity:1;}
+
 /* ── Table ───────────────────────────────────────── */
 .tbl-wrap{overflow-x:auto;}
 .data-table{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:14px;}
@@ -1645,7 +1673,7 @@ body.night-ops .av-mini-pl-item:hover{
         <div class="grid-2">
           <div class="panel">
             <div class="panel-header">
-              <span class="panel-title">TRNQL_8AMSWEEP.v3</span>
+              <button class="panel-title-btn" onclick="openCodePanel('trnql')">TRNQL_8AMSWEEP.v3</button>
               <span class="badge warn">OBSERVATION</span>
             </div>
             <div class="panel-body">
@@ -1662,7 +1690,7 @@ body.night-ops .av-mini-pl-item:hover{
           </div>
           <div class="panel">
             <div class="panel-header">
-              <span class="panel-title">ORB-PUT-v1.5</span>
+              <button class="panel-title-btn" onclick="openCodePanel('orb')">ORB-PUT-v1.5</button>
               <span class="badge warn">OBSERVATION</span>
             </div>
             <div class="panel-body">
@@ -1679,7 +1707,7 @@ body.night-ops .av-mini-pl-item:hover{
           </div>
           <div class="panel">
             <div class="panel-header">
-              <span class="panel-title">BTC-ACCUM-v1</span>
+              <button class="panel-title-btn" onclick="openCodePanel('btc')">BTC-ACCUM-v1</button>
               <span class="badge warn">OBSERVATION</span>
             </div>
             <div class="panel-body">
@@ -1696,7 +1724,7 @@ body.night-ops .av-mini-pl-item:hover{
           </div>
           <div class="panel">
             <div class="panel-header">
-              <span class="panel-title">PHANTOM-MNQ</span>
+              <button class="panel-title-btn" onclick="openCodePanel('phantom')">PHANTOM-MNQ</button>
               <span class="badge warn">OBSERVATION</span>
             </div>
             <div class="panel-body">
@@ -4352,6 +4380,687 @@ function startPolling() {
 function esc(s) {
   return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
+</script>
+
+<!-- ════════════════════════════════════════════════════════════════
+     CODE SIDE PANEL
+════════════════════════════════════════════════════════════════ -->
+<div class="code-overlay" id="code-overlay" onclick="closeCodePanel()"></div>
+<div class="code-panel" id="code-panel">
+  <div class="code-panel-hdr">
+    <div class="code-panel-meta">
+      <div class="code-panel-name" id="code-panel-name">—</div>
+      <div class="code-panel-sub"  id="code-panel-sub">—</div>
+    </div>
+    <div class="code-panel-acts">
+      <button class="btn sm" onclick="copyPineCode()">⎘ COPY</button>
+      <button class="btn sm" onclick="printPineCode()">⎙ PRINT</button>
+      <button class="btn sm danger" onclick="closeCodePanel()">✕</button>
+    </div>
+  </div>
+  <div class="code-body">
+    <pre class="code-pre" id="code-pre"></pre>
+  </div>
+</div>
+
+<!-- Pine Script source blocks (not rendered, not executed) -->
+<script type="text/plain" id="pine-trnql">
+// This source code is subject to the terms of the Mozilla Public License 2.0
+// © S3_Dev | Executive Special Service
+//
+// 8AM RANGE SWEEP MODEL | MNQ CALIBRATED
+// model_id: 8AM-RSM-MNQ-v1.2
+// Sentinel Status: OBSERVATION
+//
+// ══════════════════════════════════════════════════════════════
+// MNQ CALIBRATION REFERENCE
+// ══════════════════════════════════════════════════════════════
+// Instrument  : MNQ1! — Micro Nasdaq Futures
+// Tick Size   : 0.25 NQ points
+// Tick Value  : $0.50 per tick / per contract
+// Recommended TF : 1m or 5m
+// Signal Window  : 9:00 AM – 12:00 PM New York
+// ══════════════════════════════════════════════════════════════
+
+//@version=6
+strategy(
+    title             = "8AM Range Sweep Model | MNQ",
+    shorttitle        = "8AM-RSM-MNQ",
+    overlay           = true,
+    initial_capital   = 10000,
+    default_qty_type  = strategy.fixed,
+    default_qty_value = 1,
+    commission_type   = strategy.commission.cash_per_contract,
+    commission_value  = 0.62,
+    slippage          = 2,
+    max_lines_count   = 500,
+    max_boxes_count   = 500,
+    max_labels_count  = 200
+)
+
+// ─────────────────────────────────────────────
+// INPUTS
+// ─────────────────────────────────────────────
+string grp_sess     = "Session"
+string tz           = input.string("America/New_York", "Timezone",                  group=grp_sess)
+int    sig_hr_open  = input.int(9,  "Signal Window Open (Hour)",  minval=8, maxval=12, group=grp_sess)
+int    sig_hr_close = input.int(12, "Signal Window Close (Hour)", minval=9, maxval=16, group=grp_sess)
+
+string grp_model    = "Model Parameters"
+float  fvg_min      = input.float(0.25, "Min FVG Size (points)", minval=0, step=0.25, group=grp_model)
+int    ob_len       = input.int(10, "OB Lookback (bars)", minval=3, maxval=50, group=grp_model)
+
+string grp_vis      = "Visuals"
+bool   show_fvg     = input.bool(true,  "Show FVG Boxes",    group=grp_vis)
+bool   show_ifvg    = input.bool(true,  "Show IFVG Zones",   group=grp_vis)
+bool   show_ob      = input.bool(true,  "Show Order Blocks", group=grp_vis)
+bool   show_dash    = input.bool(true,  "Show Dashboard",    group=grp_vis)
+
+string grp_test     = "Testing"
+bool   test_trigger = input.bool(false, "FORCE MANUAL TRIGGER", group=grp_test)
+
+string grp_alert    = "Alerts"
+string wh_key       = input.string("tac_com_alpha_9", "Webhook Secret", group=grp_alert)
+
+// ─────────────────────────────────────────────
+// TIME HELPERS
+// ─────────────────────────────────────────────
+int  h          = hour(time, tz)
+bool in_8am     = h == 8
+bool new_8am    = in_8am and not in_8am[1]
+bool in_sigwin  = h >= sig_hr_open and h < sig_hr_close
+
+// ─────────────────────────────────────────────
+// STEP 1 — 8AM RANGE
+// ─────────────────────────────────────────────
+var float rng_hi  = na
+var float rng_lo  = na
+var bool  rng_set = false
+var int   rng_bar = na
+
+if new_8am
+    rng_hi  := high
+    rng_lo  := low
+    rng_set := false
+    rng_bar := bar_index
+
+if in_8am and not new_8am
+    rng_hi := math.max(rng_hi, high)
+    rng_lo := math.min(rng_lo, low)
+
+if h == sig_hr_open and h[1] != sig_hr_open
+    rng_set := true
+
+var line line_hi = na
+var line line_lo = na
+
+if new_8am
+    line_hi := line.new(bar_index, high, bar_index + 1, high, color=color.aqua,   width=2, style=line.style_dashed)
+    line_lo := line.new(bar_index, low,  bar_index + 1, low,  color=color.yellow, width=2, style=line.style_dashed)
+
+if (in_8am or in_sigwin) and not na(line_hi)
+    line.set_y1(line_hi, rng_hi)
+    line.set_y2(line_hi, rng_hi)
+    line.set_x2(line_hi, bar_index)
+    line.set_y1(line_lo, rng_lo)
+    line.set_y2(line_lo, rng_lo)
+    line.set_x2(line_lo, bar_index)
+
+// ─────────────────────────────────────────────
+// STEP 2 — SWEEP DETECTION
+// ─────────────────────────────────────────────
+var bool swept_hi = false
+var bool swept_lo = false
+
+if new_8am
+    swept_hi := false
+    swept_lo := false
+
+if rng_set and not swept_hi and high > rng_hi
+    swept_hi := true
+    label.new(bar_index, high, "HIGH SWEPT\n→ Target: " + str.tostring(math.round(rng_lo, 2)),
+              style=label.style_label_down, color=color.new(color.red, 20),
+              textcolor=color.white, size=size.small)
+
+if rng_set and not swept_lo and low < rng_lo
+    swept_lo := true
+    label.new(bar_index, low, "LOW SWEPT\n→ Target: " + str.tostring(math.round(rng_hi, 2)),
+              style=label.style_label_up, color=color.new(color.green, 20),
+              textcolor=color.white, size=size.small)
+
+// ─────────────────────────────────────────────
+// STEP 3 — FVG DETECTION
+// ─────────────────────────────────────────────
+bool bull_fvg_fired = low  > high[2] and (low  - high[2]) >= fvg_min
+bool bear_fvg_fired = high < low[2]  and (low[2] - high)  >= fvg_min
+
+var float bfvg_top = na
+var float bfvg_bot = na
+var float dfvg_top = na
+var float dfvg_bot = na
+
+if new_8am
+    bfvg_top := na
+    bfvg_bot := na
+    dfvg_top := na
+    dfvg_bot := na
+
+if bull_fvg_fired
+    bfvg_top := low
+    bfvg_bot := high[2]
+    if show_fvg
+        box.new(bar_index - 2, bfvg_top, bar_index + 30, bfvg_bot,
+                bgcolor=color.new(color.green, 85), border_color=color.new(color.green, 50), border_width=1)
+
+if bear_fvg_fired
+    dfvg_top := low[2]
+    dfvg_bot := high
+    if show_fvg
+        box.new(bar_index - 2, dfvg_top, bar_index + 30, dfvg_bot,
+                bgcolor=color.new(color.red, 85), border_color=color.new(color.red, 50), border_width=1)
+
+// ─────────────────────────────────────────────
+// STEP 4 — IFVG DETECTION
+// ─────────────────────────────────────────────
+var bool  bull_ifvg     = false
+var float bull_ifvg_top = na
+var float bull_ifvg_bot = na
+var bool  bear_ifvg     = false
+var float bear_ifvg_top = na
+var float bear_ifvg_bot = na
+
+if new_8am
+    bull_ifvg     := false
+    bear_ifvg     := false
+    bull_ifvg_top := na
+    bull_ifvg_bot := na
+    bear_ifvg_top := na
+    bear_ifvg_bot := na
+
+bool new_bull_ifvg = not na(dfvg_top) and close > dfvg_top and not bull_ifvg
+bool new_bear_ifvg = not na(bfvg_bot) and close < bfvg_bot and not bear_ifvg
+
+if new_bull_ifvg
+    bull_ifvg     := true
+    bull_ifvg_top := dfvg_top
+    bull_ifvg_bot := dfvg_bot
+    if show_ifvg
+        box.new(bar_index, bull_ifvg_top, bar_index + 20, bull_ifvg_bot,
+                bgcolor=color.new(color.teal, 65), border_color=color.new(color.teal, 20), border_width=2)
+
+if new_bear_ifvg
+    bear_ifvg     := true
+    bear_ifvg_top := bfvg_top
+    bear_ifvg_bot := bfvg_bot
+    if show_ifvg
+        box.new(bar_index, bear_ifvg_top, bar_index + 20, bear_ifvg_bot,
+                bgcolor=color.new(color.purple, 65), border_color=color.new(color.purple, 20), border_width=2)
+
+// ─────────────────────────────────────────────
+// ORDER BLOCK DETECTION
+// ─────────────────────────────────────────────
+var bool  bull_ob    = false
+var float bull_ob_hi = na
+var float bull_ob_lo = na
+var bool  bear_ob    = false
+var float bear_ob_hi = na
+var float bear_ob_lo = na
+
+if new_8am
+    bull_ob    := false
+    bear_ob    := false
+    bull_ob_hi := na
+    bull_ob_lo := na
+    bear_ob_hi := na
+    bear_ob_lo := na
+
+bool up_disp   = close > ta.highest(high[1], ob_len)
+bool down_disp = close < ta.lowest(low[1],   ob_len)
+
+if up_disp and not bull_ob
+    for i = 1 to ob_len
+        if close[i] < open[i]
+            bull_ob    := true
+            bull_ob_hi := high[i]
+            bull_ob_lo := low[i]
+            if show_ob
+                box.new(bar_index - i, bull_ob_hi, bar_index + 30, bull_ob_lo,
+                        bgcolor=color.new(color.blue, 82), border_color=color.new(color.blue, 40), border_width=1)
+            break
+
+if down_disp and not bear_ob
+    for i = 1 to ob_len
+        if close[i] > open[i]
+            bear_ob    := true
+            bear_ob_hi := high[i]
+            bear_ob_lo := low[i]
+            if show_ob
+                box.new(bar_index - i, bear_ob_hi, bar_index + 30, bear_ob_lo,
+                        bgcolor=color.new(color.orange, 82), border_color=color.new(color.orange, 40), border_width=1)
+            break
+
+// ─────────────────────────────────────────────
+// STEP 5 — ENTRY SIGNAL
+// ─────────────────────────────────────────────
+bool can_trade  = rng_set and in_sigwin and strategy.position_size == 0
+bool long_sig   = can_trade and swept_lo and bull_ifvg and bull_ob
+bool short_sig  = can_trade and swept_hi and bear_ifvg and bear_ob
+
+float long_sl   = bull_ob_lo
+float long_tp   = rng_hi
+float short_sl  = bear_ob_hi
+float short_tp  = rng_lo
+
+float long_rr   = long_sig  and not na(long_sl)  and (close - long_sl)  > 0 ? math.round((long_tp  - close)    / (close - long_sl),  1) : float(na)
+float short_rr  = short_sig and not na(short_sl) and (short_sl - close) > 0 ? math.round((close    - short_tp) / (short_sl - close), 1) : float(na)
+
+string long_payload  = '{"secret":"' + wh_key + '","model_id":"8AM-RSM-MNQ-V1","ticker":"' + syminfo.tickerid + '","action":"BUY","price":'   + str.tostring(close) + ',"metadata":{"tier":"8AM_SWEEP_REVERSAL","sl":' + str.tostring(math.round(long_sl,  2)) + ',"tp":' + str.tostring(math.round(long_tp,  2)) + '}}'
+string short_payload = '{"secret":"' + wh_key + '","model_id":"8AM-RSM-MNQ-V1","ticker":"' + syminfo.tickerid + '","action":"SELL","price":' + str.tostring(close) + ',"metadata":{"tier":"8AM_SWEEP_REVERSAL","sl":' + str.tostring(math.round(short_sl, 2)) + ',"tp":' + str.tostring(math.round(short_tp, 2)) + '}}'
+
+if long_sig
+    label.new(bar_index, low,
+              "BUY\nSL: "  + str.tostring(math.round(long_sl, 2)) +
+              "\nTP: "     + str.tostring(math.round(long_tp,  2)) +
+              "\nR:R "     + str.tostring(na(long_rr)  ? 0.0 : long_rr,  "#.#") + ":1",
+              style=label.style_triangleup, color=color.new(color.lime, 0),
+              textcolor=color.white, size=size.large)
+    strategy.entry("LONG",  strategy.long,  alert_message=long_payload)
+    strategy.exit("LONG-X",  from_entry="LONG",  stop=long_sl,  limit=long_tp)
+
+if short_sig
+    label.new(bar_index, high,
+              "SELL\nSL: " + str.tostring(math.round(short_sl, 2)) +
+              "\nTP: "     + str.tostring(math.round(short_tp,  2)) +
+              "\nR:R "     + str.tostring(na(short_rr) ? 0.0 : short_rr, "#.#") + ":1",
+              style=label.style_triangledown, color=color.new(color.red, 0),
+              textcolor=color.white, size=size.large)
+    strategy.entry("SHORT", strategy.short, alert_message=short_payload)
+    strategy.exit("SHORT-X", from_entry="SHORT", stop=short_sl, limit=short_tp)
+
+// ─────────────────────────────────────────────
+// ALERT CONDITIONS
+// ─────────────────────────────────────────────
+alertcondition(swept_hi and not swept_hi[1], "8AM High Swept",      '{"model_id":"8AM-RSM-MNQ-V1","event":"HIGH_SWEPT"}')
+alertcondition(swept_lo and not swept_lo[1], "8AM Low Swept",       '{"model_id":"8AM-RSM-MNQ-V1","event":"LOW_SWEPT"}')
+alertcondition(new_bull_ifvg,                "Bullish IFVG Formed", '{"model_id":"8AM-RSM-MNQ-V1","event":"BULL_IFVG"}')
+alertcondition(new_bear_ifvg,                "Bearish IFVG Formed", '{"model_id":"8AM-RSM-MNQ-V1","event":"BEAR_IFVG"}')
+alertcondition(long_sig,                     "Long Entry Signal",   '{"model_id":"8AM-RSM-MNQ-V1","action":"BUY"}')
+alertcondition(short_sig,                    "Short Entry Signal",  '{"model_id":"8AM-RSM-MNQ-V1","action":"SELL"}')
+
+if test_trigger and barstate.islast
+    string test_msg = '{"secret":"' + wh_key + '","model_id":"8AM-RSM-MNQ-V1","ticker":"' + syminfo.tickerid + '","action":"TEST"}'
+    alert(test_msg, alert.freq_all)
+
+bgcolor(in_sigwin and rng_set ? color.new(color.blue, 95) : color(na), title="Signal Window")
+</script>
+
+<script type="text/plain" id="pine-orb">
+// This source code is subject to the terms of the Mozilla Public License 2.0
+// © S3_Dev | Executive Special Service
+//
+// NVDA ORB Short → Put Options  |  Phase 1 Signal Validator
+// Version   : 1.5
+// Timeframe : 5-minute  |  Ticker : NASDAQ:NVDA
+//
+// Entry: gap-down day, close below 9:30-9:45 ORB Low, volume surge
+// T1 (+$1.25 stock move) ≈ +75% option gain
+// T2 (+$2.50 stock move) ≈ +115% option gain
+// Hard close: 14:30 ET
+
+//@version=6
+strategy(
+    title                = "NVDA ORB Short → Put Options Phase 1",
+    shorttitle           = "ORB-PUT-v1.5",
+    overlay              = true,
+    initial_capital      = 5000,
+    default_qty_type     = strategy.fixed,
+    default_qty_value    = 2,
+    commission_type      = strategy.commission.cash_per_contract,
+    commission_value     = 0.65,
+    slippage             = 1
+)
+
+string G_ORB  = "Opening Range"
+int    orbMins = input.int(  15,   "ORB Duration (min)",      minval=5, maxval=60, step=5, group=G_ORB)
+float  orbMinW = input.float(1.50, "Min Valid ORB Width ($)", minval=0.25, step=0.25,       group=G_ORB)
+float  volMult = input.float(1.3,  "Volume Surge Multiplier", minval=1.0,  step=0.1,        group=G_ORB)
+int    volLen  = input.int(  20,   "Volume Avg Length (bars)",minval=5,                     group=G_ORB)
+
+string G_GAP  = "Gap Filter"
+float  gapMin  = input.float(0.3,  "Min Gap-Down % Required", minval=0.1, step=0.1,  group=G_GAP)
+float  gapMax  = input.float(5.0,  "Max Gap-Down % Allowed",  minval=1.0, step=0.5,  group=G_GAP)
+bool   showGap = input.bool(true,  "Show Gap Label on Chart",              group=G_GAP)
+
+string G_OPT  = "Options Parameters"
+float  t1Dol   = input.float(1.25, "T1 Target — Stock Move ($)",  minval=0.25, step=0.25, group=G_OPT)
+float  t2Dol   = input.float(2.50, "T2 Target — Stock Move ($)",  minval=0.50, step=0.25, group=G_OPT)
+float  optPrem = input.float(1.75, "Estimated Put Premium ($)",   minval=0.50, step=0.25, group=G_OPT)
+int    numConts= input.int(  1,    "Contracts per Signal",        minval=1, maxval=10,     group=G_OPT)
+float  stopBuf = input.float(0.50, "Stop Buffer Above ORB Low ($)",minval=0.05, step=0.05, group=G_OPT)
+
+string G_CB   = "Circuit Breakers"
+float  cbProfit= input.float(500.0, "Daily Profit Target ($)", minval=50, step=50, group=G_CB)
+float  cbLoss  = input.float(300.0, "Daily Loss Limit ($)",    minval=50, step=50, group=G_CB)
+
+int barH = hour(time,   "America/New_York")
+int barM = minute(time, "America/New_York")
+int barT = barH * 100 + barM
+
+int orbEndH = 9  + (30 + orbMins) / 60
+int orbEndM = (30 + orbMins) % 60
+int orbEndT = orbEndH * 100 + orbEndM
+
+bool inORB        = barT >= 930  and barT < orbEndT
+bool inSigWindow  = barT >= orbEndT and barT < 1100
+bool hardClose    = barT >= 1430
+bool isOpen930    = barH == 9   and barM == 30
+bool isSessionEnd = barH == 15  and barM == 55
+bool newDay       = dayofmonth != dayofmonth[1] or month != month[1] or year != year[1]
+
+var float prevRegClose = na
+var float gapPct       = 0.0
+
+if isSessionEnd
+    prevRegClose := close
+
+if isOpen930
+    if not na(prevRegClose) and prevRegClose > 0
+        gapPct := (open - prevRegClose) / prevRegClose * 100
+    else
+        gapPct := 0.0
+
+bool gapDown = gapPct <= -gapMin and gapPct >= -gapMax
+
+var float orbH       = na
+var float orbL       = na
+var bool  orbSet     = false
+var bool  orbUsed    = false
+var float entryOrbL  = na
+var float entryAvg   = na
+var bool  t1Fired    = false
+var float dayEqOpen  = na
+var bool  dayHalted  = false
+
+if newDay
+    orbH        := na
+    orbL        := na
+    orbSet      := false
+    orbUsed     := false
+    entryOrbL   := na
+    entryAvg    := na
+    t1Fired     := false
+    dayEqOpen   := strategy.equity
+    dayHalted   := false
+
+if inORB
+    orbH := na(orbH) ? high : math.max(orbH, high)
+    orbL := na(orbL) ? low  : math.min(orbL, low)
+
+if not inORB and not na(orbH) and not orbSet
+    orbSet := true
+
+float vwapVal  = ta.vwap
+float avgVol   = ta.sma(volume, volLen)
+bool  volSurge = volume > avgVol * volMult
+float orbWidth = (orbSet and not na(orbH) and not na(orbL)) ? orbH - orbL : 0.0
+bool  orbValid = orbWidth >= orbMinW
+
+float dailyPnL = na(dayEqOpen) ? 0.0 : strategy.equity - dayEqOpen
+
+if not dayHalted and not na(dayEqOpen)
+    if dailyPnL >= cbProfit or dailyPnL <= -cbLoss
+        dayHalted := true
+        if strategy.position_size != 0
+            strategy.close_all(comment="CB")
+
+bool noPos    = strategy.position_size == 0
+bool orbShort = orbSet and orbValid and gapDown and close < orbL
+               and volSurge and inSigWindow and not orbUsed and not dayHalted and noPos
+
+string nhPut = '{"secret":"tac_com_alpha_9","model_id":"ORB-PUT-v1","ticker":"NVDA","action":"BUY_PUT","contracts":' + str.tostring(numConts) + ',"underlying":' + str.tostring(close, "#.00") + ',"strike":"ATM","expiry":"0DTE","gap_pct":' + str.tostring(math.round(gapPct, 2)) + '}'
+
+if orbShort
+    entryOrbL := orbL
+    entryAvg  := na
+    t1Fired   := false
+    strategy.entry("ORB Put", strategy.short, qty=numConts * 2,
+                   comment="ORB↓ GAP:" + str.tostring(math.round(gapPct, 1)) + "%",
+                   alert_message=nhPut)
+    alert(nhPut, alert.freq_once_per_bar_close)
+    orbUsed := true
+
+if strategy.position_size < 0 and na(entryAvg)
+    entryAvg := strategy.position_avg_price
+
+if not t1Fired and not na(entryAvg)
+    if strategy.position_size[1] == -(numConts * 2) and strategy.position_size == -numConts
+        t1Fired := close[1] <= entryAvg - t1Dol
+
+if strategy.position_size < 0
+    float avg      = na(entryAvg) ? strategy.position_avg_price : entryAvg
+    float preStop  = na(entryOrbL) ? avg + 1.25 : entryOrbL + stopBuf
+    float stopLvl  = t1Fired ? avg : preStop
+    if not t1Fired
+        strategy.exit("T1", from_entry="ORB Put", qty_percent=50,
+                      limit=avg - t1Dol, stop=preStop, comment="T1")
+    strategy.exit("T2", from_entry="ORB Put", qty_percent=100,
+                  stop=stopLvl, limit=avg - t2Dol, comment=t1Fired ? "T2-BE" : "T2")
+
+if hardClose and strategy.position_size != 0
+    strategy.close_all(comment="14:30")
+
+plot(vwapVal,             "VWAP",     color=color.new(color.yellow, 20), linewidth=1)
+plot(orbSet ? orbH : na,  "ORB High", color=color.new(color.lime,    0), linewidth=2, style=plot.style_linebr)
+plot(orbSet ? orbL : na,  "ORB Low",  color=color.new(color.red,     0), linewidth=2, style=plot.style_linebr)
+
+bgcolor(inORB       ? color.new(color.blue,   92) : na, title="ORB Window")
+bgcolor(inSigWindow ? color.new(color.green,  94) : na, title="Signal Window 9:45–11:00")
+bgcolor(hardClose   ? color.new(color.orange, 96) : na, title="Hard Close Zone")
+bgcolor(gapDown     ? color.new(color.red,    97) : na, title="Gap-Down Day (eligible)")
+
+plotshape(orbShort, title="ORB Short → BUY PUT",
+     location=location.abovebar, style=shape.triangledown,
+     color=color.new(color.fuchsia, 0), size=size.normal, text="PUT")
+
+if isOpen930 and showGap and not na(prevRegClose)
+    string gapLbl = (gapPct < 0 ? "GAP ↓ " : "GAP ↑ +") + str.tostring(math.round(gapPct, 2)) + "%"
+    label.new(bar_index, high + 1.0, gapLbl,
+         color=color.new(gapDown ? color.red : color.lime, 20),
+         textcolor=color.white, style=label.style_label_down, size=size.small)
+</script>
+
+<script type="text/plain" id="pine-btc">
+//@version=5
+// ┌─────────────────────────────────────────────────────────────────────────┐
+// │  BTC Accumulation Grid v1.0 — Iron Sight / Project Black-Box           │
+// │  Symbol : COINBASE:BTCUSD (Daily)                                       │
+// │  Model  : BTC-ACCUM-v1                                                  │
+// │  Strategy: Grid limit orders anchored to 200-day SMA                    │
+// │                                                                          │
+// │  Grid levels (% below 200 SMA):                                         │
+// │    L1 = -8%   ($500 USD)                                                │
+// │    L2 = -15%  ($1,000 USD)                                              │
+// │    L3 = -25%  ($2,000 USD)                                              │
+// │    L4 = -40%  ($5,000 USD)                                              │
+// │                                                                          │
+// │  Signal fires on daily CLOSE crossunder of each level (once per cross). │
+// │  Set alert → "Once Per Bar Close" → Webhook URL → NIGHTHAWK /webhook    │
+// └─────────────────────────────────────────────────────────────────────────┘
+
+indicator("BTC Accumulation Grid v1.0", shorttitle="BTC-ACCUM-v1", overlay=true)
+
+int   i_maLen = input.int(200,  "MA Length",             minval=50,  group="Grid Anchor")
+float i_l1    = input.float(8.0,  "L1 Drop from MA (%)", step=0.5,  group="Grid Levels")
+float i_l2    = input.float(15.0, "L2 Drop from MA (%)", step=0.5,  group="Grid Levels")
+float i_l3    = input.float(25.0, "L3 Drop from MA (%)", step=0.5,  group="Grid Levels")
+float i_l4    = input.float(40.0, "L4 Drop from MA (%)", step=0.5,  group="Grid Levels")
+
+float ma200 = ta.sma(close, i_maLen)
+
+float lvl1 = ma200 * (1.0 - i_l1 / 100.0)
+float lvl2 = ma200 * (1.0 - i_l2 / 100.0)
+float lvl3 = ma200 * (1.0 - i_l3 / 100.0)
+float lvl4 = ma200 * (1.0 - i_l4 / 100.0)
+
+bool trig1 = ta.crossunder(close, lvl1)
+bool trig2 = ta.crossunder(close, lvl2)
+bool trig3 = ta.crossunder(close, lvl3)
+bool trig4 = ta.crossunder(close, lvl4)
+
+plot(ma200, "200 SMA",         color=color.new(color.blue,   0), linewidth=2)
+plot(lvl1,  "Grid L1 (-8%)",  color=color.new(color.yellow, 0), linewidth=1)
+plot(lvl2,  "Grid L2 (-15%)", color=color.new(color.orange, 0), linewidth=1)
+plot(lvl3,  "Grid L3 (-25%)", color=color.new(color.red,    0), linewidth=1)
+plot(lvl4,  "Grid L4 (-40%)", color=color.new(color.maroon, 0), linewidth=1)
+
+plotshape(trig1, "L1 Buy Zone", shape.triangleup, location.belowbar, color.yellow, size=size.small)
+plotshape(trig2, "L2 Buy Zone", shape.triangleup, location.belowbar, color.orange, size=size.small)
+plotshape(trig3, "L3 Buy Zone", shape.triangleup, location.belowbar, color.red,    size=size.small)
+plotshape(trig4, "L4 Buy Zone", shape.triangleup, location.belowbar, color.maroon, size=size.small)
+
+string _px = str.tostring(close, "#.##")
+
+if trig1
+    alert('{"secret":"tac_com_alpha_9","model_id":"BTC-ACCUM-v1","ticker":"COINBASE:BTCUSD","action":"ACCUMULATE","price":' + _px + ',"metadata":{"grid_level":"L1","pct_from_ma":-' + str.tostring(i_l1, "#.#") + '}}', alert.freq_once_per_bar_close)
+if trig2
+    alert('{"secret":"tac_com_alpha_9","model_id":"BTC-ACCUM-v1","ticker":"COINBASE:BTCUSD","action":"ACCUMULATE","price":' + _px + ',"metadata":{"grid_level":"L2","pct_from_ma":-' + str.tostring(i_l2, "#.#") + '}}', alert.freq_once_per_bar_close)
+if trig3
+    alert('{"secret":"tac_com_alpha_9","model_id":"BTC-ACCUM-v1","ticker":"COINBASE:BTCUSD","action":"ACCUMULATE","price":' + _px + ',"metadata":{"grid_level":"L3","pct_from_ma":-' + str.tostring(i_l3, "#.#") + '}}', alert.freq_once_per_bar_close)
+if trig4
+    alert('{"secret":"tac_com_alpha_9","model_id":"BTC-ACCUM-v1","ticker":"COINBASE:BTCUSD","action":"ACCUMULATE","price":' + _px + ',"metadata":{"grid_level":"L4","pct_from_ma":-' + str.tostring(i_l4, "#.#") + '}}', alert.freq_once_per_bar_close)
+
+alertcondition(trig1, "BTC-ACCUM L1 (-8%)",  "BTC crossed below 200 SMA L1 grid — ACCUMULATE")
+alertcondition(trig2, "BTC-ACCUM L2 (-15%)", "BTC crossed below 200 SMA L2 grid — ACCUMULATE")
+alertcondition(trig3, "BTC-ACCUM L3 (-25%)", "BTC crossed below 200 SMA L3 grid — ACCUMULATE")
+alertcondition(trig4, "BTC-ACCUM L4 (-40%)", "BTC crossed below 200 SMA L4 grid — ACCUMULATE")
+</script>
+
+<script type="text/plain" id="pine-phantom">
+// PHANTOM-MNQ — Autonomous AI Execution System
+// © S3 Development / Executive Special Service
+//
+// PHANTOM-MNQ is a Python-based autonomous trading system.
+// It does not use Pine Script for execution.
+//
+// ── System Architecture ───────────────────────────────────────
+//
+//   Iron Sight (TradingView Pine Script)
+//     └─► NIGHTHAWK (Node.js webhook receiver — port 8080)
+//           ├─► SENTINEL (PostgreSQL audit log)
+//           └─► PHANTOM-MNQ (FastAPI — port 8081)
+//                 └─► 10-agent AI council
+//                       ├─► LSTM inference (ONNX Runtime)
+//                       ├─► Claude language model (quorum vote)
+//                       └─► Quorum: 6/10 CONFIRM → execute
+//                             └─► NT8 ATI Bridge (Flask — port 8082)
+//                                   └─► NinjaTrader 8 ATI TCP (port 36973)
+//                                         └─► Apex Trader Funding eval
+//
+// ── Key Parameters ────────────────────────────────────────────
+//
+//   QUORUM_THRESHOLD : 6   (of 10 agents must CONFIRM)
+//   MAX_CONTRACTS    : 1   (live execution, Apex eval)
+//   BRIDGE_URL       : https://phantom-bridge.S-3.us/execute
+//   SENTINEL_DB      : sentinel_db @ 127.0.0.1 (PostgreSQL)
+//
+// ── Signal Source ─────────────────────────────────────────────
+//
+//   Pine Script: TRNQL_8AMsweep.v3 (8AM Range Sweep Model)
+//   Fires JSON webhook → NIGHTHAWK → PHANTOM pipeline
+//
+//   Webhook payload format:
+//   {
+//     "secret":   "tac_com_alpha_9",
+//     "model_id": "8AM-RSM-MNQ-V1",
+//     "ticker":   "NASDAQ:MNQ1!",
+//     "action":   "BUY" | "SELL",
+//     "price":    <float>,
+//     "metadata": {
+//       "tier": "8AM_SWEEP_REVERSAL",
+//       "sl":   <float>,
+//       "tp":   <float>
+//     }
+//   }
+//
+// ── Full source code ──────────────────────────────────────────
+//
+//   phantom_mnq/agents/   — council.py, gatekeeper.py,
+//                           pipeline.py, reaper.py, risk.py
+//   phantom_mnq/core/     — candle_buffer.py, data_feed.py,
+//                           lstm_runner.py, model_manager.py
+//   bridge/bridge.py      — NT8 ATI TCP bridge (Flask)
+//
+// ── Reference ────────────────────────────────────────────────
+//
+//   Full architecture: phantom_mnq_architecture.html
+//   Build log:         phantom_mnq/PHANTOM_MNQ_BUILD_LOG.md
+</script>
+
+<script>
+/* ══════════════════════════════════════════════════
+   CODE SIDE PANEL
+══════════════════════════════════════════════════ */
+var CODE_META = {
+  trnql:   { name: 'TRNQL_8AMSWEEP.v3',  sub: '8AM Range Sweep  ·  NASDAQ:MNQ1!  ·  Pine Script v6',          src: 'pine-trnql'   },
+  orb:     { name: 'ORB-PUT-v1.5',        sub: 'NVDA ORB Short → Put  ·  NASDAQ:NVDA  ·  Pine Script v6',       src: 'pine-orb'     },
+  btc:     { name: 'BTC-ACCUM-v1',        sub: 'BTC Accumulation Grid  ·  COINBASE:BTCUSD  ·  Pine Script v5',  src: 'pine-btc'     },
+  phantom: { name: 'PHANTOM-MNQ',         sub: 'Python Autonomous System  ·  10-Agent AI Council  ·  FastAPI',  src: 'pine-phantom' }
+};
+
+function openCodePanel(id) {
+  var meta = CODE_META[id];
+  if (!meta) return;
+  document.getElementById('code-panel-name').textContent = meta.name;
+  document.getElementById('code-panel-sub').textContent  = meta.sub;
+  var src = document.getElementById(meta.src);
+  document.getElementById('code-pre').textContent = src ? src.textContent.trim() : '// Source not found.';
+  document.getElementById('code-panel').classList.add('open');
+  document.getElementById('code-overlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeCodePanel() {
+  document.getElementById('code-panel').classList.remove('open');
+  document.getElementById('code-overlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function copyPineCode() {
+  var text = document.getElementById('code-pre').textContent;
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text)
+      .then(function()  { showToast('Code copied to clipboard.'); })
+      .catch(function() { showToast('Copy failed — select text manually.'); });
+  } else {
+    showToast('Clipboard API unavailable — select text manually.');
+  }
+}
+
+function printPineCode() {
+  var name = document.getElementById('code-panel-name').textContent;
+  var sub  = document.getElementById('code-panel-sub').textContent;
+  var code = document.getElementById('code-pre').textContent;
+  var safe = code.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  var w = window.open('', '_blank');
+  w.document.write(
+    '<!DOCTYPE html><html><head><title>' + name + ' — S3 Iron Sight</title>' +
+    '<style>*{box-sizing:border-box}body{font-family:"Courier New",monospace;font-size:11px;' +
+    'margin:28px 32px;color:#111;line-height:1.7;}' +
+    'h1{font-family:Arial,sans-serif;font-size:15px;font-weight:700;margin:0 0 2px;}' +
+    'p{font-family:Arial,sans-serif;font-size:10px;color:#666;margin:0 0 18px;}' +
+    'pre{white-space:pre-wrap;word-break:break-word;margin:0;}' +
+    '@media print{body{margin:16px;}}</style>' +
+    '</head><body><h1>' + name + '</h1><p>' + sub + '  //  S3 Iron Sight</p>' +
+    '<pre>' + safe + '</pre></body></html>'
+  );
+  w.document.close();
+  w.focus();
+  w.print();
+}
+
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') closeCodePanel();
+});
 </script>
 </body>
 </html>
