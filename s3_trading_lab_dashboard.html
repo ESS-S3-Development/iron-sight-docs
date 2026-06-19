@@ -21,7 +21,7 @@
   --mono:'Space Mono',monospace;--display:'Barlow Condensed',sans-serif;
   --body:'Barlow',sans-serif;--tech:'Share Tech Mono',monospace;
   --r:6px;
-  --topbar-h:144px;--sidebar-w:220px;
+  --topbar-h:108px;--sidebar-w:220px;
   --grid-c:rgba(0,180,255,.055);
 }
 body.night-ops{
@@ -113,44 +113,44 @@ body.night-ops{
   height:var(--topbar-h);background:rgba(4,8,18,.98);
   border-bottom:1px solid var(--border);
   display:grid;grid-template-columns:auto 1fr auto;align-items:center;
-  padding:0 36px;gap:32px;flex-shrink:0;z-index:50;position:relative;
+  padding:0 24px;gap:20px;flex-shrink:0;z-index:50;position:relative;
   box-shadow:0 0 40px rgba(0,180,255,.06);
 }
-.topbar-brand{display:flex;align-items:center;gap:24px;}
-.topbar-logo{width:84px;height:84px;border-radius:50%;
+.topbar-brand{display:flex;align-items:center;gap:14px;}
+.topbar-logo{width:56px;height:56px;border-radius:50%;
   border:1px solid rgba(0,180,255,.35);
-  box-shadow:0 0 18px rgba(0,180,255,.20);}
-.brand-name{font-family:var(--display);font-weight:700;font-size:40px;
-  letter-spacing:.22em;color:var(--bright);}
-.brand-sub{font-family:var(--mono);font-size:22px;color:var(--muted);
-  letter-spacing:.18em;margin-top:1px;}
-.topbar-center{display:flex;align-items:center;gap:18px;justify-content:center;}
+  box-shadow:0 0 14px rgba(0,180,255,.20);}
+.brand-name{font-family:var(--display);font-weight:700;font-size:22px;
+  letter-spacing:.20em;color:var(--bright);white-space:nowrap;}
+.brand-sub{font-family:var(--mono);font-size:11px;color:var(--muted);
+  letter-spacing:.18em;margin-top:3px;white-space:nowrap;}
+.topbar-center{display:flex;align-items:center;gap:10px;justify-content:center;}
 .clock-block{text-align:center;background:rgba(0,180,255,.04);
-  border:1px solid var(--border);border-radius:6px;padding:10px 20px;}
-.clock-time{font-family:var(--mono);font-size:42px;color:var(--accent);letter-spacing:.08em;}
-.clock-label{font-family:var(--mono);font-size:20px;color:var(--muted);letter-spacing:.18em;margin-top:2px;}
-.topbar-right{display:flex;align-items:center;gap:20px;}
+  border:1px solid var(--border);border-radius:6px;padding:8px 14px;min-width:130px;}
+.clock-time{font-family:var(--mono);font-size:24px;color:var(--accent);letter-spacing:.06em;}
+.clock-label{font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:.14em;margin-top:3px;white-space:nowrap;}
+.topbar-right{display:flex;align-items:center;gap:10px;}
 .mode-btn{
-  font-family:var(--mono);font-size:20px;letter-spacing:.12em;
-  padding:10px 20px;background:var(--bg3);color:var(--muted);
+  font-family:var(--mono);font-size:12px;letter-spacing:.10em;
+  padding:7px 13px;background:var(--bg3);color:var(--muted);
   border:1px solid var(--border);border-radius:4px;cursor:pointer;
-  transition:all .18s;
+  transition:all .18s;white-space:nowrap;
 }
 .mode-btn:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-glow);}
 .mode-btn.active{border-color:var(--accent);color:var(--accent);background:var(--accent-glow);}
 .officer-chip{
-  display:flex;align-items:center;gap:20px;
+  display:flex;align-items:center;gap:10px;
   background:rgba(0,180,255,.05);border:1px solid var(--border);
-  border-radius:8px;padding:12px 24px;
+  border-radius:8px;padding:8px 14px;
 }
-.officer-avatar{width:68px;height:68px;border-radius:50%;
+.officer-avatar{width:44px;height:44px;border-radius:50%;
   border:2px solid var(--accent);object-fit:cover;background:var(--bg3);
   display:flex;align-items:center;justify-content:center;
-  font-family:var(--display);font-size:30px;font-weight:700;color:var(--accent);}
-.officer-name{font-family:var(--display);font-size:34px;font-weight:600;color:var(--bright);}
-.officer-role{font-family:var(--mono);font-size:22px;color:var(--accent);letter-spacing:.15em;}
-.status-dot{width:16px;height:16px;border-radius:50%;background:var(--ok);
-  box-shadow:0 0 8px var(--ok);animation:pulse-dot 2s infinite;}
+  font-family:var(--display);font-size:18px;font-weight:700;color:var(--accent);}
+.officer-name{font-family:var(--display);font-size:18px;font-weight:600;color:var(--bright);white-space:nowrap;}
+.officer-role{font-family:var(--mono);font-size:11px;color:var(--accent);letter-spacing:.12em;white-space:nowrap;}
+.status-dot{width:9px;height:9px;border-radius:50%;background:var(--ok);
+  box-shadow:0 0 6px var(--ok);animation:pulse-dot 2s infinite;}
 @keyframes pulse-dot{0%,100%{opacity:1}50%{opacity:.45}}
 
 /* ── Body Layout ─────────────────────────────────── */
@@ -664,7 +664,7 @@ body.night-ops .ov-drag-handle{color:var(--signal);}
 /* ── Officer Menu Dropdown ───────────────────────── */
 .officer-chip{cursor:pointer;user-select:none;position:relative;}
 .officer-chip:hover{border-color:rgba(0,180,255,.45);}
-.officer-caret{font-size:20px;color:var(--muted);margin-left:4px;transition:transform .2s;}
+.officer-caret{font-size:13px;color:var(--muted);margin-left:2px;transition:transform .2s;}
 .officer-chip.open .officer-caret{transform:rotate(180deg);}
 .officer-menu{
   display:none;position:absolute;top:calc(100% + 8px);right:0;min-width:360px;
@@ -1116,11 +1116,11 @@ body.night-ops .av-mini-pl-item:hover{
     padding:0 24px;
   }
   .topbar-center{
-    gap:10px;
+    gap:6px;
   }
-  .clock-block{padding:7px 12px;}
-  .clock-time{font-size:30px;}
-  .clock-label{font-size:17px;}
+  .clock-block{padding:6px 9px;min-width:0;}
+  .clock-time{font-size:20px;}
+  .clock-label{font-size:9px;}
 
   .sidebar{
     position:fixed;left:calc(-1 * var(--sidebar-w));top:var(--topbar-h);
@@ -1223,7 +1223,7 @@ body.night-ops .av-mini-pl-item:hover{
       </div>
       <div class="clock-block" style="border-color:rgba(0,229,255,.28);">
         <div class="clock-time" id="clkCH" style="color:#00e5ff;">--:--:--</div>
-        <div class="clock-label">CHICAGO / CT · CME</div>
+        <div class="clock-label">CME / CT</div>
       </div>
       <div class="clock-block">
         <div class="clock-time" id="clkLA">--:--:--</div>
