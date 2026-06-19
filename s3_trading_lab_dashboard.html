@@ -124,11 +124,11 @@ body.night-ops{
   letter-spacing:.22em;color:var(--bright);}
 .brand-sub{font-family:var(--mono);font-size:22px;color:var(--muted);
   letter-spacing:.18em;margin-top:1px;}
-.topbar-center{display:flex;align-items:center;gap:36px;justify-content:center;}
+.topbar-center{display:flex;align-items:center;gap:18px;justify-content:center;}
 .clock-block{text-align:center;background:rgba(0,180,255,.04);
-  border:1px solid var(--border);border-radius:6px;padding:12px 28px;}
-.clock-time{font-family:var(--mono);font-size:44px;color:var(--accent);letter-spacing:.08em;}
-.clock-label{font-family:var(--mono);font-size:22px;color:var(--muted);letter-spacing:.18em;margin-top:1px;}
+  border:1px solid var(--border);border-radius:6px;padding:10px 20px;}
+.clock-time{font-family:var(--mono);font-size:42px;color:var(--accent);letter-spacing:.08em;}
+.clock-label{font-family:var(--mono);font-size:20px;color:var(--muted);letter-spacing:.18em;margin-top:2px;}
 .topbar-right{display:flex;align-items:center;gap:20px;}
 .mode-btn{
   font-family:var(--mono);font-size:20px;letter-spacing:.12em;
@@ -413,8 +413,9 @@ body.night-ops{
 .form-select{cursor:pointer;}
 
 /* ── Clock Center ────────────────────────────────── */
-.clock-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px;}
-@media(max-width:900px){.clock-grid{grid-template-columns:1fr 1fr;}}
+.clock-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-bottom:20px;}
+@media(max-width:1100px){.clock-grid{grid-template-columns:repeat(3,1fr);}}
+@media(max-width:700px){.clock-grid{grid-template-columns:1fr 1fr;}}
 .clock-card{
   background:var(--surface);border:1px solid var(--border);border-radius:var(--r);
   padding:20px;text-align:center;
@@ -540,10 +541,10 @@ body.night-ops{
 }
 .ov-ticker{
   background:rgba(0,180,255,.04);border:1px solid var(--border);border-radius:4px;
-  padding:6px 14px;font-family:var(--mono);font-size:13px;color:var(--muted);
-  white-space:nowrap;overflow:hidden;max-width:260px;
+  padding:8px 16px;font-family:var(--mono);font-size:16px;color:var(--muted);
+  white-space:nowrap;overflow:hidden;max-width:320px;
 }
-.ov-ticker span{color:var(--accent);}
+.ov-ticker span{color:var(--accent);font-size:17px;}
 .btn.ov-edit-btn.active{background:rgba(245,158,11,.12);border-color:var(--warn);color:var(--warn);}
 
 .ov-layout-toolbar{
@@ -827,30 +828,30 @@ body.night-ops .ov-drag-handle{color:var(--signal);}
 
 /* ── Quick Links Bar ─────────────────────────────── */
 .quick-links-bar{
-  height:32px;background:rgba(0,6,16,.98);
-  border-bottom:1px solid rgba(0,180,255,.10);
-  display:flex;align-items:center;gap:4px;
-  padding:0 14px;flex-shrink:0;
+  height:48px;background:rgba(0,6,16,.98);
+  border-bottom:1px solid rgba(0,180,255,.12);
+  display:flex;align-items:center;gap:8px;
+  padding:0 18px;flex-shrink:0;
   overflow-x:auto;-webkit-overflow-scrolling:touch;
 }
 .quick-links-bar::-webkit-scrollbar{display:none;}
 .ql-label{
-  font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:.2em;
-  padding-right:12px;border-right:1px solid rgba(0,180,255,.12);
-  margin-right:4px;white-space:nowrap;flex-shrink:0;
+  font-family:var(--mono);font-size:13px;color:var(--muted);letter-spacing:.18em;
+  padding-right:14px;border-right:1px solid rgba(0,180,255,.15);
+  margin-right:6px;white-space:nowrap;flex-shrink:0;
 }
 .ql-link{
-  display:inline-flex;align-items:center;gap:4px;
-  padding:3px 10px;border:1px solid rgba(0,180,255,.13);border-radius:4px;
-  background:transparent;font-family:var(--mono);font-size:10px;
-  color:rgba(160,200,240,.50);text-decoration:none;
-  white-space:nowrap;flex-shrink:0;transition:all .15s;letter-spacing:.06em;
+  display:inline-flex;align-items:center;gap:6px;
+  padding:7px 16px;border:1px solid rgba(0,180,255,.18);border-radius:5px;
+  background:transparent;font-family:var(--mono);font-size:14px;
+  color:rgba(160,200,240,.65);text-decoration:none;
+  white-space:nowrap;flex-shrink:0;transition:all .15s;letter-spacing:.07em;
 }
 .ql-link:hover{
-  color:var(--accent);border-color:rgba(0,180,255,.45);
-  background:rgba(0,180,255,.07);
+  color:var(--accent);border-color:rgba(0,180,255,.55);
+  background:rgba(0,180,255,.09);
 }
-.ql-link .ql-icon{font-size:9px;opacity:.7;}
+.ql-link .ql-icon{font-size:12px;opacity:.75;}
 body.night-ops .ql-link:hover{color:var(--accent);border-color:rgba(168,85,247,.5);background:rgba(168,85,247,.07);}
 
 /* ══ NEON GLOW SYSTEM ════════════════════════════════
@@ -1115,11 +1116,11 @@ body.night-ops .av-mini-pl-item:hover{
     padding:0 24px;
   }
   .topbar-center{
-    gap:16px;
+    gap:10px;
   }
-  .clock-block{padding:8px 16px;}
-  .clock-time{font-size:34px;}
-  .clock-label{font-size:20px;}
+  .clock-block{padding:7px 12px;}
+  .clock-time{font-size:30px;}
+  .clock-label{font-size:17px;}
 
   .sidebar{
     position:fixed;left:calc(-1 * var(--sidebar-w));top:var(--topbar-h);
@@ -1220,6 +1221,10 @@ body.night-ops .av-mini-pl-item:hover{
         <div class="clock-time" id="clkNY">--:--:--</div>
         <div class="clock-label">NEW YORK / ET</div>
       </div>
+      <div class="clock-block" style="border-color:rgba(0,229,255,.28);">
+        <div class="clock-time" id="clkCH" style="color:#00e5ff;">--:--:--</div>
+        <div class="clock-label">CHICAGO / CT · CME</div>
+      </div>
       <div class="clock-block">
         <div class="clock-time" id="clkLA">--:--:--</div>
         <div class="clock-label">LOS ANGELES / PT</div>
@@ -1259,6 +1264,7 @@ body.night-ops .av-mini-pl-item:hover{
     <a class="ql-link" href="https://ninjatrader.com" target="_blank" rel="noopener"><span class="ql-icon">◆</span> NINJATRADER</a>
     <a class="ql-link" href="https://executivespecialservice.us" target="_blank" rel="noopener"><span class="ql-icon">◫</span> ESS</a>
     <a class="ql-link" href="https://s-3.us" target="_blank" rel="noopener"><span class="ql-icon">◈</span> S-3</a>
+    <a class="ql-link" href="https://ironsightdocs.executivespecialservice.us" target="_blank" rel="noopener" style="color:rgba(0,229,255,.75);border-color:rgba(0,229,255,.28);"><span class="ql-icon">◉</span> IRON SIGHT DOCS</a>
   </div>
 
   <!-- MARKET TICKER BAR -->
@@ -1887,6 +1893,12 @@ body.night-ops .av-mini-pl-item:hover{
             <div class="clock-date" id="big-date-ny">---</div>
             <div class="market-status" id="nyse-status">---</div>
           </div>
+          <div class="clock-card" style="border-color:rgba(0,229,255,.3);background:rgba(0,229,255,.03);">
+            <div class="clock-city" style="color:#00e5ff;">CHICAGO / CT · CME</div>
+            <div class="clock-display" id="big-clk-ch" style="color:#00e5ff;text-shadow:0 0 20px rgba(0,229,255,.4);">--:--:--</div>
+            <div class="clock-date" id="big-date-ch">---</div>
+            <div class="market-status" id="cme-status">---</div>
+          </div>
           <div class="clock-card">
             <div class="clock-city">LOS ANGELES / PT</div>
             <div class="clock-display" id="big-clk-la">--:--:--</div>
@@ -1944,6 +1956,7 @@ body.night-ops .av-mini-pl-item:hover{
             <input type="time" class="form-input" id="alarmTimeInput" style="max-width:130px;text-align:center;">
             <select class="form-input form-select" id="alarmTZSelect" style="max-width:160px;">
               <option value="America/New_York">New York / ET</option>
+              <option value="America/Chicago">Chicago / CT (CME)</option>
               <option value="America/Los_Angeles">Los Angeles / PT</option>
               <option value="Europe/London">London / GMT</option>
               <option value="Asia/Tokyo">Tokyo / JST</option>
@@ -2440,21 +2453,25 @@ function fmtDateTZ(tz) {
 
 function tickClocks() {
   const nyT = fmtTZ('America/New_York');
+  const chT = fmtTZ('America/Chicago');
   const laT = fmtTZ('America/Los_Angeles');
   const lnT = fmtTZ('Europe/London');
   const tkT = fmtTZ('Asia/Tokyo');
 
   // Topbar clocks
   document.getElementById('clkNY').textContent = nyT;
+  document.getElementById('clkCH').textContent = chT;
   document.getElementById('clkLA').textContent = laT;
   document.getElementById('clkLN').textContent = lnT;
 
   // Clock Center
   document.getElementById('big-clk-ny').textContent = nyT;
+  document.getElementById('big-clk-ch').textContent = chT;
   document.getElementById('big-clk-la').textContent = laT;
   document.getElementById('big-clk-ln').textContent = lnT;
   document.getElementById('big-clk-tk').textContent = tkT;
   document.getElementById('big-date-ny').textContent = fmtDateTZ('America/New_York');
+  document.getElementById('big-date-ch').textContent = fmtDateTZ('America/Chicago');
   document.getElementById('big-date-la').textContent = fmtDateTZ('America/Los_Angeles');
   document.getElementById('big-date-ln').textContent = fmtDateTZ('Europe/London');
   document.getElementById('big-date-tk').textContent = fmtDateTZ('Asia/Tokyo');
@@ -2464,11 +2481,20 @@ function tickClocks() {
   const etH = +new Date().toLocaleString('en-US', { hour:'numeric', hour12:false, timeZone:'America/New_York' });
   const etM = +new Date().toLocaleString('en-US', { minute:'numeric', hour12:false, timeZone:'America/New_York' });
   const etMin = etH * 60 + etM;
+  const ctH = +new Date().toLocaleString('en-US', { hour:'numeric', hour12:false, timeZone:'America/Chicago' });
+  const ctM = +new Date().toLocaleString('en-US', { minute:'numeric', hour12:false, timeZone:'America/Chicago' });
+  const ctMin = ctH * 60 + ctM;
   const isWeekday = [1,2,3,4,5].includes(now.getDay());
-  const nyseOpen  = isWeekday && etMin >= 570 && etMin < 960; // 9:30-16:00
+  const nyseOpen  = isWeekday && etMin >= 570 && etMin < 960; // 9:30-16:00 ET
+  // CME Globex trades nearly 24/5 — daily maintenance break 16:00-17:00 CT
+  const cmeBreak  = ctMin >= 960 && ctMin < 1020; // 16:00-17:00 CT
+  const cmeOpen   = isWeekday && !cmeBreak;
   const nyseEl = document.getElementById('nyse-status');
   nyseEl.textContent  = nyseOpen ? 'MARKET OPEN' : 'MARKET CLOSED';
   nyseEl.className    = 'market-status ' + (nyseOpen ? 'open' : 'closed');
+  const cmeEl = document.getElementById('cme-status');
+  cmeEl.textContent = cmeOpen ? 'GLOBEX OPEN' : (cmeBreak ? 'MAINTENANCE' : 'GLOBEX CLOSED');
+  cmeEl.className   = 'market-status ' + (cmeOpen ? 'open' : 'closed');
 
   document.getElementById('stat-market').textContent = nyseOpen ? 'OPEN' : 'CLOSED';
   document.getElementById('stat-market-sub').textContent = nyseOpen ? 'NYSE/NASDAQ trading' : 'Market closed';
