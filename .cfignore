@@ -1,0 +1,11 @@
+# Cloudflare Pages deploy exclusions
+# Large media files exceed CF Pages 25 MiB per-file limit — host via YouTube/R2 instead
+video content/*.mp4
+video content/*.mov
+video content/*.avi
+video content/*.mkv
+
+# Source/working files not needed in production
+*.pptx
+*.pdf
+Apex trader funding eval strategy*
