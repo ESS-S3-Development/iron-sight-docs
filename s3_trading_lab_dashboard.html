@@ -942,12 +942,35 @@ body.night-ops .officer-avatar{
     0 0 50px rgba(0,180,255,.10);
   border-color:rgba(0,180,255,.5) !important;
 }
+.clock-block{cursor:pointer;}
 .clock-block:hover{
   box-shadow:
     0 0 0 1px rgba(0,180,255,.35),
     0 0 20px rgba(0,180,255,.22);
   border-color:rgba(0,180,255,.45) !important;
 }
+/* ── Clock selected state (user-pinned) ── */
+.clock-block.selected,.clock-card.selected{
+  border-color:rgba(0,229,255,.60) !important;
+  background:rgba(0,229,255,.07) !important;
+  box-shadow:0 0 0 1px rgba(0,229,255,.35),0 0 18px rgba(0,229,255,.20) !important;
+}
+.clock-block.selected .clock-time{color:#00e5ff !important;}
+.clock-block.selected .clock-label{color:rgba(0,229,255,.80) !important;}
+.clock-card.selected .clock-display{color:#00e5ff !important;text-shadow:0 0 22px rgba(0,229,255,.40) !important;}
+.clock-card.selected .clock-city{color:#00e5ff !important;}
+.clock-card.selected .clock-date{color:rgba(0,229,255,.60) !important;}
+/* Night-ops selected: purple */
+body.night-ops .clock-block.selected,body.night-ops .clock-card.selected{
+  border-color:rgba(192,132,252,.60) !important;
+  background:rgba(168,85,247,.07) !important;
+  box-shadow:0 0 0 1px rgba(168,85,247,.40),0 0 18px rgba(168,85,247,.22) !important;
+}
+body.night-ops .clock-block.selected .clock-time{color:#c084fc !important;}
+body.night-ops .clock-block.selected .clock-label{color:rgba(192,132,252,.80) !important;}
+body.night-ops .clock-card.selected .clock-display{color:#c084fc !important;text-shadow:0 0 22px rgba(168,85,247,.45) !important;}
+body.night-ops .clock-card.selected .clock-city{color:#c084fc !important;}
+body.night-ops .clock-card.selected .clock-date{color:rgba(192,132,252,.60) !important;}
 
 /* ── Hover neon flash — buttons ── */
 .btn:hover{
@@ -1217,19 +1240,19 @@ body.night-ops .av-mini-pl-item:hover{
     </div>
 
     <div class="topbar-center">
-      <div class="clock-block">
+      <div class="clock-block" onclick="toggleClockSelect(this)" title="Click to pin this timezone">
         <div class="clock-time" id="clkNY">--:--:--</div>
         <div class="clock-label">NEW YORK / ET</div>
       </div>
-      <div class="clock-block" style="border-color:rgba(0,229,255,.28);">
-        <div class="clock-time" id="clkCH" style="color:#00e5ff;">--:--:--</div>
+      <div class="clock-block" onclick="toggleClockSelect(this)" title="Click to pin this timezone">
+        <div class="clock-time" id="clkCH">--:--:--</div>
         <div class="clock-label">CME / CT</div>
       </div>
-      <div class="clock-block">
+      <div class="clock-block" onclick="toggleClockSelect(this)" title="Click to pin this timezone">
         <div class="clock-time" id="clkLA">--:--:--</div>
         <div class="clock-label">LOS ANGELES / PT</div>
       </div>
-      <div class="clock-block">
+      <div class="clock-block" onclick="toggleClockSelect(this)" title="Click to pin this timezone">
         <div class="clock-time" id="clkLN">--:--:--</div>
         <div class="clock-label">LONDON / GMT</div>
       </div>
@@ -1887,30 +1910,30 @@ body.night-ops .av-mini-pl-item:hover{
         <div class="page-eyebrow">S3 TRADING LAB // TIME</div>
         <div class="page-title">CLOCK CENTER</div>
         <div class="clock-grid">
-          <div class="clock-card">
+          <div class="clock-card" onclick="toggleClockSelect(this)" title="Click to pin this timezone">
             <div class="clock-city">NEW YORK / ET</div>
             <div class="clock-display" id="big-clk-ny">--:--:--</div>
             <div class="clock-date" id="big-date-ny">---</div>
             <div class="market-status" id="nyse-status">---</div>
           </div>
-          <div class="clock-card" style="border-color:rgba(0,229,255,.3);background:rgba(0,229,255,.03);">
-            <div class="clock-city" style="color:#00e5ff;">CHICAGO / CT · CME</div>
-            <div class="clock-display" id="big-clk-ch" style="color:#00e5ff;text-shadow:0 0 20px rgba(0,229,255,.4);">--:--:--</div>
+          <div class="clock-card" onclick="toggleClockSelect(this)" title="Click to pin this timezone">
+            <div class="clock-city">CHICAGO / CT · CME</div>
+            <div class="clock-display" id="big-clk-ch">--:--:--</div>
             <div class="clock-date" id="big-date-ch">---</div>
             <div class="market-status" id="cme-status">---</div>
           </div>
-          <div class="clock-card">
+          <div class="clock-card" onclick="toggleClockSelect(this)" title="Click to pin this timezone">
             <div class="clock-city">LOS ANGELES / PT</div>
             <div class="clock-display" id="big-clk-la">--:--:--</div>
             <div class="clock-date" id="big-date-la">---</div>
           </div>
-          <div class="clock-card">
+          <div class="clock-card" onclick="toggleClockSelect(this)" title="Click to pin this timezone">
             <div class="clock-city">LONDON / GMT</div>
             <div class="clock-display" id="big-clk-ln">--:--:--</div>
             <div class="clock-date" id="big-date-ln">---</div>
             <div class="market-status" id="lse-status">---</div>
           </div>
-          <div class="clock-card">
+          <div class="clock-card" onclick="toggleClockSelect(this)" title="Click to pin this timezone">
             <div class="clock-city">TOKYO / JST</div>
             <div class="clock-display" id="big-clk-tk">--:--:--</div>
             <div class="clock-date" id="big-date-tk">---</div>
@@ -2512,6 +2535,11 @@ let _alarmAudio  = null;
 
 setInterval(tickClocks, 1000);
 tickClocks();
+
+/* Toggle clock pin highlight — click to select, click again to deselect */
+function toggleClockSelect(el) {
+  el.classList.toggle('selected');
+}
 
 function setAlarm() {
   const t  = document.getElementById('alarmTimeInput').value;
