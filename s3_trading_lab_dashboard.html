@@ -4407,9 +4407,9 @@ function esc(s) {
 <script type="text/plain" id="pine-trnql">
 // This source code is subject to the terms of the Mozilla Public License 2.0
 // © S3_Dev | Executive Special Service
-//
-// 8AM RANGE SWEEP MODEL | MNQ CALIBRATED
-// model_id: 8AM-RSM-MNQ-v1.2
+// Developer | Christopher Casella
+// 8AM RANGE SWEEP MODEL | MNQ AUTO-EXECUTION
+// model_id: TRNQL_8AMsweep.v3
 // Sentinel Status: OBSERVATION
 //
 // ══════════════════════════════════════════════════════════════
@@ -4418,280 +4418,557 @@ function esc(s) {
 // Instrument  : MNQ1! — Micro Nasdaq Futures
 // Tick Size   : 0.25 NQ points
 // Tick Value  : $0.50 per tick / per contract
-// Recommended TF : 1m or 5m
-// Signal Window  : 9:00 AM – 12:00 PM New York
+// Point Value : $2.00 per point / per contract
+// Recommended TF : 5m  (security_lower_tf requires chart TF > 1m for alert eval)
+// Signal Window  : 9:30 AM – 12:00 PM New York
+// Execution      : TradingView native Tradovate → NinjaTrader → Apex Eval
 // ══════════════════════════════════════════════════════════════
+
 
 //@version=6
 strategy(
-    title             = "8AM Range Sweep Model | MNQ",
-    shorttitle        = "8AM-RSM-MNQ",
-    overlay           = true,
-    initial_capital   = 10000,
-    default_qty_type  = strategy.fixed,
-    default_qty_value = 1,
-    commission_type   = strategy.commission.cash_per_contract,
-    commission_value  = 0.62,
-    slippage          = 2,
-    max_lines_count   = 500,
-    max_boxes_count   = 500,
-    max_labels_count  = 200
+    title              = "8AM Range Sweep | MNQ Auto v3",
+    shorttitle         = "TRNQL-8AM-v3",
+    overlay            = true,
+    initial_capital    = 50000,
+    default_qty_type   = strategy.fixed,
+    default_qty_value  = 1,
+    commission_type    = strategy.commission.cash_per_contract,
+    commission_value   = 0.62,
+    slippage           = 1,
+    calc_on_every_tick = false,
+    max_lines_count    = 500,
+    max_labels_count   = 500,
+    max_boxes_count    = 500
 )
 
-// ─────────────────────────────────────────────
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // INPUTS
-// ─────────────────────────────────────────────
-string grp_sess     = "Session"
-string tz           = input.string("America/New_York", "Timezone",                  group=grp_sess)
-int    sig_hr_open  = input.int(9,  "Signal Window Open (Hour)",  minval=8, maxval=12, group=grp_sess)
-int    sig_hr_close = input.int(12, "Signal Window Close (Hour)", minval=9, maxval=16, group=grp_sess)
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-string grp_model    = "Model Parameters"
-float  fvg_min      = input.float(0.25, "Min FVG Size (points)", minval=0, step=0.25, group=grp_model)
-int    ob_len       = input.int(10, "OB Lookback (bars)", minval=3, maxval=50, group=grp_model)
+// ── Source ──
+nqSym    = input.symbol("NQ1!", "NQ Symbol", group="Source")
+mergePts = input.float(5.0, "Merge Threshold (points)", minval=0, step=0.25, tooltip="Levels within this price distance merge into one line", group="Source")
 
-string grp_vis      = "Visuals"
-bool   show_fvg     = input.bool(true,  "Show FVG Boxes",    group=grp_vis)
-bool   show_ifvg    = input.bool(true,  "Show IFVG Zones",   group=grp_vis)
-bool   show_ob      = input.bool(true,  "Show Order Blocks", group=grp_vis)
-bool   show_dash    = input.bool(true,  "Show Dashboard",    group=grp_vis)
+// ── Timeframes ──
+showM   = input.bool(true, "Monthly Levels",  group="Timeframes")
+showW   = input.bool(true, "Weekly Levels",   group="Timeframes")
+showD   = input.bool(true, "Daily Levels",    group="Timeframes")
+show4H  = input.bool(true, "4-Hour Levels",   group="Timeframes")
+show8AM = input.bool(true, "8AM NY Range",    group="Timeframes")
+show7AM = input.bool(true, "7AM Liquidity Pool (TP Reference)", group="Timeframes")
 
-string grp_test     = "Testing"
-bool   test_trigger = input.bool(false, "FORCE MANUAL TRIGGER", group=grp_test)
+// ── Colors ──
+colorMH   = input.color(#9C27B0, "Monthly High/Low",  group="Colors")
+colorMEq  = input.color(#CE93D8, "Monthly 50%",       group="Colors")
+colorWH   = input.color(#FF9800, "Weekly High/Low",   group="Colors")
+colorWEq  = input.color(#FFB74D, "Weekly 50%",        group="Colors")
+colorDH   = input.color(#2196F3, "Daily High/Low",    group="Colors")
+colorDEq  = input.color(#64B5F6, "Daily 50%",         group="Colors")
+color4H   = input.color(#FFEB3B, "4H High/Low",       group="Colors")
+color4Eq  = input.color(#FFF176, "4H 50%",            group="Colors")
+color8AM  = input.color(#00E5FF, "8AM Range",         group="Colors")
+color7AM  = input.color(#FF6D00, "7AM Pool",          group="Colors")
 
-string grp_alert    = "Alerts"
-string wh_key       = input.string("tac_com_alpha_9", "Webhook Secret", group=grp_alert)
+// ── Style ──
+widthM     = input.int(3, "Monthly Width",  minval=1, maxval=4, group="Style")
+widthW     = input.int(2, "Weekly Width",   minval=1, maxval=4, group="Style")
+widthD     = input.int(2, "Daily Width",    minval=1, maxval=4, group="Style")
+width4H    = input.int(1, "4-Hour Width",   minval=1, maxval=4, group="Style")
+lblSz      = input.string(size.normal, "Label Size", options=[size.auto, size.tiny, size.small, size.normal, size.large, size.huge], group="Style")
+lblOff     = input.int(8, "Label X-Offset (bars)", minval=1, maxval=50, group="Style")
+eightLblSz = input.string(size.small, "8AM Range Label Size", options=[size.auto, size.tiny, size.small, size.normal, size.large, size.huge], group="Style")
 
-// ─────────────────────────────────────────────
-// TIME HELPERS
-// ─────────────────────────────────────────────
-int  h          = hour(time, tz)
-bool in_8am     = h == 8
-bool new_8am    = in_8am and not in_8am[1]
-bool in_sigwin  = h >= sig_hr_open and h < sig_hr_close
+// ── 8AM BUY ──
+showBuy   = input.bool(true, "Show 8AM BUY",          group="8AM BUY")
+colorBuy  = input.color(#FFFF00, "8AM BUY Color",     group="8AM BUY")
+alertBuy  = input.bool(true, "Enable 8AM BUY Alert",  group="8AM BUY")
 
-// ─────────────────────────────────────────────
-// STEP 1 — 8AM RANGE
-// ─────────────────────────────────────────────
-var float rng_hi  = na
-var float rng_lo  = na
-var bool  rng_set = false
-var int   rng_bar = na
+// ── 8AM SELL ──
+showSell   = input.bool(true, "Show 8AM SELL",          group="8AM SELL")
+colorSell  = input.color(#FFFF00, "8AM SELL Color",     group="8AM SELL")
+alertSell  = input.bool(true, "Enable 8AM SELL Alert",  group="8AM SELL")
 
-if new_8am
-    rng_hi  := high
-    rng_lo  := low
-    rng_set := false
-    rng_bar := bar_index
+// ── 8AM BUY CONT. ──
+showBuyCont   = input.bool(true, "Show 8AM BUY CONT.",          group="8AM BUY CONT.")
+colorBuyCont  = input.color(#00E676, "8AM BUY CONT. Color",     group="8AM BUY CONT.")
+alertBuyCont  = input.bool(true, "Enable 8AM BUY CONT. Alert",  group="8AM BUY CONT.")
 
-if in_8am and not new_8am
-    rng_hi := math.max(rng_hi, high)
-    rng_lo := math.min(rng_lo, low)
+// ── 8AM SELL CONT. ──
+showSellCont   = input.bool(true, "Show 8AM SELL CONT.",          group="8AM SELL CONT.")
+colorSellCont  = input.color(#FF1744, "8AM SELL CONT. Color",     group="8AM SELL CONT.")
+alertSellCont  = input.bool(true, "Enable 8AM SELL CONT. Alert",  group="8AM SELL CONT.")
 
-if h == sig_hr_open and h[1] != sig_hr_open
-    rng_set := true
+// ── Signal Display ──
+sigDist      = input.int(2, "Signal Distance From Candle", minval=0, maxval=10, tooltip="Offset in ATR multiples to prevent labels merging into candles", group="Signal Display")
+showPrevSess = input.bool(true, "Show Previous Session Signals", tooltip="On = show prior day signals at their original candle and session time. Off = current session only.", group="Signal Display")
 
-var line line_hi = na
-var line line_lo = na
+// ── Macro Filter ──
+autoFilterOn   = input.bool(true,  "Enable Auto Macro Filter",        group="Macro Filter", tooltip="Suppresses trading when 8AM range expands beyond the threshold — likely news/event day.")
+rangeExpMult   = input.float(2.0,  "Range Expansion Multiplier",      group="Macro Filter", minval=1.5, maxval=4.0, step=0.1)
+rangeLookback  = input.int(10,     "Rolling Average Lookback (days)", group="Macro Filter", minval=3, maxval=30)
 
-if new_8am
-    line_hi := line.new(bar_index, high, bar_index + 1, high, color=color.aqua,   width=2, style=line.style_dashed)
-    line_lo := line.new(bar_index, low,  bar_index + 1, low,  color=color.yellow, width=2, style=line.style_dashed)
+// ── Webhook ──
+wh_key = input.string("tac_com_alpha_9", "Webhook Secret", group="Webhook", tooltip="Must match Phantom/Vanguard receiver key")
 
-if (in_8am or in_sigwin) and not na(line_hi)
-    line.set_y1(line_hi, rng_hi)
-    line.set_y2(line_hi, rng_hi)
-    line.set_x2(line_hi, bar_index)
-    line.set_y1(line_lo, rng_lo)
-    line.set_y2(line_lo, rng_lo)
-    line.set_x2(line_lo, bar_index)
+// ── Testing ──
+testTrigger = input.bool(false, "FORCE MANUAL TRIGGER", group="Testing", tooltip="Toggle ON + set alert to 'Once Per Bar' to fire a test webhook to Phantom/Vanguard")
 
-// ─────────────────────────────────────────────
-// STEP 2 — SWEEP DETECTION
-// ─────────────────────────────────────────────
-var bool swept_hi = false
-var bool swept_lo = false
+// ── Execution ──
+autoExec      = input.bool(false, "Auto Execute Orders",   group="Execution", tooltip="When ON: BUY/SELL signals place live orders through Tradovate. When OFF: visuals and NIGHTHAWK alerts still fire, no orders placed. OFF = PHANTOM controls execution via NT8 bridge.")
+riskPerTrade  = input.float(125.0, "Risk Per Trade ($)",   group="Execution", minval=10, maxval=500, step=5)
+maxContracts  = input.int(10,     "Max Contracts",         group="Execution", minval=1, maxval=50)
 
-if new_8am
-    swept_hi := false
-    swept_lo := false
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// FETCH NQ DATA — chart timeframe, no repaint
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+nqH = request.security(nqSym, timeframe.period, high, barmerge.gaps_off, barmerge.lookahead_off)
+nqL = request.security(nqSym, timeframe.period, low,  barmerge.gaps_off, barmerge.lookahead_off)
 
-if rng_set and not swept_hi and high > rng_hi
-    swept_hi := true
-    label.new(bar_index, high, "HIGH SWEPT\n→ Target: " + str.tostring(math.round(rng_lo, 2)),
-              style=label.style_label_down, color=color.new(color.red, 20),
-              textcolor=color.white, size=size.small)
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// PERIOD CHANGE DETECTION
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+isNewMonth = ta.change(time("M"))   != 0
+isNewWeek  = ta.change(time("W"))   != 0
+isNewDay   = ta.change(time("D"))   != 0
+isNew4H    = ta.change(time("240")) != 0
 
-if rng_set and not swept_lo and low < rng_lo
-    swept_lo := true
-    label.new(bar_index, low, "LOW SWEPT\n→ Target: " + str.tostring(math.round(rng_hi, 2)),
-              style=label.style_label_up, color=color.new(color.green, 20),
-              textcolor=color.white, size=size.small)
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// TRACK CURRENT PERIOD HIGHS & LOWS
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+var float mH  = na, var float mL  = na
+var float wH  = na, var float wL  = na
+var float dH  = na, var float dL  = na
+var float h4H = na, var float h4L = na
 
-// ─────────────────────────────────────────────
-// STEP 3 — FVG DETECTION
-// ─────────────────────────────────────────────
-bool bull_fvg_fired = low  > high[2] and (low  - high[2]) >= fvg_min
-bool bear_fvg_fired = high < low[2]  and (low[2] - high)  >= fvg_min
+if isNewMonth
+    mH := nqH, mL := nqL
+else
+    mH := math.max(nz(mH, nqH), nqH), mL := math.min(nz(mL, nqL), nqL)
 
-var float bfvg_top = na
-var float bfvg_bot = na
-var float dfvg_top = na
-var float dfvg_bot = na
+if isNewWeek
+    wH := nqH, wL := nqL
+else
+    wH := math.max(nz(wH, nqH), nqH), wL := math.min(nz(wL, nqL), nqL)
 
-if new_8am
-    bfvg_top := na
-    bfvg_bot := na
-    dfvg_top := na
-    dfvg_bot := na
+if isNewDay
+    dH := nqH, dL := nqL
+else
+    dH := math.max(nz(dH, nqH), nqH), dL := math.min(nz(dL, nqL), nqL)
 
-if bull_fvg_fired
-    bfvg_top := low
-    bfvg_bot := high[2]
-    if show_fvg
-        box.new(bar_index - 2, bfvg_top, bar_index + 30, bfvg_bot,
-                bgcolor=color.new(color.green, 85), border_color=color.new(color.green, 50), border_width=1)
+if isNew4H
+    h4H := nqH, h4L := nqL
+else
+    h4H := math.max(nz(h4H, nqH), nqH), h4L := math.min(nz(h4L, nqL), nqL)
 
-if bear_fvg_fired
-    dfvg_top := low[2]
-    dfvg_bot := high
-    if show_fvg
-        box.new(bar_index - 2, dfvg_top, bar_index + 30, dfvg_bot,
-                bgcolor=color.new(color.red, 85), border_color=color.new(color.red, 50), border_width=1)
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// EQUILIBRIUM (50%)
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+mEq  = not na(mH)  and not na(mL)  ? (mH  + mL)  / 2 : na
+wEq  = not na(wH)  and not na(wL)  ? (wH  + wL)  / 2 : na
+dEq  = not na(dH)  and not na(dL)  ? (dH  + dL)  / 2 : na
+h4Eq = not na(h4H) and not na(h4L) ? (h4H + h4L) / 2 : na
 
-// ─────────────────────────────────────────────
-// STEP 4 — IFVG DETECTION
-// ─────────────────────────────────────────────
-var bool  bull_ifvg     = false
-var float bull_ifvg_top = na
-var float bull_ifvg_bot = na
-var bool  bear_ifvg     = false
-var float bear_ifvg_top = na
-var float bear_ifvg_bot = na
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// PERIOD START BAR
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+var int mStart  = na
+var int wStart  = na
+var int dStart  = na
+var int h4Start = na
+if isNewMonth, mStart  := bar_index
+if isNewWeek,  wStart  := bar_index
+if isNewDay,   dStart  := bar_index
+if isNew4H,    h4Start := bar_index
 
-if new_8am
-    bull_ifvg     := false
-    bear_ifvg     := false
-    bull_ifvg_top := na
-    bull_ifvg_bot := na
-    bear_ifvg_top := na
-    bear_ifvg_bot := na
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// 7AM NY LIQUIDITY POOL — TP Reference Level
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+in7AM    = not na(time(timeframe.period, "0700-0800", "America/New_York"))
+isNew7AM = in7AM and not in7AM[1]
 
-bool new_bull_ifvg = not na(dfvg_top) and close > dfvg_top and not bull_ifvg
-bool new_bear_ifvg = not na(bfvg_bot) and close < bfvg_bot and not bear_ifvg
+var float sevenH        = na
+var float sevenL        = na
+var int   sevenStartBar = na
+var bool  sevenComplete = false
 
-if new_bull_ifvg
-    bull_ifvg     := true
-    bull_ifvg_top := dfvg_top
-    bull_ifvg_bot := dfvg_bot
-    if show_ifvg
-        box.new(bar_index, bull_ifvg_top, bar_index + 20, bull_ifvg_bot,
-                bgcolor=color.new(color.teal, 65), border_color=color.new(color.teal, 20), border_width=2)
+if isNew7AM
+    sevenH := high, sevenL := low, sevenStartBar := bar_index, sevenComplete := false
 
-if new_bear_ifvg
-    bear_ifvg     := true
-    bear_ifvg_top := bfvg_top
-    bear_ifvg_bot := bfvg_bot
-    if show_ifvg
-        box.new(bar_index, bear_ifvg_top, bar_index + 20, bear_ifvg_bot,
-                bgcolor=color.new(color.purple, 65), border_color=color.new(color.purple, 20), border_width=2)
+if in7AM and not isNew7AM
+    sevenH := math.max(nz(sevenH, high), high)
+    sevenL := math.min(nz(sevenL, low),  low)
 
-// ─────────────────────────────────────────────
-// ORDER BLOCK DETECTION
-// ─────────────────────────────────────────────
-var bool  bull_ob    = false
-var float bull_ob_hi = na
-var float bull_ob_lo = na
-var bool  bear_ob    = false
-var float bear_ob_hi = na
-var float bear_ob_lo = na
+bool sevenJustEnded = not in7AM and in7AM[1]
+if sevenJustEnded
+    sevenComplete := true
 
-if new_8am
-    bull_ob    := false
-    bear_ob    := false
-    bull_ob_hi := na
-    bull_ob_lo := na
-    bear_ob_hi := na
-    bear_ob_lo := na
+var line  sevenHLine = na
+var line  sevenLLine = na
+var label sevenLabel = na
 
-bool up_disp   = close > ta.highest(high[1], ob_len)
-bool down_disp = close < ta.lowest(low[1],   ob_len)
+if show7AM and sevenComplete and not na(sevenH) and not na(sevenL) and not na(sevenStartBar)
+    line.delete(sevenHLine), line.delete(sevenLLine), label.delete(sevenLabel)
+    sevenHLine := line.new(sevenStartBar, sevenH, bar_index, sevenH, extend=extend.right, color=color.new(color7AM, 30), width=1, style=line.style_dotted)
+    sevenLLine := line.new(sevenStartBar, sevenL, bar_index, sevenL, extend=extend.right, color=color.new(color7AM, 30), width=1, style=line.style_dotted)
+    sevenLabel := label.new(bar_index + lblOff, (sevenH + sevenL) / 2, "7AM POOL\nH: " + str.tostring(math.round(sevenH, 2)) + "\nL: " + str.tostring(math.round(sevenL, 2)), style=label.style_none, textcolor=color.new(color7AM, 20), size=size.tiny, textalign=text.align_left)
 
-if up_disp and not bull_ob
-    for i = 1 to ob_len
-        if close[i] < open[i]
-            bull_ob    := true
-            bull_ob_hi := high[i]
-            bull_ob_lo := low[i]
-            if show_ob
-                box.new(bar_index - i, bull_ob_hi, bar_index + 30, bull_ob_lo,
-                        bgcolor=color.new(color.blue, 82), border_color=color.new(color.blue, 40), border_width=1)
-            break
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// 8AM NY SESSION — 1-minute intrabar tracking
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+in8AM = not na(time(timeframe.period, "0800-0900", "America/New_York"))
 
-if down_disp and not bear_ob
-    for i = 1 to ob_len
-        if close[i] > open[i]
-            bear_ob    := true
-            bear_ob_hi := high[i]
-            bear_ob_lo := low[i]
-            if show_ob
-                box.new(bar_index - i, bear_ob_hi, bar_index + 30, bear_ob_lo,
-                        bgcolor=color.new(color.orange, 82), border_color=color.new(color.orange, 40), border_width=1)
-            break
+array<float> mnq1M_h = request.security_lower_tf(syminfo.tickerid, "1", high)
+array<float> mnq1M_l = request.security_lower_tf(syminfo.tickerid, "1", low)
 
-// ─────────────────────────────────────────────
-// STEP 5 — ENTRY SIGNAL
-// ─────────────────────────────────────────────
-bool can_trade  = rng_set and in_sigwin and strategy.position_size == 0
-bool long_sig   = can_trade and swept_lo and bull_ifvg and bull_ob
-bool short_sig  = can_trade and swept_hi and bear_ifvg and bear_ob
+var float eightH        = na
+var float eightL        = na
+var int   eightStartBar = na
+var int   eightEndBar   = na
+var bool  eightComplete = false
 
-float long_sl   = bull_ob_lo
-float long_tp   = rng_hi
-float short_sl  = bear_ob_hi
-float short_tp  = rng_lo
+bool isNew8AM = in8AM and not in8AM[1]
+if isNew8AM
+    eightH := na, eightL := na, eightStartBar := bar_index, eightComplete := false
 
-float long_rr   = long_sig  and not na(long_sl)  and (close - long_sl)  > 0 ? math.round((long_tp  - close)    / (close - long_sl),  1) : float(na)
-float short_rr  = short_sig and not na(short_sl) and (short_sl - close) > 0 ? math.round((close    - short_tp) / (short_sl - close), 1) : float(na)
+if show8AM and in8AM and array.size(mnq1M_h) > 0
+    float tmpH = na(eightH) ? array.get(mnq1M_h, 0) : eightH
+    float tmpL = na(eightL) ? array.get(mnq1M_l, 0) : eightL
+    for i = 0 to array.size(mnq1M_h) - 1
+        tmpH := math.max(tmpH, array.get(mnq1M_h, i))
+        tmpL := math.min(tmpL, array.get(mnq1M_l, i))
+    eightH := tmpH, eightL := tmpL
 
-string long_payload  = '{"secret":"' + wh_key + '","model_id":"8AM-RSM-MNQ-V1","ticker":"' + syminfo.tickerid + '","action":"BUY","price":'   + str.tostring(close) + ',"metadata":{"tier":"8AM_SWEEP_REVERSAL","sl":' + str.tostring(math.round(long_sl,  2)) + ',"tp":' + str.tostring(math.round(long_tp,  2)) + '}}'
-string short_payload = '{"secret":"' + wh_key + '","model_id":"8AM-RSM-MNQ-V1","ticker":"' + syminfo.tickerid + '","action":"SELL","price":' + str.tostring(close) + ',"metadata":{"tier":"8AM_SWEEP_REVERSAL","sl":' + str.tostring(math.round(short_sl, 2)) + ',"tp":' + str.tostring(math.round(short_tp, 2)) + '}}'
+bool eightJustEnded = not in8AM and in8AM[1]
+if eightJustEnded
+    eightComplete := true, eightEndBar := bar_index
 
-if long_sig
-    label.new(bar_index, low,
-              "BUY\nSL: "  + str.tostring(math.round(long_sl, 2)) +
-              "\nTP: "     + str.tostring(math.round(long_tp,  2)) +
-              "\nR:R "     + str.tostring(na(long_rr)  ? 0.0 : long_rr,  "#.#") + ":1",
-              style=label.style_triangleup, color=color.new(color.lime, 0),
-              textcolor=color.white, size=size.large)
-    strategy.entry("LONG",  strategy.long,  alert_message=long_payload)
-    strategy.exit("LONG-X",  from_entry="LONG",  stop=long_sl,  limit=long_tp)
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// MACRO NO-TRADE FILTER — 2-Layer Hybrid
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+bool noTradeManual = false
 
-if short_sig
-    label.new(bar_index, high,
-              "SELL\nSL: " + str.tostring(math.round(short_sl, 2)) +
-              "\nTP: "     + str.tostring(math.round(short_tp,  2)) +
-              "\nR:R "     + str.tostring(na(short_rr) ? 0.0 : short_rr, "#.#") + ":1",
-              style=label.style_triangledown, color=color.new(color.red, 0),
-              textcolor=color.white, size=size.large)
-    strategy.entry("SHORT", strategy.short, alert_message=short_payload)
-    strategy.exit("SHORT-X", from_entry="SHORT", stop=short_sl, limit=short_tp)
+var float[] rangeHist  = array.new_float(0)
+var float   rangeAvg   = na
+var bool    rangeFired = false
 
-// ─────────────────────────────────────────────
-// ALERT CONDITIONS
-// ─────────────────────────────────────────────
-alertcondition(swept_hi and not swept_hi[1], "8AM High Swept",      '{"model_id":"8AM-RSM-MNQ-V1","event":"HIGH_SWEPT"}')
-alertcondition(swept_lo and not swept_lo[1], "8AM Low Swept",       '{"model_id":"8AM-RSM-MNQ-V1","event":"LOW_SWEPT"}')
-alertcondition(new_bull_ifvg,                "Bullish IFVG Formed", '{"model_id":"8AM-RSM-MNQ-V1","event":"BULL_IFVG"}')
-alertcondition(new_bear_ifvg,                "Bearish IFVG Formed", '{"model_id":"8AM-RSM-MNQ-V1","event":"BEAR_IFVG"}')
-alertcondition(long_sig,                     "Long Entry Signal",   '{"model_id":"8AM-RSM-MNQ-V1","action":"BUY"}')
-alertcondition(short_sig,                    "Short Entry Signal",  '{"model_id":"8AM-RSM-MNQ-V1","action":"SELL"}')
+if eightJustEnded and not na(eightH) and not na(eightL)
+    float todayRange = eightH - eightL
+    if array.size(rangeHist) >= 3
+        float sum = 0.0
+        int   n   = math.min(array.size(rangeHist), rangeLookback)
+        for i = 0 to n - 1
+            sum += array.get(rangeHist, array.size(rangeHist) - 1 - i)
+        rangeAvg := sum / n
+    array.push(rangeHist, todayRange)
+    if array.size(rangeHist) > 30
+        array.shift(rangeHist)
+    rangeFired := true
 
-if test_trigger and barstate.islast
-    string test_msg = '{"secret":"' + wh_key + '","model_id":"8AM-RSM-MNQ-V1","ticker":"' + syminfo.tickerid + '","action":"TEST"}'
-    alert(test_msg, alert.freq_all)
+var bool noTradeAuto = false
+if isNew8AM
+    noTradeAuto := false
+if rangeFired and autoFilterOn and not na(rangeAvg)
+    float todayRange = eightH - eightL
+    noTradeAuto := todayRange > rangeExpMult * rangeAvg
 
-bgcolor(in_sigwin and rng_set ? color.new(color.blue, 95) : color(na), title="Signal Window")
+bool noTradeDay = noTradeManual or noTradeAuto
+
+var label macroWarnLabel = na
+if noTradeDay and eightComplete and barstate.islast
+    label.delete(macroWarnLabel)
+    macroWarnLabel := label.new(bar_index, high * 1.001,
+        "⚠ MACRO FILTER — NO TRADE DAY\n8AM range expansion detected",
+        style=label.style_label_down, color=color.new(color.red, 10),
+        textcolor=color.white, size=size.normal)
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// MERGE ENGINE — Collect, sort, group, draw
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+var line[]  drawnLines  = array.new<line>()
+var label[] drawnLabels = array.new<label>()
+
+if array.size(drawnLines) > 0
+    for i = 0 to array.size(drawnLines) - 1
+        line.delete(array.get(drawnLines, i))
+    array.clear(drawnLines)
+if array.size(drawnLabels) > 0
+    for i = 0 to array.size(drawnLabels) - 1
+        label.delete(array.get(drawnLabels, i))
+    array.clear(drawnLabels)
+
+float[]  lvlPrice    = array.new<float>()
+string[] lvlName     = array.new<string>()
+color[]  lvlColor    = array.new<color>()
+int[]    lvlWidth    = array.new<int>()
+int[]    lvlStyle    = array.new<int>()
+int[]    lvlStart    = array.new<int>()
+int[]    lvlPriority = array.new<int>()
+
+if showM and not na(mH) and not na(mStart)
+    array.push(lvlPrice, mH),  array.push(lvlName, "M HIGH"), array.push(lvlColor, colorMH),  array.push(lvlWidth, widthM), array.push(lvlStyle, 0), array.push(lvlStart, mStart), array.push(lvlPriority, 1)
+if showM and not na(mL) and not na(mStart)
+    array.push(lvlPrice, mL),  array.push(lvlName, "M LOW"),  array.push(lvlColor, colorMH),  array.push(lvlWidth, widthM), array.push(lvlStyle, 0), array.push(lvlStart, mStart), array.push(lvlPriority, 1)
+if showM and not na(mEq) and not na(mStart)
+    array.push(lvlPrice, mEq), array.push(lvlName, "M 50%"),  array.push(lvlColor, colorMEq), array.push(lvlWidth, 1),      array.push(lvlStyle, 1), array.push(lvlStart, mStart), array.push(lvlPriority, 1)
+if showW and not na(wH) and not na(wStart)
+    array.push(lvlPrice, wH),  array.push(lvlName, "W HIGH"), array.push(lvlColor, colorWH),  array.push(lvlWidth, widthW), array.push(lvlStyle, 0), array.push(lvlStart, wStart), array.push(lvlPriority, 2)
+if showW and not na(wL) and not na(wStart)
+    array.push(lvlPrice, wL),  array.push(lvlName, "W LOW"),  array.push(lvlColor, colorWH),  array.push(lvlWidth, widthW), array.push(lvlStyle, 0), array.push(lvlStart, wStart), array.push(lvlPriority, 2)
+if showW and not na(wEq) and not na(wStart)
+    array.push(lvlPrice, wEq), array.push(lvlName, "W 50%"),  array.push(lvlColor, colorWEq), array.push(lvlWidth, 1),      array.push(lvlStyle, 1), array.push(lvlStart, wStart), array.push(lvlPriority, 2)
+if showD and not na(dH) and not na(dStart)
+    array.push(lvlPrice, dH),  array.push(lvlName, "D HIGH"), array.push(lvlColor, colorDH),  array.push(lvlWidth, widthD), array.push(lvlStyle, 0), array.push(lvlStart, dStart), array.push(lvlPriority, 3)
+if showD and not na(dL) and not na(dStart)
+    array.push(lvlPrice, dL),  array.push(lvlName, "D LOW"),  array.push(lvlColor, colorDH),  array.push(lvlWidth, widthD), array.push(lvlStyle, 0), array.push(lvlStart, dStart), array.push(lvlPriority, 3)
+if showD and not na(dEq) and not na(dStart)
+    array.push(lvlPrice, dEq), array.push(lvlName, "D 50%"),  array.push(lvlColor, colorDEq), array.push(lvlWidth, 1),      array.push(lvlStyle, 1), array.push(lvlStart, dStart), array.push(lvlPriority, 3)
+if show4H and not na(h4H) and not na(h4Start)
+    array.push(lvlPrice, h4H),  array.push(lvlName, "4H HIGH"), array.push(lvlColor, color4H),  array.push(lvlWidth, width4H), array.push(lvlStyle, 0), array.push(lvlStart, h4Start), array.push(lvlPriority, 4)
+if show4H and not na(h4L) and not na(h4Start)
+    array.push(lvlPrice, h4L),  array.push(lvlName, "4H LOW"),  array.push(lvlColor, color4H),  array.push(lvlWidth, width4H), array.push(lvlStyle, 0), array.push(lvlStart, h4Start), array.push(lvlPriority, 4)
+if show4H and not na(h4Eq) and not na(h4Start)
+    array.push(lvlPrice, h4Eq), array.push(lvlName, "4H 50%"),  array.push(lvlColor, color4Eq), array.push(lvlWidth, 1),       array.push(lvlStyle, 1), array.push(lvlStart, h4Start), array.push(lvlPriority, 4)
+
+int nLevels = array.size(lvlPrice)
+
+if nLevels > 1
+    int[] sortIdx = array.new<int>()
+    for i = 0 to nLevels - 1
+        array.push(sortIdx, i)
+    for i = 0 to nLevels - 2
+        for j = 0 to nLevels - 2 - i
+            int a = array.get(sortIdx, j)
+            int b = array.get(sortIdx, j + 1)
+            if array.get(lvlPrice, a) > array.get(lvlPrice, b)
+                array.set(sortIdx, j, b)
+                array.set(sortIdx, j + 1, a)
+    float[]  tmpP  = array.new<float>()
+    string[] tmpN  = array.new<string>()
+    color[]  tmpC  = array.new<color>()
+    int[]    tmpW  = array.new<int>()
+    int[]    tmpS  = array.new<int>()
+    int[]    tmpSt = array.new<int>()
+    int[]    tmpPr = array.new<int>()
+    for i = 0 to nLevels - 1
+        int si = array.get(sortIdx, i)
+        array.push(tmpP,  array.get(lvlPrice,    si))
+        array.push(tmpN,  array.get(lvlName,     si))
+        array.push(tmpC,  array.get(lvlColor,    si))
+        array.push(tmpW,  array.get(lvlWidth,    si))
+        array.push(tmpS,  array.get(lvlStyle,    si))
+        array.push(tmpSt, array.get(lvlStart,    si))
+        array.push(tmpPr, array.get(lvlPriority, si))
+    lvlPrice := tmpP, lvlName := tmpN, lvlColor := tmpC, lvlWidth := tmpW, lvlStyle := tmpS, lvlStart := tmpSt, lvlPriority := tmpPr
+
+int i = 0
+while i < nLevels
+    float  grpBase  = array.get(lvlPrice, i)
+    float  grpSum   = array.get(lvlPrice, i)
+    string grpText  = array.get(lvlName,  i)
+    color  grpColor = array.get(lvlColor, i)
+    int    grpWidth = array.get(lvlWidth, i)
+    int    grpStyle = array.get(lvlStyle, i)
+    int    grpStart = array.get(lvlStart, i)
+    int    grpPrio  = array.get(lvlPriority, i)
+    int    grpCount = 1
+    int    j = i + 1
+    while j < nLevels and math.abs(array.get(lvlPrice, j) - grpBase) <= mergePts
+        grpSum   += array.get(lvlPrice, j)
+        grpText  += " + " + array.get(lvlName, j)
+        if array.get(lvlPriority, j) < grpPrio
+            grpColor := array.get(lvlColor, j)
+            grpPrio  := array.get(lvlPriority, j)
+        grpWidth := math.max(grpWidth, array.get(lvlWidth, j))
+        grpStyle := grpStyle == 0 or array.get(lvlStyle, j) == 0 ? 0 : 1
+        grpStart := math.min(grpStart, array.get(lvlStart, j))
+        grpCount += 1
+        j        += 1
+    float  grpPrice = grpSum / grpCount
+    string lblText  = grpText + " " + str.tostring(grpPrice, format.mintick)
+    line  ln = line.new(x1=grpStart, y1=grpPrice, x2=bar_index, y2=grpPrice, extend=extend.right, color=grpColor, width=grpWidth, style=grpStyle == 0 ? line.style_solid : line.style_dashed)
+    array.push(drawnLines, ln)
+    label lb = label.new(x=bar_index + lblOff, y=grpPrice, text=lblText, style=label.style_none, textcolor=grpColor, size=lblSz, textalign=text.align_left)
+    array.push(drawnLabels, lb)
+    i := j
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// 8AM NY RANGE VISUALS
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+int barsPerHour   = timeframe.isintraday ? math.max(1, math.round(60 / math.max(1, timeframe.multiplier))) : 12
+int extendBars8AM = barsPerHour * 2
+
+var box   eightBox    = na
+var line  eightHLine  = na
+var line  eightLLine  = na
+var label eightRLabel = na
+
+if show8AM and eightComplete and not na(eightH) and not na(eightL) and not na(eightEndBar)
+    box.delete(eightBox), line.delete(eightHLine), line.delete(eightLLine), label.delete(eightRLabel)
+    int   boxRight = eightEndBar + extendBars8AM
+    eightBox    := box.new(left=eightStartBar, top=eightH, right=boxRight, bottom=eightL, bgcolor=color.new(color8AM, 88), border_color=color8AM, border_width=2, border_style=line.style_dashed)
+    int   lineEnd  = eightEndBar + extendBars8AM
+    eightHLine  := line.new(x1=eightEndBar, y1=eightH, x2=lineEnd, y2=eightH, color=color8AM, width=2, style=line.style_solid)
+    eightLLine  := line.new(x1=eightEndBar, y1=eightL, x2=lineEnd, y2=eightL, color=color8AM, width=2, style=line.style_solid)
+    int   boxMidX  = math.round(math.avg(eightStartBar, boxRight))
+    float boxMidY  = (eightH + eightL) / 2
+    eightRLabel := label.new(x=int(boxMidX), y=boxMidY, text="8AM RANGE", style=label.style_none, textcolor=color8AM, size=eightLblSz, textalign=text.align_center)
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// SIGNAL ENGINE
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+array<float> mnq1M_c = request.security_lower_tf(syminfo.tickerid, "1", close)
+array<float> mnq1M_o = request.security_lower_tf(syminfo.tickerid, "1", open)
+array<int>   mnq1M_t = request.security_lower_tf(syminfo.tickerid, "1", time)
+
+float sigATR = ta.atr(9)
+inSigWindow  = not na(time(timeframe.period, "0930-1200", "America/New_York"))
+
+var bool buyFired      = false
+var bool sellFired     = false
+var bool contBuyFired  = false
+var bool contSellFired = false
+var int  buyBarIdx     = na
+var int  sellBarIdx    = na
+var bool buyPullbackSeen  = false
+var bool sellPullbackSeen = false
+var float sigBuySL  = na
+var float sigSellSL = na
+
+if isNew8AM
+    buyFired := false, sellFired := false, contBuyFired := false, contSellFired := false
+    buyBarIdx := na, sellBarIdx := na
+    buyPullbackSeen := false, sellPullbackSeen := false
+    sigBuySL := na, sigSellSL := na
+
+bool rawBuy       = false
+bool rawSell      = false
+bool contFireBuy  = false
+bool contFireSell = false
+
+if eightComplete and not na(eightH) and not na(eightL) and inSigWindow and not noTradeDay and array.size(mnq1M_l) > 0 and array.size(mnq1M_h) > 0 and array.size(mnq1M_c) > 0 and array.size(mnq1M_t) > 0
+    int nBars = array.size(mnq1M_l)
+    for k = 0 to nBars - 1
+        float iH = array.get(mnq1M_h, k)
+        float iL = array.get(mnq1M_l, k)
+        float iC = array.get(mnq1M_c, k)
+        int   iT = array.get(mnq1M_t, k)
+        bool after930 = hour(iT, "America/New_York") > 9 or (hour(iT, "America/New_York") == 9 and minute(iT, "America/New_York") >= 30)
+        if after930
+            if not buyFired and not rawBuy and iL < eightL and iC > eightL
+                rawBuy := true, buyFired := true, buyBarIdx := bar_index
+                sigBuySL := iL - syminfo.mintick
+            if not sellFired and not rawSell and iH > eightH and iC < eightH
+                rawSell := true, sellFired := true, sellBarIdx := bar_index
+                sigSellSL := iH + syminfo.mintick
+            if showBuyCont and not contBuyFired and not contFireBuy and not na(buyBarIdx)
+                bool buyEligible = buyFired and (bar_index - buyBarIdx) <= 30
+                if buyEligible
+                    if iL < eightH, buyPullbackSeen := true
+                    if buyPullbackSeen and iC > eightH
+                        contFireBuy := true, contBuyFired := true
+            if showSellCont and not contSellFired and not contFireSell and not na(sellBarIdx)
+                bool sellEligible = sellFired and (bar_index - sellBarIdx) <= 30
+                if sellEligible
+                    if iH > eightL, sellPullbackSeen := true
+                    if sellPullbackSeen and iC < eightL
+                        contFireSell := true, contSellFired := true
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// OVERLAP PREVENTION
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+int sigPrio = 0
+if rawBuy,       sigPrio := 1
+if rawSell      and sigPrio == 0, sigPrio := 2
+if contFireBuy  and sigPrio == 0, sigPrio := 3
+if contFireSell and sigPrio == 0, sigPrio := 4
+
+bool dispBuy      = sigPrio == 1
+bool dispSell     = sigPrio == 2
+bool dispBuyCont  = sigPrio == 3
+bool dispSellCont = sigPrio == 4
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// SIGNAL VISUALIZATION
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+plotshape(showBuy      and dispBuy,      "8AM BUY",        style=shape.triangleup,   location=location.belowbar, color=colorBuy,      size=size.small, text="8AM BUY",        textcolor=colorBuy)
+plotshape(showSell     and dispSell,     "8AM SELL",       style=shape.triangledown, location=location.abovebar, color=colorSell,     size=size.small, text="8AM SELL",       textcolor=colorSell)
+plotshape(showBuyCont  and dispBuyCont,  "8AM BUY CONT.",  style=shape.diamond,      location=location.belowbar, color=colorBuyCont,  size=size.small, text="8AM BUY CONT.",  textcolor=colorBuyCont)
+plotshape(showSellCont and dispSellCont, "8AM SELL CONT.", style=shape.diamond,      location=location.abovebar, color=colorSellCont, size=size.small, text="8AM SELL CONT.", textcolor=colorSellCont)
+
+float buyTP  = not na(sevenH) and sevenComplete and sevenH > close ? sevenH : eightH
+float sellTP = not na(sevenL) and sevenComplete and sevenL < close ? sevenL : eightL
+
+if dispBuy
+    float  buySL  = not na(sigBuySL) ? sigBuySL : eightL - syminfo.mintick
+    float  buyRR  = (buyTP - close) / math.max(close - buySL, syminfo.mintick)
+    string tpSrc  = not na(sevenH) and sevenComplete and sevenH > close ? "7AM Pool" : "8AM Range"
+    label.new(bar_index, low, "BUY\nSL: " + str.tostring(math.round(buySL, 2)) + "\nTP: " + str.tostring(math.round(buyTP, 2)) + " (" + tpSrc + ")" + "\nR:R " + str.tostring(math.round(buyRR, 1)) + ":1", style=label.style_label_up, color=color.new(color.lime, 20), textcolor=color.white, size=size.small)
+
+if dispSell
+    float  sellSL = not na(sigSellSL) ? sigSellSL : eightH + syminfo.mintick
+    float  sellRR = (close - sellTP) / math.max(sellSL - close, syminfo.mintick)
+    string tpSrc  = not na(sevenL) and sevenComplete and sevenL < close ? "7AM Pool" : "8AM Range"
+    label.new(bar_index, high, "SELL\nSL: " + str.tostring(math.round(sellSL, 2)) + "\nTP: " + str.tostring(math.round(sellTP, 2)) + " (" + tpSrc + ")" + "\nR:R " + str.tostring(math.round(sellRR, 1)) + ":1", style=label.style_label_down, color=color.new(color.red, 20), textcolor=color.white, size=size.small)
+
+if dispBuyCont
+    label.new(bar_index, low,  "BUY CONT. [DISC]",  style=label.style_label_up,   color=color.new(colorBuyCont,  30), textcolor=color.white, size=size.small)
+if dispSellCont
+    label.new(bar_index, high, "SELL CONT. [DISC]", style=label.style_label_down, color=color.new(colorSellCont, 30), textcolor=color.white, size=size.small)
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// DYNAMIC POSITION SIZING
+// MNQ: 1 point = $2.00 per contract
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+float slDistBuy  = dispBuy  and not na(sigBuySL)  ? math.max(close - sigBuySL,  syminfo.mintick) : na
+float slDistSell = dispSell and not na(sigSellSL) ? math.max(sigSellSL - close, syminfo.mintick) : na
+
+int contractsBuy  = not na(slDistBuy)  ? math.max(1, math.min(int(math.floor(riskPerTrade / (slDistBuy  * 2.0))), maxContracts)) : 1
+int contractsSell = not na(slDistSell) ? math.max(1, math.min(int(math.floor(riskPerTrade / (slDistSell * 2.0))), maxContracts)) : 1
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// AUTO-EXECUTION
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+bool canEnterLong  = autoExec and dispBuy  and strategy.position_size == 0
+bool canEnterShort = autoExec and dispSell and strategy.position_size == 0
+
+if canEnterLong
+    strategy.entry("LONG",  strategy.long,  qty=contractsBuy)
+    strategy.exit("LONG-X",  from_entry="LONG",  stop=sigBuySL,  limit=buyTP)
+
+if canEnterShort
+    strategy.entry("SHORT", strategy.short, qty=contractsSell)
+    strategy.exit("SHORT-X", from_entry="SHORT", stop=sigSellSL, limit=sellTP)
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// WEBHOOK ALERTS
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+if alertBuy and dispBuy and barstate.isconfirmed
+    float  _sl        = not na(sigBuySL) ? sigBuySL : eightL - syminfo.mintick
+    string buyPayload = '{"secret":"' + wh_key + '","model_id":"TRNQL_8AMsweep.v3","ticker":"' + syminfo.ticker + '","action":"BUY","price":' + str.tostring(close) + ',"metadata":{"sl":' + str.tostring(math.round(_sl, 2)) + ',"tp":' + str.tostring(math.round(buyTP, 2)) + ',"range_high":' + str.tostring(math.round(eightH, 2)) + ',"range_low":' + str.tostring(math.round(eightL, 2)) + ',"fvg_size":' + str.tostring(math.round(eightH - eightL, 2)) + ',"sweep_direction":"LONG_SWEEP","tier":"8AM_SWEEP_REVERSAL","note":"8AM low swept — 7AM pool TP","timestamp":' + str.tostring(timenow) + '}}'
+    alert(buyPayload, alert.freq_once_per_bar_close)
+
+if alertSell and dispSell and barstate.isconfirmed
+    float  _sl         = not na(sigSellSL) ? sigSellSL : eightH + syminfo.mintick
+    string sellPayload = '{"secret":"' + wh_key + '","model_id":"TRNQL_8AMsweep.v3","ticker":"' + syminfo.ticker + '","action":"SELL","price":' + str.tostring(close) + ',"metadata":{"sl":' + str.tostring(math.round(_sl, 2)) + ',"tp":' + str.tostring(math.round(sellTP, 2)) + ',"range_high":' + str.tostring(math.round(eightH, 2)) + ',"range_low":' + str.tostring(math.round(eightL, 2)) + ',"fvg_size":' + str.tostring(math.round(eightH - eightL, 2)) + ',"sweep_direction":"SHORT_SWEEP","tier":"8AM_SWEEP_REVERSAL","note":"8AM high swept — 7AM pool TP","timestamp":' + str.tostring(timenow) + '}}'
+    alert(sellPayload, alert.freq_once_per_bar_close)
+
+if alertBuyCont and dispBuyCont and barstate.isconfirmed
+    string buyContPayload = '{"secret":"' + wh_key + '","model_id":"TRNQL_8AMsweep.v3","ticker":"' + syminfo.ticker + '","action":"BUY_CONT","price":' + str.tostring(close) + ',"metadata":{"tier":"8AM_CONTINUATION","note":"DISCRETIONARY — manual confirm required","timestamp":' + str.tostring(timenow) + '}}'
+    alert(buyContPayload, alert.freq_once_per_bar_close)
+
+if alertSellCont and dispSellCont and barstate.isconfirmed
+    string sellContPayload = '{"secret":"' + wh_key + '","model_id":"TRNQL_8AMsweep.v3","ticker":"' + syminfo.ticker + '","action":"SELL_CONT","price":' + str.tostring(close) + ',"metadata":{"tier":"8AM_CONTINUATION","note":"DISCRETIONARY — manual confirm required","timestamp":' + str.tostring(timenow) + '}}'
+    alert(sellContPayload, alert.freq_once_per_bar_close)
+
+alertcondition(alertBuy      and dispBuy,      "8AM BUY Signal",        "8AM BUY signal triggered at {{close}}")
+alertcondition(alertSell     and dispSell,     "8AM SELL Signal",       "8AM SELL signal triggered at {{close}}")
+alertcondition(alertBuyCont  and dispBuyCont,  "8AM BUY CONT. Signal",  "8AM BUY CONT. [DISC] triggered at {{close}}")
+alertcondition(alertSellCont and dispSellCont, "8AM SELL CONT. Signal", "8AM SELL CONT. [DISC] triggered at {{close}}")
+
+if testTrigger and barstate.islast
+    string testMsg = '{"secret":"' + wh_key + '","model_id":"TRNQL_8AMsweep.v3","ticker":"' + syminfo.ticker + '","action":"TEST","metadata":{"note":"MANUAL_TRIGGER","timestamp":' + str.tostring(timenow) + '}}'
+    alert(testMsg, alert.freq_all)
 </script>
 
 <script type="text/plain" id="pine-orb">
@@ -5096,7 +5373,7 @@ if barstate.islast
    CODE SIDE PANEL
 ══════════════════════════════════════════════════ */
 var CODE_META = {
-  trnql:   { name: 'TRNQL_8AMSWEEP.v3',  sub: '8AM Range Sweep  ·  NASDAQ:MNQ1!  ·  Pine Script v6',          src: 'pine-trnql'   },
+  trnql:   { name: 'TRNQL_8AMsweep.v3',  sub: '8AM Range Sweep MNQ Auto-Execution  ·  NASDAQ:MNQ1!  ·  Pine Script v6', src: 'pine-trnql'   },
   orb:     { name: 'ORB-PUT-v1.5',        sub: 'NVDA ORB Short → Put  ·  NASDAQ:NVDA  ·  Pine Script v6',       src: 'pine-orb'     },
   btc:     { name: 'BTC-ACCUM-v1',        sub: 'BTC Accumulation Grid  ·  COINBASE:BTCUSD  ·  Pine Script v5',  src: 'pine-btc'     },
   aapl:    { name: 'AAPL-IB-TEST',         sub: 'IB Paper Trade Test  ·  NASDAQ:AAPL  ·  Pine Script v6',          src: 'pine-aapl'    }
