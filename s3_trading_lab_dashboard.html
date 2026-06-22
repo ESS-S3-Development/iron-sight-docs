@@ -1767,19 +1767,19 @@ body.night-ops .av-mini-pl-item:hover{
           </div>
           <div class="panel">
             <div class="panel-header">
-              <button class="panel-title-btn" onclick="openCodePanel('aapl')">AAPL-IB-TEST</button>
+              <button class="panel-title-btn" onclick="openCodePanel('aapl')">AAPL-LSS-V1</button>
               <span class="badge warn">OBSERVATION</span>
             </div>
             <div class="panel-body">
               <div style="font-family:var(--mono);font-size:12px;line-height:2;">
                 <div>TICKER: <span style="color:var(--bright)">NASDAQ:AAPL</span></div>
-                <div>TIMEFRAME: <span style="color:var(--bright)">5-min</span></div>
-                <div>SIGNAL TYPE: <span style="color:var(--bright)">Limit Buy / IB Paper</span></div>
+                <div>TIMEFRAME: <span style="color:var(--bright)">Daily / 4H</span></div>
+                <div>SIGNAL TYPE: <span style="color:var(--bright)">LEAPS + Swing → IBKR</span></div>
                 <div>VERSION: <span style="color:var(--accent)">v1.0</span></div>
                 <div>LAST SIGNAL: <span style="color:var(--muted)" id="detail-aapl">—</span></div>
               </div>
               <div class="sep"></div>
-              <p style="font-size:13px;color:var(--muted);line-height:1.7;">End-to-end execution test: TradingView → NIGHTHAWK → Interactive Brokers paper account. Fires one GTC limit order per day at a target price over a configurable test window. Manual trigger for pipeline verification.</p>
+              <p style="font-size:13px;color:var(--muted);line-height:1.7;">AAPL LEAPS &amp; Swing System. LEAPS: RSI &lt; 40 near 200 EMA → IBKR CALL options (Δ 0.70–0.80, 12–18mo DTE, $5K). Swing: EMA cross or pullback → IBKR stock ($2K). VIX-filtered. 7-day earnings blackout. 4-tier SMS accumulation alerts. AI Siri upgrade thesis — targets $320 / $350 / $400 / $500.</p>
             </div>
           </div>
         </div>
@@ -5281,159 +5281,256 @@ alertcondition(trig4, "BTC-ACCUM L4 (-40%)", "BTC crossed below 200 SMA L4 grid 
 </script>
 
 <script type="text/plain" id="pine-aapl">
-// @S3 Development | Project Black-Box
-// AAPL IB Paper Trade — Execution Test v1.0
-// Purpose: Validates end-to-end trade execution from TradingView → NIGHTHAWK → Interactive Brokers
-// Timeframe: 5-min | Symbol: NASDAQ:AAPL
+// This source code is subject to the terms of the Mozilla Public License 2.0
+// © S3_Dev | S3 Trading Lab
+// Developer | Vincent Casella
+// model_id: AAPL LEAPS & Swing System v1
+// Sentinel Status: OBSERVATION
+//═══════════════════════════════════════════════════════════════════
+
 //@version=6
-strategy("AAPL IB Paper Trade — Execution Test", shorttitle="AAPL-IB-TEST", overlay=true, pyramiding=30, initial_capital=10000, default_qty_type=strategy.fixed, default_qty_value=1, currency=currency.USD)
+indicator("AAPL LEAPS & Swing System v1", shorttitle="AAPL-LSS", overlay=true, max_labels_count=100, max_lines_count=20)
 
-// ══════════════════════════════════════════════════════════════════
-//  INPUTS
-// ══════════════════════════════════════════════════════════════════
-grp            = "Test Configuration"
-target_price   = input.float(295.00, "Limit Buy Price ($)",         step=0.01, group=grp)
-start_date     = input.time(timestamp("2026-05-14 00:00 +0000"),    "Test Start Date", group=grp)
-max_days       = input.int(30,       "Test Duration (Trading Days)", minval=1, maxval=60, group=grp)
-manual_trigger = input.bool(false,   "⚡ FORCE MANUAL TRIGGER",      group=grp)
+// ═══════════════════════════════════════════════════════════════════
+// TOGGLES
+// ═══════════════════════════════════════════════════════════════════
+show_leaps   = input.bool(true,  "LEAPS Signals",             group="Signal Layers")
+show_swing   = input.bool(true,  "Swing Signals",             group="Signal Layers")
+show_accum   = input.bool(true,  "Accumulation Tier Labels",  group="Signal Layers")
+show_zones   = input.bool(true,  "Zone Background Colors",    group="Display")
+show_targets = input.bool(true,  "Price Target Lines",        group="Display")
+show_table   = input.bool(true,  "Dashboard Table",           group="Display")
+show_bb      = input.bool(true,  "Bollinger Bands",           group="Display")
 
-// ══════════════════════════════════════════════════════════════════
-//  DAY TRACKING
-//  Uses a date integer (YYYYMMDD) so month/year rollovers are safe
-// ══════════════════════════════════════════════════════════════════
-cur_date = year(time) * 10000 + month(time) * 100 + dayofmonth(time)
+// ═══════════════════════════════════════════════════════════════════
+// POSITION SIZING
+// ═══════════════════════════════════════════════════════════════════
+leaps_budget = input.float(5000.0, "LEAPS Budget ($)", minval=100, group="Position Sizing")
+swing_budget = input.float(2000.0, "Swing Budget ($)", minval=100, group="Position Sizing")
 
-var int  prev_date    = -1
-var int  days_elapsed = 0
-var bool order_placed = false
+// ═══════════════════════════════════════════════════════════════════
+// INDICATOR PARAMETERS
+// ═══════════════════════════════════════════════════════════════════
+rsi_len  = input.int(14,    "RSI Length",        group="Indicators")
+ema_fast = input.int(20,    "EMA Fast",          group="Indicators")
+ema_mid  = input.int(50,    "EMA Mid",           group="Indicators")
+ema_long = input.int(200,   "EMA Long (200)",    group="Indicators")
+bb_len   = input.int(20,    "BB Length",         group="Indicators")
+bb_mult  = input.float(2.0, "BB Multiplier",     group="Indicators")
+vol_mult = input.float(1.3, "Volume Multiplier", group="Indicators")
 
-new_day = cur_date != prev_date and session.ismarket
+// ═══════════════════════════════════════════════════════════════════
+// VIX THRESHOLDS
+// ═══════════════════════════════════════════════════════════════════
+vix_green = input.float(25.0, "VIX Green Light (>)", group="VIX")
+vix_fear  = input.float(30.0, "VIX Tier 4 Fear (>)", group="VIX")
 
-if new_day and time >= start_date
-    strategy.cancel_all()
-    prev_date    := cur_date
-    order_placed := false
-    if days_elapsed < max_days
-        days_elapsed += 1
+// ═══════════════════════════════════════════════════════════════════
+// EARNINGS BLACKOUT — update dates each quarter
+// ═══════════════════════════════════════════════════════════════════
+earn_days = input.int(7,                           "Blackout Days Before Earnings", group="Earnings", minval=1)
+earn_1    = input.int(timestamp("2026-07-31"), "Earnings 1 (Aug 2026)",  group="Earnings")
+earn_2    = input.int(timestamp("2026-10-30"), "Earnings 2 (Nov 2026)",  group="Earnings")
+earn_3    = input.int(timestamp("2027-01-29"), "Earnings 3 (Feb 2027)",  group="Earnings")
+earn_4    = input.int(timestamp("2027-04-30"), "Earnings 4 (May 2027)",  group="Earnings")
 
-// ══════════════════════════════════════════════════════════════════
-//  ENTRY — one limit order per day, held indefinitely
-// ══════════════════════════════════════════════════════════════════
-in_window = time >= start_date
-         and days_elapsed > 0
-         and days_elapsed <= max_days
-         and session.ismarket
+// ═══════════════════════════════════════════════════════════════════
+// INDICATORS
+// ═══════════════════════════════════════════════════════════════════
+rsi               = ta.rsi(close, rsi_len)
+e20               = ta.ema(close, ema_fast)
+e50               = ta.ema(close, ema_mid)
+e200              = ta.ema(close, ema_long)
+[bb_m, bb_u, bb_l] = ta.bb(close, bb_len, bb_mult)
+vol_avg           = ta.sma(volume, 20)
+vix               = request.security("CBOE:VIX", "D", close)
+high52            = ta.highest(high, 252)
+dist200           = (close - e200) / e200 * 100
 
-if in_window and not order_placed
-    entry_id = "AAPL_D" + str.tostring(days_elapsed)
+// ═══════════════════════════════════════════════════════════════════
+// EARNINGS BLACKOUT LOGIC
+// ═══════════════════════════════════════════════════════════════════
+day_ms      = 86400000
+bo_ms       = earn_days * day_ms
+in_blackout = (time >= earn_1 - bo_ms and time <= earn_1 + day_ms) or
+              (time >= earn_2 - bo_ms and time <= earn_2 + day_ms) or
+              (time >= earn_3 - bo_ms and time <= earn_3 + day_ms) or
+              (time >= earn_4 - bo_ms and time <= earn_4 + day_ms)
 
-    msg = '{'                                                        +
-          '"secret":"tac_com_alpha_9",'                             +
-          '"model_id":"AAPL-IB-TEST-V1",'                           +
-          '"ticker":"NASDAQ:AAPL",'                                  +
-          '"action":"BUY",'                                          +
-          '"qty":1,'                                                 +
-          '"order_type":"LMT",'                                      +
-          '"price":'    + str.tostring(target_price, "#.00") + ','  +
-          '"metadata":{'                                             +
-          '"type":"IB_PAPER_TEST",'                                  +
-          '"day":'      + str.tostring(days_elapsed) + ','           +
-          '"of":'       + str.tostring(max_days)     + ','           +
-          '"timestamp":' + str.tostring(timenow)                    +
-          '}}'
+earn_warn   = (time >= earn_1 - bo_ms and time < earn_1 - bo_ms + day_ms) or
+              (time >= earn_2 - bo_ms and time < earn_2 - bo_ms + day_ms) or
+              (time >= earn_3 - bo_ms and time < earn_3 - bo_ms + day_ms) or
+              (time >= earn_4 - bo_ms and time < earn_4 - bo_ms + day_ms)
 
-    strategy.entry(entry_id, strategy.long, qty=1, limit=target_price, alert_message=msg)
+// ═══════════════════════════════════════════════════════════════════
+// ZONE CLASSIFICATION
+// ═══════════════════════════════════════════════════════════════════
+zone_green = rsi < 35 and math.abs(dist200) < 5 and vix > vix_green
+zone_red   = rsi > 70 or close > e200 * 1.15
 
-    log.info("IB-TEST | Day {0}/{1} | LMT order placed @ ${2} | ID: {3}",
-             days_elapsed, max_days,
-             str.tostring(target_price, "#.00"),
-             entry_id)
+// ═══════════════════════════════════════════════════════════════════
+// SIGNAL CONDITIONS
+// ═══════════════════════════════════════════════════════════════════
+leaps_cond  = rsi < 40 and math.abs(dist200) <= 5 and not in_blackout
+leaps_entry = leaps_cond and not leaps_cond[1]
 
-    alert(msg, alert.freq_once_per_bar_close)
-    order_placed := true
+swing_cross = ta.crossover(e20, e50) and rsi > 50 and volume > vol_avg * vol_mult and not in_blackout
 
-// ══════════════════════════════════════════════════════════════════
-//  MANUAL TEST FUNCTION — Tactical Injection
-//  HOW TO USE:
-//    1. Gear icon ⚙ → Test Configuration → toggle ON "⚡ FORCE MANUAL TRIGGER"
-//    2. Alert must be set to "Any alert() function call"
-//    3. Fires on next bar close — check Pine Logs for TACTICAL
-//    4. Toggle OFF after confirming logs and traffic in Sentinel
-//  NOTE: action="TEST" — NIGHTHAWK logs it, does NOT route to IB.
-// ══════════════════════════════════════════════════════════════════
-if manual_trigger and barstate.islast
-    test_msg = '{'                                                       +
-               '"secret":"tac_com_alpha_9",'                            +
-               '"model_id":"AAPL-IB-TEST-V1",'                         +
-               '"ticker":"NASDAQ:AAPL",'                                +
-               '"action":"TEST",'                                       +
-               '"qty":1,'                                               +
-               '"order_type":"LMT",'                                    +
-               '"price":' + str.tostring(close, "#.00")         + ','  +
-               '"metadata":{'                                           +
-               '"type":"MANUAL_TRIGGER",'                               +
-               '"day":'   + str.tostring(days_elapsed)          + ','  +
-               '"of":'    + str.tostring(max_days)              + ','  +
-               '"note":"Pipeline verification — not a live order",'    +
-               '"timestamp":' + str.tostring(timenow)                  +
-               '}}'
-    log.info("TACTICAL: Manual test triggered. Payload: {0}", test_msg)
-    alert(test_msg, alert.freq_all)
+engulf      = close > open and close[1] < open[1] and close > open[1] and open < close[1]
+swing_pull  = close > e200 and close <= e20 * 1.01 and close >= e20 * 0.99 and engulf and not in_blackout
 
-// ══════════════════════════════════════════════════════════════════
-//  SYSLOG — bar-by-bar telemetry
-// ══════════════════════════════════════════════════════════════════
-log.info("SYSLOG | {0} | {1} | Price: {2} | Day: {3}/{4} | Order: {5} | Position: {6}",
-  syminfo.ticker, timeframe.period,
-  str.tostring(close, "#.00"),
-  days_elapsed, max_days,
-  order_placed ? "PLACED" : "PENDING",
-  str.tostring(int(strategy.position_size)))
+t1_cond     = rsi < 40 and close > e200
+t2_cond     = rsi < 35 and close <= bb_l
+t3_cond     = close <= high52 * 0.90
+t4_cond     = vix > vix_fear and rsi < 30
 
-// ══════════════════════════════════════════════════════════════════
-//  DASHBOARD
-// ══════════════════════════════════════════════════════════════════
-var table dash = table.new(
-  position.top_right, 2, 7,
-  bgcolor      = color.new(#13161e, 5),
-  border_width = 1,
-  border_color = #2a2f40,
-  frame_width  = 1,
-  frame_color  = #2a2f40)
+// ═══════════════════════════════════════════════════════════════════
+// PLOTS
+// ═══════════════════════════════════════════════════════════════════
+plot(e20,  "EMA 20",  color=color.new(color.aqua,   0), linewidth=1)
+plot(e50,  "EMA 50",  color=color.new(color.yellow, 0), linewidth=1)
+plot(e200, "EMA 200", color=color.new(color.white,  0), linewidth=2)
+plot(show_bb ? bb_u : na, "BB Upper", color=color.new(color.gray, 50))
+plot(show_bb ? bb_l : na, "BB Lower", color=color.new(color.gray, 50))
 
-if barstate.islast
-    test_done   = days_elapsed >= max_days
-    shares_held = int(strategy.position_size)
-    avg_price   = strategy.position_avg_price
+bgcolor(show_zones and zone_green  ? color.new(color.green,  85) : na, title="Green Zone")
+bgcolor(show_zones and zone_red    ? color.new(color.red,    85) : na, title="Red Zone")
+bgcolor(show_zones and in_blackout ? color.new(color.orange, 85) : na, title="Earnings Blackout")
 
-    table.cell(dash, 0, 0, "AAPL IB PAPER TEST",
-      text_color=#00c2ff, text_size=size.small, bgcolor=#1a1e2a)
-    table.cell(dash, 1, 0, "v1.0",
-      text_color=#7a849a, text_size=size.small, bgcolor=#1a1e2a)
+// ═══════════════════════════════════════════════════════════════════
+// PRICE TARGET LINES
+// ═══════════════════════════════════════════════════════════════════
+if barstate.islast and show_targets
+    line.new(bar_index-200, 320, bar_index+60, 320, color=color.new(color.yellow, 30), style=line.style_dashed)
+    line.new(bar_index-200, 350, bar_index+60, 350, color=color.new(color.green,  20), style=line.style_dashed)
+    line.new(bar_index-200, 400, bar_index+60, 400, color=color.new(color.lime,   20), style=line.style_dashed)
+    line.new(bar_index-200, 450, bar_index+60, 450, color=color.new(color.teal,   20), style=line.style_dotted)
+    line.new(bar_index-200, 500, bar_index+60, 500, color=color.new(color.purple, 20), style=line.style_dotted)
+    label.new(bar_index+5, 320, "  $320 Resistance",   color=color.new(color.black,100), textcolor=color.yellow, style=label.style_none, size=size.tiny)
+    label.new(bar_index+5, 350, "  $350 Base Case",    color=color.new(color.black,100), textcolor=color.green,  style=label.style_none, size=size.tiny)
+    label.new(bar_index+5, 400, "  $400 Bull Case",    color=color.new(color.black,100), textcolor=color.lime,   style=label.style_none, size=size.tiny)
+    label.new(bar_index+5, 450, "  $450 Bull+",        color=color.new(color.black,100), textcolor=color.teal,   style=label.style_none, size=size.tiny)
+    label.new(bar_index+5, 500, "  $500 AI Supercycle",color=color.new(color.black,100), textcolor=color.purple, style=label.style_none, size=size.tiny)
 
-    table.cell(dash, 0, 1, "Day",         text_color=#7a849a, text_size=size.small)
-    table.cell(dash, 1, 1, str.tostring(days_elapsed) + " / " + str.tostring(max_days),
-      text_color=#cdd3e0, text_size=size.small)
+// ═══════════════════════════════════════════════════════════════════
+// SIGNAL LABELS
+// ═══════════════════════════════════════════════════════════════════
+if show_leaps and leaps_entry
+    label.new(bar_index, low * 0.984,
+        "⬆ LEAPS ENTRY\nRSI " + str.tostring(math.round(rsi,1)) + " | Δ 0.70–0.80\n12–18mo CALL",
+        color=color.new(color.green, 0), textcolor=color.white,
+        style=label.style_label_up, size=size.normal)
 
-    table.cell(dash, 0, 2, "Limit Price", text_color=#7a849a, text_size=size.small)
-    table.cell(dash, 1, 2, "$" + str.tostring(target_price, "#.00"),
-      text_color=#ffc107, text_size=size.small)
+if show_swing and swing_cross
+    label.new(bar_index, low * 0.991, "⬆ SWING\nEMA CROSS",
+        color=color.new(color.aqua, 10), textcolor=color.black,
+        style=label.style_label_up, size=size.small)
 
-    table.cell(dash, 0, 3, "Order Today", text_color=#7a849a, text_size=size.small)
-    table.cell(dash, 1, 3, order_placed ? "PLACED" : "PENDING",
-      text_color=order_placed ? #22d35e : #7a849a, text_size=size.small)
+if show_swing and swing_pull
+    label.new(bar_index, low * 0.991, "⬆ SWING\nPULLBACK",
+        color=color.new(color.blue, 0), textcolor=color.white,
+        style=label.style_label_up, size=size.small)
 
-    table.cell(dash, 0, 4, "Shares Held", text_color=#7a849a, text_size=size.small)
-    table.cell(dash, 1, 4, str.tostring(shares_held),
-      text_color=#cdd3e0, text_size=size.small)
+if show_accum
+    if t1_cond and not t1_cond[1]
+        label.new(bar_index, high*1.008, "T1 ▼\n25% BUY",   color=color.new(color.lime,   30), textcolor=color.black, style=label.style_label_down, size=size.tiny)
+    if t2_cond and not t2_cond[1]
+        label.new(bar_index, high*1.008, "T2 ▼\n+25%",      color=color.new(color.lime,   10), textcolor=color.black, style=label.style_label_down, size=size.tiny)
+    if t3_cond and not t3_cond[1]
+        label.new(bar_index, high*1.008, "T3 ▼\n+25%",      color=color.new(color.orange, 20), textcolor=color.black, style=label.style_label_down, size=size.tiny)
+    if t4_cond and not t4_cond[1]
+        label.new(bar_index, high*1.008, "T4 ▼\nFINAL 25%", color=color.new(color.red,    10), textcolor=color.white, style=label.style_label_down, size=size.tiny)
 
-    table.cell(dash, 0, 5, "Avg Entry",   text_color=#7a849a, text_size=size.small)
-    table.cell(dash, 1, 5, shares_held > 0 ? "$" + str.tostring(avg_price, "#.00") : "—",
-      text_color=#cdd3e0, text_size=size.small)
+if show_zones and earn_warn
+    label.new(bar_index, high*1.015, "⚠ EARNINGS 7d\nBLACKOUT",
+        color=color.new(color.orange, 0), textcolor=color.black,
+        style=label.style_label_down, size=size.small)
 
-    table.cell(dash, 0, 6, "Test Status", text_color=#7a849a, text_size=size.small)
-    table.cell(dash, 1, 6, test_done ? "COMPLETE" : "RUNNING",
-      text_color=test_done ? #ff4560 : #22d35e, text_size=size.small)
+// ═══════════════════════════════════════════════════════════════════
+// DASHBOARD TABLE
+// ═══════════════════════════════════════════════════════════════════
+var table dash = table.new(position.top_right, 2, 9,
+    border_width=1, border_color=color.new(color.gray, 70),
+    bgcolor=color.new(color.black, 30))
+
+if show_table and barstate.islast
+    z_str = zone_green ? "GREEN  ✓" : zone_red ? "RED  ✗" : "YELLOW  —"
+    z_col = zone_green ? color.lime  : zone_red ? color.red  : color.yellow
+    l_str = leaps_cond ? "ARMED  ✓" : "WAITING  —"
+    l_col = leaps_cond ? color.lime  : color.gray
+
+    table.cell(dash, 0, 0, "AAPL  LSS v1",  bgcolor=color.new(color.navy, 20), text_color=color.white, text_size=size.small)
+    table.cell(dash, 1, 0, timeframe.period, bgcolor=color.new(color.navy, 20), text_color=color.gray,  text_size=size.small)
+    table.cell(dash, 0, 1, "RSI(14)",   bgcolor=color.new(color.black,50), text_color=color.gray,  text_size=size.small)
+    table.cell(dash, 1, 1, str.tostring(math.round(rsi,1)),
+        bgcolor=color.new(color.black,50),
+        text_color=rsi<40 ? color.lime : rsi>70 ? color.red : color.white, text_size=size.small)
+    table.cell(dash, 0, 2, "200 EMA Δ", bgcolor=color.new(color.black,60), text_color=color.gray,  text_size=size.small)
+    table.cell(dash, 1, 2, str.tostring(math.round(dist200,2)) + "%",
+        bgcolor=color.new(color.black,60),
+        text_color=math.abs(dist200)<=5 ? color.lime : color.white, text_size=size.small)
+    table.cell(dash, 0, 3, "VIX",       bgcolor=color.new(color.black,50), text_color=color.gray,  text_size=size.small)
+    table.cell(dash, 1, 3, str.tostring(math.round(vix,1)),
+        bgcolor=color.new(color.black,50),
+        text_color=vix>30 ? color.red : vix>25 ? color.orange : color.lime, text_size=size.small)
+    table.cell(dash, 0, 4, "ZONE",      bgcolor=color.new(color.black,60), text_color=color.gray,  text_size=size.small)
+    table.cell(dash, 1, 4, z_str,       bgcolor=color.new(color.black,60), text_color=z_col,        text_size=size.small)
+    table.cell(dash, 0, 5, "LEAPS",     bgcolor=color.new(color.black,50), text_color=color.gray,  text_size=size.small)
+    table.cell(dash, 1, 5, l_str,       bgcolor=color.new(color.black,50), text_color=l_col,        text_size=size.small)
+    table.cell(dash, 0, 6, "EARNINGS",  bgcolor=color.new(color.black,60), text_color=color.gray,  text_size=size.small)
+    table.cell(dash, 1, 6, in_blackout ? "BLACKOUT ⚠" : "CLEAR",
+        bgcolor=color.new(color.black,60),
+        text_color=in_blackout ? color.orange : color.lime, text_size=size.small)
+    table.cell(dash, 0, 7, "LEAPS $",   bgcolor=color.new(color.black,50), text_color=color.gray,  text_size=size.small)
+    table.cell(dash, 1, 7, "$" + str.tostring(math.round(leaps_budget,0)),
+        bgcolor=color.new(color.black,50), text_color=color.white, text_size=size.small)
+    table.cell(dash, 0, 8, "SWING $",   bgcolor=color.new(color.black,60), text_color=color.gray,  text_size=size.small)
+    table.cell(dash, 1, 8, "$" + str.tostring(math.round(swing_budget,0)),
+        bgcolor=color.new(color.black,60), text_color=color.white, text_size=size.small)
+
+// ═══════════════════════════════════════════════════════════════════
+// WEBHOOK ALERTS — JSON → NIGHTHAWK
+// alert() fires dynamically with live values; freq_once_per_bar_close
+// prevents duplicate fires within the same bar.
+// ═══════════════════════════════════════════════════════════════════
+if leaps_entry
+    alert(
+        '{"secret":"tac_com_alpha_9","model_id":"AAPL_LEAPS_v1","ticker":"AAPL","action":"BUY"' +
+        ',"price":'       + str.tostring(close) +
+        ',"signal_type":"LEAPS_ENTRY"' +
+        ',"metadata":{"rsi":' + str.tostring(math.round(rsi,2)) +
+        ',"vix":'         + str.tostring(math.round(vix,2)) +
+        ',"dist_200ema":' + str.tostring(math.round(dist200,2)) +
+        ',"delta_min":0.70,"delta_max":0.80,"dte_min":365,"dte_max":540' +
+        ',"budget":'      + str.tostring(leaps_budget) + '}}',
+        alert.freq_once_per_bar_close)
+
+if swing_cross
+    alert(
+        '{"secret":"tac_com_alpha_9","model_id":"AAPL_SWING_v1","ticker":"AAPL","action":"BUY"' +
+        ',"price":'       + str.tostring(close) +
+        ',"signal_type":"SWING_EMA_CROSS"' +
+        ',"metadata":{"rsi":' + str.tostring(math.round(rsi,2)) +
+        ',"vix":'         + str.tostring(math.round(vix,2)) +
+        ',"budget":'      + str.tostring(swing_budget) + '}}',
+        alert.freq_once_per_bar_close)
+
+if swing_pull
+    alert(
+        '{"secret":"tac_com_alpha_9","model_id":"AAPL_SWING_v1","ticker":"AAPL","action":"BUY"' +
+        ',"price":'       + str.tostring(close) +
+        ',"signal_type":"SWING_PULLBACK"' +
+        ',"metadata":{"rsi":' + str.tostring(math.round(rsi,2)) +
+        ',"vix":'         + str.tostring(math.round(vix,2)) +
+        ',"budget":'      + str.tostring(swing_budget) + '}}',
+        alert.freq_once_per_bar_close)
+
+// ─── Accumulation & Earnings — TradingView push/SMS only (not routed to NIGHTHAWK)
+alertcondition(t1_cond and not t1_cond[1], "Accum Tier 1 — 25% Buy",   "AAPL ACCUM TIER 1: RSI < 40 above 200 EMA. Deploy 25% position.")
+alertcondition(t2_cond and not t2_cond[1], "Accum Tier 2 — +25%",      "AAPL ACCUM TIER 2: RSI < 35 at lower Bollinger Band. Add 25%.")
+alertcondition(t3_cond and not t3_cond[1], "Accum Tier 3 — +25%",      "AAPL ACCUM TIER 3: Price 10% below 52-week high. Add 25%.")
+alertcondition(t4_cond and not t4_cond[1], "Accum Tier 4 — Final 25%", "AAPL ACCUM TIER 4 — PANIC BUY: VIX > 30, RSI < 30. Deploy final 25%.")
+alertcondition(earn_warn,                  "Earnings Blackout Start",   "AAPL EARNINGS in 7 days — BLACKOUT ACTIVE. No new LEAPS or swing entries.")
 </script>
 
 <script>
@@ -5444,7 +5541,7 @@ var CODE_META = {
   trnql:   { name: 'TRNQL_8AMsweep.v3',  sub: '8AM Range Sweep MNQ Auto-Execution  ·  NASDAQ:MNQ1!  ·  Pine Script v6', src: 'pine-trnql'   },
   orb:     { name: 'ORB-PUT-v1.5',        sub: 'NVDA ORB Short → Put  ·  NASDAQ:NVDA  ·  Pine Script v6',       src: 'pine-orb'     },
   btc:     { name: 'BTC-ACCUM-v1',        sub: 'BTC Accumulation Grid  ·  COINBASE:BTCUSD  ·  Pine Script v5',  src: 'pine-btc'     },
-  aapl:    { name: 'AAPL-IB-TEST',         sub: 'IB Paper Trade Test  ·  NASDAQ:AAPL  ·  Pine Script v6',          src: 'pine-aapl'    }
+  aapl:    { name: 'AAPL-LSS-V1',           sub: 'LEAPS & Swing System  ·  NASDAQ:AAPL  ·  Pine Script v6',         src: 'pine-aapl'    }
 };
 
 function openCodePanel(id) {
