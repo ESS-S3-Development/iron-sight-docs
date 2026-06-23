@@ -4496,7 +4496,7 @@ function esc(s) {
 //@version=6
 strategy(
     title              = "8AM Range Sweep | MNQ Auto v3",
-    shorttitle         = "TRNQL-8AM-v3",
+    shorttitle         = "TRNQL8AMv3",
     overlay            = true,
     initial_capital    = 50000,
     default_qty_type   = strategy.fixed,
@@ -4645,10 +4645,14 @@ var int mStart  = na
 var int wStart  = na
 var int dStart  = na
 var int h4Start = na
-if isNewMonth, mStart  := bar_index
-if isNewWeek,  wStart  := bar_index
-if isNewDay,   dStart  := bar_index
-if isNew4H,    h4Start := bar_index
+if isNewMonth
+    mStart  := bar_index
+if isNewWeek
+    wStart  := bar_index
+if isNewDay
+    dStart  := bar_index
+if isNew4H
+    h4Start := bar_index
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // 7AM NY LIQUIDITY POOL — TP Reference Level
@@ -4938,10 +4942,14 @@ if eightComplete and not na(eightH) and not na(eightL) and inSigWindow and not n
 // OVERLAP PREVENTION
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 int sigPrio = 0
-if rawBuy,       sigPrio := 1
-if rawSell      and sigPrio == 0, sigPrio := 2
-if contFireBuy  and sigPrio == 0, sigPrio := 3
-if contFireSell and sigPrio == 0, sigPrio := 4
+if rawBuy
+    sigPrio := 1
+if rawSell      and sigPrio == 0
+    sigPrio := 2
+if contFireBuy  and sigPrio == 0
+    sigPrio := 3
+if contFireSell and sigPrio == 0
+    sigPrio := 4
 
 bool dispBuy      = sigPrio == 1
 bool dispSell     = sigPrio == 2
