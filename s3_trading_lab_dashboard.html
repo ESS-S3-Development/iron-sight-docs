@@ -4801,16 +4801,7 @@ if show4H and not na(h4Eq) and not na(h4Start)
 int nLevels = array.size(lvlPrice)
 
 if nLevels > 1
-    int[] sortIdx = array.new<int>()
-    for i = 0 to nLevels - 1
-        array.push(sortIdx, i)
-    for i = 0 to nLevels - 2
-        for j = 0 to nLevels - 2 - i
-            int a = array.get(sortIdx, j)
-            int b = array.get(sortIdx, j + 1)
-            if array.get(lvlPrice, a) > array.get(lvlPrice, b)
-                array.set(sortIdx, j, b)
-                array.set(sortIdx, j + 1, a)
+    int[] sortIdx = array.sort_indices(lvlPrice, order.ascending)
     float[]  tmpP  = array.new<float>()
     string[] tmpN  = array.new<string>()
     color[]  tmpC  = array.new<color>()
