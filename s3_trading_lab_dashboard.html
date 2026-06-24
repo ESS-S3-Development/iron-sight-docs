@@ -4586,7 +4586,7 @@ testTrigger = input.bool(false, "FORCE MANUAL TRIGGER", group="Testing", tooltip
 // ── Execution ──
 autoExec      = input.bool(false, "Auto Execute Orders",   group="Execution", tooltip="When ON: BUY/SELL signals place live orders through Tradovate. When OFF: visuals and NIGHTHAWK alerts still fire, no orders placed. OFF = PHANTOM controls execution via NT8 bridge.")
 riskPerTrade  = input.float(125.0, "Risk Per Trade ($)",   group="Execution", minval=10, maxval=500, step=5)
-maxContracts  = input.int(10,     "Max Contracts",         group="Execution", minval=1, maxval=50)
+maxContracts  = input.int(3,      "Max Contracts",         group="Execution", minval=1, maxval=50)
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // FETCH NQ DATA — chart timeframe, no repaint
