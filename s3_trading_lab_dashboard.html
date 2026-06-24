@@ -4585,7 +4585,7 @@ wh_key = input.string("tac_com_alpha_9", "Webhook Secret", group="Webhook", tool
 testTrigger = input.bool(false, "FORCE MANUAL TRIGGER", group="Testing", tooltip="Toggle ON + set alert to 'Once Per Bar' to fire a test webhook to Phantom/Vanguard")
 
 // ── Execution ──
-autoExec      = input.bool(false, "Auto Execute Orders",   group="Execution", tooltip="When ON: BUY/SELL signals place live orders through Tradovate. When OFF: visuals and NIGHTHAWK alerts still fire, no orders placed. OFF = PHANTOM controls execution via NT8 bridge.")
+autoExec      = input.bool(true,  "Auto Execute Orders",   group="Execution", tooltip="When ON: BUY/SELL signals place live orders through Tradovate. When OFF: visuals and NIGHTHAWK alerts still fire, no orders placed. OFF = PHANTOM controls execution via NT8 bridge.")
 riskPerTrade  = input.float(125.0, "Risk Per Trade ($)",   group="Execution", minval=10, maxval=500, step=5)
 maxContracts  = input.int(3,      "Max Contracts",         group="Execution", minval=1, maxval=50)
 
