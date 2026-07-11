@@ -1,0 +1,12 @@
+# Cloudflare Worker assets exclusions
+# Large media files exceed CF 25 MiB per-file limit
+video content/*.mp4
+video content/*.mov
+video content/*.avi
+video content/*.mkv
+heygen_scripts/
+*.pptx
+*.pdf
+Apex trader funding eval strategy*
+.git/
+.wrangler/
