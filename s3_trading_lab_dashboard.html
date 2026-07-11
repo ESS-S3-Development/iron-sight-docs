@@ -1,9 +1,10 @@
+<!-- 2026-07-11 @ trade calculator added to journal page (MNQ/MES/NQ/ES tick+point target) -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>S3 TRADING LAB // CONSOLE v1.0</title>
+<title>S3 TRADING LAB // CONSOLE v1.2</title>
 <link rel="icon" href="https://imagedelivery.net/vqeQDU8kLtN4mG7c7hdsdQ/c1cf7f1c-6709-4f7d-cbea-d41894dce300/public">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Barlow+Condensed:wght@300;400;600;700;900&family=Barlow:wght@300;400;500&family=Share+Tech+Mono&display=swap" rel="stylesheet">
@@ -267,6 +268,43 @@ body.night-ops{
   overflow:hidden;max-height:1200px;transition:max-height .45s ease;}
 .vid-panel-body.vid-collapsed{max-height:0;}
 @media(max-width:780px){.vid-panel-body{grid-template-columns:1fr;}}
+
+/* ── Daily Cheat Sheet ──────────────────────────── */
+.cheat-panel-body{overflow:hidden;max-height:4000px;transition:max-height .5s ease;}
+.cheat-panel-body.cheat-collapsed{max-height:0;}
+.cheat-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:14px;}
+@media(max-width:820px){.cheat-grid{grid-template-columns:1fr;}}
+.cheat-model{border:1px solid var(--border);border-radius:var(--r);overflow:hidden;background:var(--bg2);}
+.cheat-model-hdr{display:flex;justify-content:space-between;align-items:center;padding:8px 12px;}
+.cheat-model-hdr.cm-trnql{background:rgba(0,180,255,.13);border-bottom:1px solid rgba(0,180,255,.3);}
+.cheat-model-hdr.cm-nvdas{background:rgba(16,185,129,.13);border-bottom:1px solid rgba(16,185,129,.3);}
+.cheat-model-hdr.cm-nvdap{background:rgba(168,85,247,.13);border-bottom:1px solid rgba(168,85,247,.3);}
+.cheat-model-hdr.cm-aapl {background:rgba(255,45,85,.13); border-bottom:1px solid rgba(255,45,85,.3);}
+.cheat-model-name{font-family:var(--display);font-size:13px;font-weight:700;letter-spacing:.5px;color:var(--bright);}
+.cheat-obs{font-family:var(--mono);font-size:9px;padding:2px 7px;border-radius:10px;background:rgba(245,158,11,.12);color:var(--warn);border:1px solid rgba(245,158,11,.28);}
+.cheat-cols{display:grid;grid-template-columns:1fr 1fr 1fr;}
+.cheat-col{padding:8px 10px;border-right:1px solid var(--border);}
+.cheat-col:last-child{border-right:none;}
+.cheat-col-title{font-family:var(--mono);font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:5px;padding-bottom:3px;border-bottom:1px solid var(--border);}
+.cheat-col ul{list-style:none;padding:0;margin:0;}
+.cheat-col ul li{font-family:var(--mono);font-size:10px;color:var(--text);padding:1.5px 0;line-height:1.45;}
+.cheat-col ul li::before{content:"▸ ";color:var(--muted);font-size:8px;}
+.cheat-action{background:var(--bg3);border-top:1px solid var(--border);padding:7px 12px;}
+.cheat-action-label{font-family:var(--mono);font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:3px;}
+.cheat-action-steps{font-family:var(--mono);font-size:10px;color:var(--text);line-height:1.75;}
+.cheat-hl{color:var(--bright);font-weight:700;}
+.cheat-tag{display:inline-block;font-size:8px;font-weight:700;padding:1px 5px;border-radius:3px;margin:0 1px;}
+.ct-ok{background:rgba(16,185,129,.18);color:#10b981;border:1px solid rgba(16,185,129,.3);}
+.ct-warn{background:rgba(245,158,11,.18);color:#f59e0b;border:1px solid rgba(245,158,11,.3);}
+.ct-danger{background:rgba(255,45,85,.18);color:#ff2d55;border:1px solid rgba(255,45,85,.3);}
+.ct-info{background:rgba(0,180,255,.18);color:#00b4ff;border:1px solid rgba(0,180,255,.3);}
+.ct-purple{background:rgba(168,85,247,.18);color:#a855f7;border:1px solid rgba(168,85,247,.3);}
+.cheat-summary{padding:10px 14px 14px;border-top:1px solid var(--border);}
+.cheat-stbl{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:10px;}
+.cheat-stbl th{padding:5px 8px;text-align:left;color:var(--muted);border-bottom:1px solid var(--border);font-weight:400;text-transform:uppercase;font-size:9px;letter-spacing:.5px;}
+.cheat-stbl td{padding:5px 8px;color:var(--text);border-bottom:1px solid rgba(0,180,255,.05);}
+.cheat-stbl tr:last-child td{border-bottom:none;}
+.cheat-stbl tr:hover td{background:rgba(0,180,255,.04);}
 .vid-embed-wrap{width:100%;aspect-ratio:16/9;background:#0a0a0a;overflow:hidden;}
 .vid-embed-wrap iframe{width:100%;height:100%;border:none;display:block;}
 .vid-playlist{background:#0a0d13;border-left:1px solid var(--border);overflow-y:auto;}
@@ -1260,8 +1298,10 @@ body.night-ops .av-mini-pl-item:hover{
     </div>
 
     <div class="topbar-right">
+      <a href="https://nighthawk.s-3.us/ops?token=tac_com_alpha_9" target="_blank" rel="noopener"
+         class="mode-btn" style="text-decoration:none;color:var(--ok);border-color:var(--ok);">⬡ OPS PANEL</a>
       <button class="mode-btn" id="nightBtn" onclick="toggleNightOps()">NIGHT OPS</button>
-      <button class="mode-btn" id="voiceBtn" onclick="toggleVoice()">VOICE ON</button>
+      <button class="mode-btn" id="voiceBtn" onclick="toggleVoice()">VOICE OFF</button>
       <div class="officer-chip" id="officerChip" onclick="toggleOfficerMenu(event)">
         <div class="officer-avatar" id="officerInitial">?</div>
         <div>
@@ -1318,6 +1358,9 @@ body.night-ops .av-mini-pl-item:hover{
         </div>
         <div class="nav-item" onclick="showPage('watchlist')">
           <span class="nav-icon">◎</span> WATCHLIST
+        </div>
+        <div class="nav-item" onclick="showPage('journal')">
+          <span class="nav-icon">◧</span> TRADE JOURNAL
         </div>
         <div class="nav-section">TEAM</div>
         <div class="nav-item" onclick="showPage('team')">
@@ -1467,28 +1510,28 @@ body.night-ops .av-mini-pl-item:hover{
                 <div class="panel-body">
                   <div class="script-grid" id="overview-scripts">
                     <div class="script-card">
-                      <div class="script-name">TRNQL</div>
-                      <div class="script-ticker">NASDAQ:MNQ1! · 5m</div>
-                      <div><span class="script-mode obs">OBSERVATION</span></div>
+                      <div class="script-name">TRNQL-MULTI</div>
+                      <div class="script-ticker">NASDAQ:MNQ1! · 5m · 4 sessions</div>
+                      <div><span class="script-mode live">LIVE</span></div>
                       <div class="script-last" id="sc-trnql-last">Last: —</div>
+                    </div>
+                    <div class="script-card">
+                      <div class="script-name">PHANTOM-MNQ</div>
+                      <div class="script-ticker">CME:MNQ · 5m · NT8 ATI</div>
+                      <div><span class="script-mode live">LIVE</span></div>
+                      <div class="script-last" id="sc-phantom-last">Last: —</div>
+                    </div>
+                    <div class="script-card">
+                      <div class="script-name">BTC-ACCUM-V1</div>
+                      <div class="script-ticker">COINBASE:BTCUSD · 1D</div>
+                      <div><span class="script-mode live">LIVE</span></div>
+                      <div class="script-last" id="sc-btc-last">Last: —</div>
                     </div>
                     <div class="script-card">
                       <div class="script-name">ORB-PUT</div>
                       <div class="script-ticker">NASDAQ:NVDA · 5m</div>
                       <div><span class="script-mode obs">OBSERVATION</span></div>
                       <div class="script-last" id="sc-orb-last">Last: —</div>
-                    </div>
-                    <div class="script-card">
-                      <div class="script-name">BTC-ACCUM</div>
-                      <div class="script-ticker">COINBASE:BTCUSD · 1D</div>
-                      <div><span class="script-mode obs">OBSERVATION</span></div>
-                      <div class="script-last" id="sc-btc-last">Last: —</div>
-                    </div>
-                    <div class="script-card">
-                      <div class="script-name">PHANTOM-MNQ</div>
-                      <div class="script-ticker">CME:MNQ · 5m · LSTM</div>
-                      <div><span class="script-mode obs">OBSERVATION</span></div>
-                      <div class="script-last" id="sc-phantom-last">Last: —</div>
                     </div>
                   </div>
                 </div>
@@ -1713,22 +1756,283 @@ body.night-ops .av-mini-pl-item:hover{
           </div>
         </div>
 
+        <!-- ── DAILY CHEAT SHEET ── -->
+        <div class="panel" style="margin-bottom:16px;">
+          <div class="panel-header">
+            <span class="panel-title">DAILY MARKET CHEAT SHEET</span>
+            <span class="badge ok">OPERATOR REFERENCE</span>
+            <button id="cheat-toggle-btn" class="btn sm" onclick="toggleCheatPanel()" style="margin-left:auto;">▲ COLLAPSE</button>
+          </div>
+          <div class="cheat-panel-body" id="cheat-panel-body">
+            <div class="cheat-grid">
+
+              <!-- TRNQL -->
+              <div class="cheat-model">
+                <div class="cheat-model-hdr cm-trnql">
+                  <span class="cheat-model-name">TRNQL_8AMsweep.v3 — MNQ FUTURES</span>
+                  <span class="cheat-obs">OBSERVATION</span>
+                </div>
+                <div class="cheat-cols">
+                  <div class="cheat-col">
+                    <div class="cheat-col-title">Setup &amp; Timing</div>
+                    <ul>
+                      <li>Chart: <span class="cheat-hl">MNQ1! 5-min</span></li>
+                      <li>8AM Range: <span class="cheat-hl">8:00–9:00 AM ET</span></li>
+                      <li>Signal window: <span class="cheat-hl">9:30–12:00 PM ET</span></li>
+                      <li>Alert fires on bar close</li>
+                      <li>Acct: APEX6056270000002</li>
+                      <li>Contract: MNQ 09-26</li>
+                    </ul>
+                  </div>
+                  <div class="cheat-col">
+                    <div class="cheat-col-title">Signal Conditions</div>
+                    <ul>
+                      <li>Macro sweep of 8AM range H or L</li>
+                      <li>FVG detected post-sweep</li>
+                      <li>Sweep direction alignment</li>
+                      <li>Volume + momentum confluence</li>
+                      <li>PHANTOM → 10 AI agents</li>
+                      <li>QUORUM = <span class="cheat-hl">6/10</span> confirms</li>
+                    </ul>
+                  </div>
+                  <div class="cheat-col">
+                    <div class="cheat-col-title">Risk / Sizing</div>
+                    <ul>
+                      <li>Sizing: max(1, min(floor($125÷(SL×$2)), 3))</li>
+                      <li>Max: <span class="cheat-hl">3 MNQ contracts</span></li>
+                      <li>SL: dynamic — in payload</li>
+                      <li>TP: dynamic — in payload</li>
+                      <li>Tick: $0.25 = $0.50/contract</li>
+                      <li>Status: <span class="cheat-tag ct-warn">OBSERVATION</span></li>
+                    </ul>
+                  </div>
+                </div>
+                <div class="cheat-action">
+                  <div class="cheat-action-label">▸ When Signal Fires</div>
+                  <div class="cheat-action-steps">
+                    1. SMS arrives → open OPS panel &nbsp;|&nbsp;
+                    2. Review signal card — check QUORUM result (6+/10 = green, &lt;6 = miss) &nbsp;|&nbsp;
+                    3. <span class="cheat-tag ct-warn">OBSERVATION</span> — log only, no execution &nbsp;|&nbsp;
+                    4. When LIVE: CONFIRM button → Bridge → NT8 ATI → Tradovate APEX0002
+                  </div>
+                </div>
+              </div>
+
+              <!-- NVDA Scalper -->
+              <div class="cheat-model">
+                <div class="cheat-model-hdr cm-nvdas">
+                  <span class="cheat-model-name">NVDA ORB + VWAP Scalper v2 — SHARES</span>
+                  <span class="cheat-obs">OBSERVATION</span>
+                </div>
+                <div class="cheat-cols">
+                  <div class="cheat-col">
+                    <div class="cheat-col-title">Setup &amp; Timing</div>
+                    <ul>
+                      <li>Chart: <span class="cheat-hl">NVDA 5-min</span></li>
+                      <li>ORB builds: <span class="cheat-hl">9:30–9:45 AM ET</span></li>
+                      <li>ORB entry: <span class="cheat-hl">9:45–10:15 AM ET</span></li>
+                      <li>VWAP AM: 9:45 AM–11:00 AM</li>
+                      <li>VWAP PM: 2:00–3:30 PM ET</li>
+                      <li>Min ORB width: <span class="cheat-hl">$1.50</span></li>
+                    </ul>
+                  </div>
+                  <div class="cheat-col">
+                    <div class="cheat-col-title">Signal Conditions</div>
+                    <ul>
+                      <li><span class="cheat-tag ct-ok">ORB LONG</span> Close above ORB High</li>
+                      <li>+ Gap UP ≥ 0.5% + vol 1.3×</li>
+                      <li>+ 9:45–10:15 · 1/day max</li>
+                      <li><span class="cheat-tag ct-danger">ORB SHORT</span> Close below ORB Low</li>
+                      <li>+ Gap DOWN ≥ 0.5% + vol surge</li>
+                      <li><span class="cheat-tag ct-danger">VWAP SHORT</span> Cross below VWAP + vol (2/day max)</li>
+                    </ul>
+                  </div>
+                  <div class="cheat-col">
+                    <div class="cheat-col-title">Risk / Sizing</div>
+                    <ul>
+                      <li>Shares: <span class="cheat-hl">50 shares</span></li>
+                      <li>Stop: $1.25/share = <span class="cheat-tag ct-danger">$62.50</span></li>
+                      <li>Target: $1.50/share = <span class="cheat-tag ct-ok">$75.00</span></li>
+                      <li>Commission ~$0.50 + slip ~$5 rt</li>
+                      <li>Daily profit halt: <span class="cheat-hl">+$250</span></li>
+                      <li>Daily loss halt: <span class="cheat-hl">-$250</span></li>
+                    </ul>
+                  </div>
+                </div>
+                <div class="cheat-action">
+                  <div class="cheat-action-label">▸ When Signal Fires</div>
+                  <div class="cheat-action-steps">
+                    1. SMS arrives → IBKR → NVDA → <span class="cheat-hl">50 shares market</span> &nbsp;|&nbsp;
+                    2. Set OCO: SL = entry ∓ $1.25 · TP = entry ± $1.50 &nbsp;|&nbsp;
+                    3. ORB Long stop = ORB High · ORB Short stop = ORB Low &nbsp;|&nbsp;
+                    4. Hard EOD exit: <span class="cheat-hl">3:30 PM ET</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- NVDA ORB Put -->
+              <div class="cheat-model">
+                <div class="cheat-model-hdr cm-nvdap">
+                  <span class="cheat-model-name">NVDA ORB PUT v1.5 — 0DTE / 1DTE OPTIONS</span>
+                  <span class="cheat-obs">OBSERVATION</span>
+                </div>
+                <div class="cheat-cols">
+                  <div class="cheat-col">
+                    <div class="cheat-col-title">Setup &amp; Timing</div>
+                    <ul>
+                      <li>Chart: <span class="cheat-hl">NVDA 5-min</span></li>
+                      <li>ORB builds: <span class="cheat-hl">9:30–9:45 AM ET</span></li>
+                      <li>Signal window: <span class="cheat-hl">9:45–11:00 AM ET</span></li>
+                      <li>Hard close: <span class="cheat-hl">2:30 PM ET</span> (0DTE decay)</li>
+                      <li>Red tint = eligible gap-down day</li>
+                      <li>Qualifying gap: <span class="cheat-hl">DOWN 0.3%–5.0%</span></li>
+                    </ul>
+                  </div>
+                  <div class="cheat-col">
+                    <div class="cheat-col-title">Signal Conditions (ALL)</div>
+                    <ul>
+                      <li>Gap DOWN 0.3%–5.0% today</li>
+                      <li>ORB sealed + width ≥ $1.50</li>
+                      <li>Bar closes BELOW ORB Low</li>
+                      <li>Volume surge ≥ 1.3× avg</li>
+                      <li>Within 9:45–11:00 AM ET</li>
+                      <li>Max 1 signal/day · not halted</li>
+                    </ul>
+                  </div>
+                  <div class="cheat-col">
+                    <div class="cheat-col-title">Risk / Exits</div>
+                    <ul>
+                      <li>Contracts: <span class="cheat-hl">1 contract</span> (Phase 1)</li>
+                      <li>Buy: <span class="cheat-hl">ATM 0DTE or 1DTE put</span> ~$1.75</li>
+                      <li><span class="cheat-tag ct-ok">T1</span> Stock drops $1.25 → 50% off (~+$131)</li>
+                      <li><span class="cheat-tag ct-ok">T2</span> Stock drops $2.50 → 50% off (~+$201)</li>
+                      <li><span class="cheat-tag ct-danger">STOP</span> ORB Low + $0.50 buffer (~-$79)</li>
+                      <li>After T1: T2 stop → breakeven</li>
+                    </ul>
+                  </div>
+                </div>
+                <div class="cheat-action">
+                  <div class="cheat-action-label">▸ When Signal Fires — model_id: ORB-PUT-v1</div>
+                  <div class="cheat-action-steps">
+                    1. SMS arrives → check table: Gap ↓ ELIGIBLE · ORB Width ✓ &nbsp;|&nbsp;
+                    2. IBKR Options → NVDA → <span class="cheat-hl">1× ATM put, 0DTE or 1DTE</span> at market &nbsp;|&nbsp;
+                    3. T1 limit (50% at ~+75%) + T2 limit (50% at ~+115%) &nbsp;|&nbsp;
+                    4. Stop: stock returns above ORB Low + $0.50 → close all &nbsp;|&nbsp;
+                    5. Hard close ALL at <span class="cheat-hl">2:30 PM ET</span> · Halt: +$500 / -$300 daily
+                  </div>
+                </div>
+              </div>
+
+              <!-- AAPL -->
+              <div class="cheat-model">
+                <div class="cheat-model-hdr cm-aapl">
+                  <span class="cheat-model-name">AAPL LEAPS &amp; SWING v1 — DAILY CHART</span>
+                  <span class="cheat-obs">OBSERVATION · PENDING DEPOSIT</span>
+                </div>
+                <div class="cheat-cols">
+                  <div class="cheat-col">
+                    <div class="cheat-col-title">LEAPS Signal (AAPL_LEAPS_v1)</div>
+                    <ul>
+                      <li>Frequency: <span class="cheat-hl">1–3×/year</span></li>
+                      <li>RSI(14) &lt; 40</li>
+                      <li>Price within ±5% of EMA 200</li>
+                      <li>NOT in earnings blackout</li>
+                      <li>Buy: Δ0.70–0.80 CALL · DTE 365–540d</li>
+                      <li>Budget: <span class="cheat-tag ct-warn">$5,000</span> (deferred)</li>
+                    </ul>
+                  </div>
+                  <div class="cheat-col">
+                    <div class="cheat-col-title">Swing Signal (AAPL_SWING_v1)</div>
+                    <ul>
+                      <li>Frequency: <span class="cheat-hl">Monthly</span></li>
+                      <li><span class="cheat-tag ct-info">EMA CROSS</span> EMA20 × EMA50 + RSI &gt; 50 + vol 1.3×</li>
+                      <li><span class="cheat-tag ct-info">PULLBACK</span> Price at EMA20 ±1% + engulf + above EMA200</li>
+                      <li>Not in earnings blackout</li>
+                      <li>Buy: <span class="cheat-hl">AAPL shares</span></li>
+                      <li>Budget: <span class="cheat-tag ct-ok">$2,000</span> (~10 shares)</li>
+                    </ul>
+                  </div>
+                  <div class="cheat-col">
+                    <div class="cheat-col-title">Key Levels &amp; Filters</div>
+                    <ul>
+                      <li>Targets: $320 · $350 · $400 · $450 · $500</li>
+                      <li>Blackout: 7 days before earnings</li>
+                      <li>Next earnings: <span class="cheat-hl">~Jul 31 2026</span></li>
+                      <li><span class="cheat-tag ct-ok">T1</span> RSI&lt;40 above EMA200 → 25%</li>
+                      <li><span class="cheat-tag ct-ok">T2</span> RSI&lt;35 at BB lower → +25%</li>
+                      <li><span class="cheat-tag ct-warn">T3/T4</span> -10% 52wk / VIX&gt;30 → +25% ea</li>
+                    </ul>
+                  </div>
+                </div>
+                <div class="cheat-action">
+                  <div class="cheat-action-label">▸ When Signal Fires — fires at daily bar close</div>
+                  <div class="cheat-action-steps">
+                    1. SMS: AAPL_LEAPS_v1 or AAPL_SWING_v1 · check table: Zone GREEN · EARNINGS CLEAR &nbsp;|&nbsp;
+                    2. <span class="cheat-tag ct-info">SWING</span> IBKR → AAPL → buy ~10 shares at next session open &nbsp;|&nbsp;
+                    3. <span class="cheat-tag ct-warn">LEAPS</span> IBKR Options → AAPL → 1× deep ITM call (Δ0.70+, 12–18mo) — requires $5K deposit &nbsp;|&nbsp;
+                    4. Watch chart for accumulation tier labels T1–T4 for add-on entries
+                  </div>
+                </div>
+              </div>
+
+            </div><!-- /.cheat-grid -->
+
+            <!-- Summary table -->
+            <div class="cheat-summary">
+              <table class="cheat-stbl">
+                <thead>
+                  <tr>
+                    <th>Model</th><th>Chart</th><th>Frequency</th><th>Time Window</th><th>Max Risk</th><th>Execution</th><th>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td style="color:#00b4ff;font-weight:700;">TRNQL_MultiSession.v1</td>
+                    <td>MNQ1! 5m</td><td>3–4/day</td><td>7AM / 8AM / 9:30 / 1PM ET</td><td>~$125/trade</td>
+                    <td>NT8 ATI Auto</td>
+                    <td><span class="cheat-tag ct-ok">LIVE</span></td>
+                  </tr>
+                  <tr>
+                    <td style="color:#10b981;font-weight:700;">PHANTOM-MNQ</td>
+                    <td>MNQ1! 5m</td><td>On signal</td><td>Market hours</td><td>$125/trade</td>
+                    <td>NT8 ATI Bridge</td>
+                    <td><span class="cheat-tag ct-ok">LIVE</span></td>
+                  </tr>
+                  <tr>
+                    <td style="color:#a855f7;font-weight:700;">BTC-ETH-ACCUM-V1</td>
+                    <td>BTC/ETH 1D</td><td>Grid GTC</td><td>Daily close</td><td>$500–$5K/level</td>
+                    <td>NT8 ATI Auto</td>
+                    <td><span class="cheat-tag ct-ok">LIVE</span></td>
+                  </tr>
+                  <tr>
+                    <td style="color:#f59e0b;font-weight:700;">TRNQL_8AMsweep.v3</td>
+                    <td>MNQ1! 5m</td><td>2–4/week</td><td>9:30–12:00 ET</td><td>~$125/trade</td>
+                    <td>OPS Panel CONFIRM</td>
+                    <td><span class="cheat-tag ct-warn">OBSERVATION</span></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+          </div><!-- /.cheat-panel-body -->
+        </div><!-- /.panel cheat sheet -->
+
         <div class="grid-2">
           <div class="panel">
             <div class="panel-header">
-              <button class="panel-title-btn" onclick="openCodePanel('trnql')">TRNQL_8AMSWEEP.v3</button>
-              <span class="badge warn">OBSERVATION</span>
+              <button class="panel-title-btn" onclick="openCodePanel('trnql')">TRNQL_MultiSession.v1</button>
+              <span class="badge ok">LIVE</span>
             </div>
             <div class="panel-body">
               <div style="font-family:var(--mono);font-size:12px;line-height:2;">
                 <div>TICKER: <span style="color:var(--bright)">NASDAQ:MNQ1!</span></div>
-                <div>TIMEFRAME: <span style="color:var(--bright)">5-min</span></div>
-                <div>SIGNAL TYPE: <span style="color:var(--bright)">8AM Range Breakout</span></div>
-                <div>VERSION: <span style="color:var(--accent)">v3.0</span></div>
+                <div>TIMEFRAME: <span style="color:var(--bright)">5-min (1m intrabar sweep)</span></div>
+                <div>SIGNAL TYPE: <span style="color:var(--bright)">4-Session Range Sweep</span></div>
+                <div>VERSION: <span style="color:var(--accent)">v1.0</span></div>
                 <div>LAST SIGNAL: <span style="color:var(--muted)" id="detail-trnql">—</span></div>
               </div>
               <div class="sep"></div>
-              <p style="font-size:13px;color:var(--muted);line-height:1.7;">Monitors the 7:55–8:00 CT pre-market range on MNQ futures. Fires BUY/SELL signal on breakout with FVG and LSTM council quorum validation.</p>
+              <p style="font-size:13px;color:var(--muted);line-height:1.7;">4 NY session sweep windows: 7AM, 8AM, Open Range (9:30–9:45), Afternoon (1:00–1:30). Detects 1m candles sweeping session H/L and closing back inside. 3–4 signals/day. OCO bracket via NT8 ATI. Apex eval APEX6056270000002.</p>
             </div>
           </div>
           <div class="panel">
@@ -1750,36 +2054,36 @@ body.night-ops .av-mini-pl-item:hover{
           </div>
           <div class="panel">
             <div class="panel-header">
-              <button class="panel-title-btn" onclick="openCodePanel('btc')">BTC-ACCUM-v1</button>
-              <span class="badge warn">OBSERVATION</span>
+              <button class="panel-title-btn" onclick="openCodePanel('btc')">BTC-ETH-ACCUM-V1</button>
+              <span class="badge ok">LIVE</span>
             </div>
             <div class="panel-body">
               <div style="font-family:var(--mono);font-size:12px;line-height:2;">
-                <div>TICKER: <span style="color:var(--bright)">COINBASE:BTCUSD</span></div>
+                <div>TICKER: <span style="color:var(--bright)">COINBASE:BTCUSD / ETHUSD</span></div>
                 <div>TIMEFRAME: <span style="color:var(--bright)">1D</span></div>
                 <div>SIGNAL TYPE: <span style="color:var(--bright)">Grid Accumulation</span></div>
                 <div>VERSION: <span style="color:var(--accent)">v1.0</span></div>
                 <div>LAST SIGNAL: <span style="color:var(--muted)" id="detail-btc">—</span></div>
               </div>
               <div class="sep"></div>
-              <p style="font-size:13px;color:var(--muted);line-height:1.7;">200-day SMA anchor. GTC limit orders at L1=-8%, L2=-15%, L3=-25%, L4=-40%. Capital: $500/$1000/$2000/$5000. IBKR crypto via PAXOS. Pending IBKR permissions approval.</p>
+              <p style="font-size:13px;color:var(--muted);line-height:1.7;">200-day SMA anchor. GTC limit orders at L1=-8%, L2=-15%, L3=-25%, L4=-40%. Capital: $500/$1000/$2000/$5000. NT8 ATI execution. Covers BTC and ETH accumulation grid.</p>
             </div>
           </div>
           <div class="panel">
             <div class="panel-header">
-              <button class="panel-title-btn" onclick="openCodePanel('aapl')">AAPL-LSS-V1</button>
-              <span class="badge warn">OBSERVATION</span>
+              <button class="panel-title-btn" onclick="openCodePanel('phantom')">PHANTOM-MNQ</button>
+              <span class="badge ok">LIVE</span>
             </div>
             <div class="panel-body">
               <div style="font-family:var(--mono);font-size:12px;line-height:2;">
-                <div>TICKER: <span style="color:var(--bright)">NASDAQ:AAPL</span></div>
-                <div>TIMEFRAME: <span style="color:var(--bright)">Daily / 4H</span></div>
-                <div>SIGNAL TYPE: <span style="color:var(--bright)">LEAPS + Swing → IBKR</span></div>
-                <div>VERSION: <span style="color:var(--accent)">v1.0</span></div>
-                <div>LAST SIGNAL: <span style="color:var(--muted)" id="detail-aapl">—</span></div>
+                <div>TICKER: <span style="color:var(--bright)">CME:MNQ</span></div>
+                <div>TIMEFRAME: <span style="color:var(--bright)">5-min</span></div>
+                <div>SIGNAL TYPE: <span style="color:var(--bright)">Signal-driven NT8 Bridge</span></div>
+                <div>VERSION: <span style="color:var(--accent)">A01–A10 variants</span></div>
+                <div>LAST SIGNAL: <span style="color:var(--muted)" id="detail-phantom">—</span></div>
               </div>
               <div class="sep"></div>
-              <p style="font-size:13px;color:var(--muted);line-height:1.7;">AAPL LEAPS &amp; Swing System. LEAPS: RSI &lt; 40 near 200 EMA → IBKR CALL options (Δ 0.70–0.80, 12–18mo DTE, $5K). Swing: EMA cross or pullback → IBKR stock ($2K). VIX-filtered. 7-day earnings blackout. 4-tier SMS accumulation alerts. AI Siri upgrade thesis — targets $320 / $350 / $400 / $500.</p>
+              <p style="font-size:13px;color:var(--muted);line-height:1.7;">PhantomBridge Flask service on Windows home machine. Receives /execute from NIGHTHAWK via Cloudflare tunnel (phantom-bridge.s-3.us). Sends ATI OCO bracket to NT8 TCP 36973. $125 risk / max 3 contracts.</p>
             </div>
           </div>
         </div>
@@ -2143,6 +2447,218 @@ body.night-ops .av-mini-pl-item:hover{
         </div>
       </div>
 
+      <!-- ── TRADE JOURNAL ── -->
+      <div class="page" id="page-journal">
+        <div class="page-eyebrow">S3 TRADING LAB // ICT-SMC</div>
+        <div class="page-title">TRADE JOURNAL</div>
+
+        <!-- Entry Form -->
+        <div class="panel" style="margin-bottom:24px;">
+          <div class="panel-header">
+            <span class="panel-title">LOG TRADE ENTRY</span>
+            <button class="btn sm" id="journal-form-toggle" onclick="toggleJournalForm()">▲ COLLAPSE</button>
+          </div>
+          <div class="panel-body" id="journal-form-body">
+            <form id="journal-form" onsubmit="submitJournalEntry(event)">
+              <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:16px;margin-bottom:16px;">
+                <div class="form-group">
+                  <label class="form-label">TRADE DATE</label>
+                  <input type="date" class="form-input" id="jf-date" required>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">SESSION</label>
+                  <select class="form-select" id="jf-session">
+                    <option value="ASIAN">ASIAN</option>
+                    <option value="LONDON">LONDON</option>
+                    <option value="NY AM" selected>NY AM</option>
+                    <option value="NY PM">NY PM</option>
+                    <option value="OVERNIGHT">OVERNIGHT</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">BIAS</label>
+                  <select class="form-select" id="jf-bias">
+                    <option value="LONG" selected>LONG</option>
+                    <option value="SHORT">SHORT</option>
+                    <option value="NEUTRAL">NEUTRAL</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">INSTRUMENT</label>
+                  <select class="form-select" id="jf-instrument">
+                    <option value="MNQ" selected>MNQ</option>
+                    <option value="MES">MES</option>
+                    <option value="NQ">NQ</option>
+                    <option value="ES">ES</option>
+                    <option value="CL">CL</option>
+                    <option value="GC">GC</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">ENTRY TRIGGER</label>
+                  <input type="text" class="form-input" id="jf-trigger" placeholder="e.g. -2SD + W50% confluence">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">ENTRY PRICE</label>
+                  <input type="number" step="0.25" class="form-input" id="jf-entry" placeholder="0.00">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">EXIT PRICE</label>
+                  <input type="number" step="0.25" class="form-input" id="jf-exit" placeholder="0.00">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">CONTRACTS</label>
+                  <input type="number" min="1" class="form-input" id="jf-contracts" value="1">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">NET P&L ($)</label>
+                  <input type="number" step="0.01" class="form-input" id="jf-pnl" placeholder="0.00" required>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">RESULT</label>
+                  <select class="form-select" id="jf-result" required>
+                    <option value="WIN">WIN</option>
+                    <option value="LOSS" selected>LOSS</option>
+                    <option value="BE">BREAKEVEN</option>
+                    <option value="SCRATCH">SCRATCH</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">SESSIONS HELD</label>
+                  <input type="text" class="form-input" id="jf-sessions-held" placeholder="e.g. Asian + London">
+                </div>
+                <div class="form-group" style="display:flex;align-items:flex-end;gap:10px;padding-bottom:4px;">
+                  <label class="form-label" style="margin:0;">CISD CONFIRMED</label>
+                  <input type="checkbox" id="jf-cisd" style="width:18px;height:18px;accent-color:var(--accent);cursor:pointer;">
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">NOTES</label>
+                <textarea class="form-textarea" id="jf-notes" rows="3" placeholder="Market context, execution notes, lessons learned…" style="width:100%;resize:vertical;"></textarea>
+              </div>
+              <div style="display:flex;gap:12px;align-items:center;">
+                <button type="submit" class="btn primary">LOG TRADE</button>
+                <button type="button" class="btn" onclick="clearJournalForm()">CLEAR</button>
+                <span id="journal-submit-msg" style="font-family:var(--mono);font-size:12px;color:var(--ok);display:none;"></span>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <!-- Stats Row -->
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px;" id="journal-stats-row">
+          <div class="panel" style="padding:16px;text-align:center;">
+            <div style="font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:.12em;">TOTAL TRADES</div>
+            <div style="font-family:var(--display);font-size:28px;font-weight:700;color:var(--bright);margin-top:4px;" id="jstat-total">—</div>
+          </div>
+          <div class="panel" style="padding:16px;text-align:center;">
+            <div style="font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:.12em;">WIN RATE</div>
+            <div style="font-family:var(--display);font-size:28px;font-weight:700;color:var(--ok);margin-top:4px;" id="jstat-wr">—</div>
+          </div>
+          <div class="panel" style="padding:16px;text-align:center;">
+            <div style="font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:.12em;">NET P&L</div>
+            <div style="font-family:var(--display);font-size:28px;font-weight:700;margin-top:4px;" id="jstat-pnl">—</div>
+          </div>
+          <div class="panel" style="padding:16px;text-align:center;">
+            <div style="font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:.12em;">AVG WIN / LOSS</div>
+            <div style="font-family:var(--mono);font-size:16px;font-weight:700;margin-top:8px;" id="jstat-avgs">—</div>
+          </div>
+        </div>
+
+        <!-- TRADE CALCULATOR -->
+        <div class="panel" style="margin-bottom:24px;">
+          <div class="panel-header">
+            <span class="panel-title">TRADE CALCULATOR</span>
+            <span style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:.08em;">TICK / POINT TARGET</span>
+          </div>
+          <div class="panel-body">
+            <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:16px;margin-bottom:18px;">
+              <div class="form-group">
+                <label class="form-label">INSTRUMENT</label>
+                <select class="form-select" id="calc-instrument" onchange="calcTrade()">
+                  <option value="MNQ" selected>MNQ</option>
+                  <option value="MES">MES</option>
+                  <option value="NQ">NQ</option>
+                  <option value="ES">ES</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">DOLLAR TARGET ($)</label>
+                <input type="number" step="1" min="1" class="form-input" id="calc-dollars" placeholder="e.g. 100" oninput="calcTrade()">
+              </div>
+              <div class="form-group">
+                <label class="form-label">CONTRACTS</label>
+                <input type="number" step="1" min="1" class="form-input" id="calc-contracts" value="1" oninput="calcTrade()">
+              </div>
+            </div>
+            <div id="calc-result" style="display:none;">
+              <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;">
+                <div style="background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:14px 16px;text-align:center;">
+                  <div style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:.12em;margin-bottom:6px;">TICKS NEEDED</div>
+                  <div style="font-family:var(--display);font-size:36px;font-weight:700;color:var(--accent);line-height:1;" id="calc-out-ticks">—</div>
+                  <div style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:6px;">× 0.25 pts each</div>
+                </div>
+                <div style="background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:14px 16px;text-align:center;">
+                  <div style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:.12em;margin-bottom:6px;">POINTS NEEDED</div>
+                  <div style="font-family:var(--display);font-size:36px;font-weight:700;color:var(--accent);line-height:1;" id="calc-out-points">—</div>
+                  <div style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:6px;" id="calc-out-contracts-label">1 contract</div>
+                </div>
+                <div style="background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:14px 16px;text-align:center;">
+                  <div style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:.12em;margin-bottom:6px;">POSITION $/TICK</div>
+                  <div style="font-family:var(--display);font-size:36px;font-weight:700;color:var(--muted);line-height:1;" id="calc-out-pos-tickval">—</div>
+                  <div style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:6px;" id="calc-out-tickval-note">per tick, all contracts</div>
+                </div>
+              </div>
+              <div id="calc-warn" style="display:none;margin-top:10px;font-family:var(--mono);font-size:11px;color:var(--warn);letter-spacing:.06em;">
+                ▲ result rounded up to nearest whole tick
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Entries Table -->
+        <div class="panel">
+          <div class="panel-header">
+            <span class="panel-title">RECENT ENTRIES</span>
+            <div style="display:flex;gap:8px;align-items:center;">
+              <select class="form-select" id="journal-limit" onchange="loadJournalEntries()" style="padding:4px 8px;font-size:12px;width:auto;">
+                <option value="25">LAST 25</option>
+                <option value="50" selected>LAST 50</option>
+                <option value="100">LAST 100</option>
+              </select>
+              <button class="btn sm" onclick="loadJournalEntries()">↺ REFRESH</button>
+            </div>
+          </div>
+          <div class="panel-body">
+            <div class="tbl-wrap" style="overflow-x:auto;">
+              <table class="data-table" id="journal-table">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>DATE</th>
+                    <th>SESSION</th>
+                    <th>BIAS</th>
+                    <th>INSTR</th>
+                    <th>TRIGGER</th>
+                    <th>CISD</th>
+                    <th>ENTRY</th>
+                    <th>EXIT</th>
+                    <th>CONTS</th>
+                    <th>HELD</th>
+                    <th>NET P&L</th>
+                    <th>RESULT</th>
+                    <th>NOTES</th>
+                  </tr>
+                </thead>
+                <tbody id="journal-tbody">
+                  <tr><td colspan="14" style="text-align:center;color:var(--muted);padding:20px;font-size:12px;">Loading entries…</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- ── ADMIN ── -->
       <div class="page" id="page-admin">
         <div class="page-eyebrow">S3 TRADING LAB // ADMIN</div>
@@ -2411,7 +2927,7 @@ var MEDIA_CONFIG = (function() {
 })();
 
 let CURRENT_USER = null;
-let voiceMuted   = false;
+let voiceMuted   = true;
 let nightOps     = false;
 let synth        = window.speechSynthesis;
 let aiVoice      = null;
@@ -2658,6 +3174,167 @@ function toggleVidPanel() {
   }
 }
 
+function toggleCheatPanel() {
+  var body = document.getElementById('cheat-panel-body');
+  var btn  = document.getElementById('cheat-toggle-btn');
+  var collapsed = body.classList.toggle('cheat-collapsed');
+  btn.textContent = collapsed ? '▼ EXPAND' : '▲ COLLAPSE';
+}
+
+/* ── TRADE JOURNAL ── */
+const JOURNAL_API = '/trade-journal?token=tac_com_alpha_9';
+
+var CALC_SPECS = {
+  MNQ: { tickVal: 0.50,  tickSize: 0.25 },
+  MES: { tickVal: 1.25,  tickSize: 0.25 },
+  NQ:  { tickVal: 5.00,  tickSize: 0.25 },
+  ES:  { tickVal: 12.50, tickSize: 0.25 },
+};
+function calcTrade() {
+  var instr     = document.getElementById('calc-instrument').value;
+  var dollars   = parseFloat(document.getElementById('calc-dollars').value);
+  var contracts = parseInt(document.getElementById('calc-contracts').value) || 1;
+  var result    = document.getElementById('calc-result');
+  if (!dollars || dollars <= 0 || !contracts || contracts < 1) { result.style.display = 'none'; return; }
+  var spec         = CALC_SPECS[instr];
+  var posTickVal   = spec.tickVal * contracts;
+  var ticksExact   = dollars / posTickVal;
+  var ticksNeeded  = Math.ceil(ticksExact);
+  var pointsNeeded = ticksNeeded * spec.tickSize;
+  var wasRounded   = ticksNeeded !== ticksExact;
+  document.getElementById('calc-out-ticks').textContent          = ticksNeeded;
+  document.getElementById('calc-out-points').textContent         = Number.isInteger(pointsNeeded) ? pointsNeeded : pointsNeeded.toFixed(2);
+  document.getElementById('calc-out-pos-tickval').textContent    = '$' + posTickVal.toFixed(2);
+  document.getElementById('calc-out-contracts-label').textContent = contracts + ' contract' + (contracts > 1 ? 's' : '');
+  document.getElementById('calc-warn').style.display             = wasRounded ? 'block' : 'none';
+  result.style.display = 'block';
+}
+
+function toggleJournalForm() {
+  var body = document.getElementById('journal-form-body');
+  var btn  = document.getElementById('journal-form-toggle');
+  var collapsed = body.classList.toggle('panel-collapsed');
+  body.style.display = collapsed ? 'none' : '';
+  btn.textContent = collapsed ? '▼ EXPAND' : '▲ COLLAPSE';
+}
+
+function clearJournalForm() {
+  document.getElementById('journal-form').reset();
+  document.getElementById('jf-date').value = new Date().toISOString().split('T')[0];
+}
+
+async function submitJournalEntry(event) {
+  event.preventDefault();
+  var msg = document.getElementById('journal-submit-msg');
+  msg.style.display = 'none';
+  var payload = {
+    trade_date:      document.getElementById('jf-date').value,
+    session:         document.getElementById('jf-session').value,
+    bias:            document.getElementById('jf-bias').value,
+    instrument:      document.getElementById('jf-instrument').value,
+    entry_trigger:   document.getElementById('jf-trigger').value || null,
+    cisd_confirmed:  document.getElementById('jf-cisd').checked,
+    entry_price:     parseFloat(document.getElementById('jf-entry').value) || null,
+    exit_price:      parseFloat(document.getElementById('jf-exit').value) || null,
+    contracts:       parseInt(document.getElementById('jf-contracts').value) || 1,
+    sessions_held:   document.getElementById('jf-sessions-held').value || null,
+    net_pnl:         parseFloat(document.getElementById('jf-pnl').value),
+    result:          document.getElementById('jf-result').value,
+    notes:           document.getElementById('jf-notes').value || null
+  };
+  try {
+    var res = await fetch('/trade-journal?token=tac_com_alpha_9', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    var data = await res.json();
+    if (res.ok) {
+      msg.style.color = 'var(--ok)';
+      msg.textContent = '✓ LOGGED — ID #' + data.id;
+      msg.style.display = 'inline';
+      clearJournalForm();
+      loadJournalEntries();
+    } else {
+      msg.style.color = 'var(--danger)';
+      msg.textContent = '✗ ERROR: ' + (data.error || res.status);
+      msg.style.display = 'inline';
+    }
+  } catch(e) {
+    msg.style.color = 'var(--danger)';
+    msg.textContent = '✗ NETWORK ERROR';
+    msg.style.display = 'inline';
+  }
+}
+
+function renderJournalStats(rows) {
+  var total = rows.length;
+  var wins  = rows.filter(r => r.result === 'WIN').length;
+  var wr    = total > 0 ? Math.round((wins / total) * 100) : null;
+  var netPnl = rows.reduce((s, r) => s + parseFloat(r.net_pnl || 0), 0);
+  var winRows  = rows.filter(r => r.result === 'WIN');
+  var lossRows = rows.filter(r => r.result === 'LOSS');
+  var avgWin  = winRows.length  ? winRows.reduce((s,r) => s + parseFloat(r.net_pnl), 0) / winRows.length   : null;
+  var avgLoss = lossRows.length ? lossRows.reduce((s,r) => s + parseFloat(r.net_pnl), 0) / lossRows.length : null;
+
+  document.getElementById('jstat-total').textContent = total || '—';
+  document.getElementById('jstat-wr').textContent = wr !== null ? wr + '%' : '—';
+  var pnlEl = document.getElementById('jstat-pnl');
+  pnlEl.textContent = total > 0 ? (netPnl >= 0 ? '+' : '') + '$' + netPnl.toFixed(2) : '—';
+  pnlEl.style.color = netPnl >= 0 ? 'var(--ok)' : 'var(--danger)';
+  var avgs = '';
+  if (avgWin  !== null) avgs += '<span style="color:var(--ok)">+$' + avgWin.toFixed(0)  + '</span>';
+  if (avgLoss !== null) avgs += (avgs ? ' / ' : '') + '<span style="color:var(--danger)">-$' + Math.abs(avgLoss).toFixed(0) + '</span>';
+  document.getElementById('jstat-avgs').innerHTML = avgs || '—';
+}
+
+async function loadJournalEntries() {
+  var limit = document.getElementById('journal-limit') ? document.getElementById('journal-limit').value : 50;
+  var tbody = document.getElementById('journal-tbody');
+  if (!tbody) return;
+  tbody.innerHTML = '<tr><td colspan="14" style="text-align:center;color:var(--muted);padding:20px;font-size:12px;">Loading…</td></tr>';
+  try {
+    var res = await fetch(JOURNAL_API + '&limit=' + limit);
+    var rows = await res.json();
+    renderJournalStats(rows);
+    if (!rows.length) {
+      tbody.innerHTML = '<tr><td colspan="14" style="text-align:center;color:var(--muted);padding:20px;font-size:12px;">No entries yet. Log your first trade above.</td></tr>';
+      return;
+    }
+    var resultColor = { WIN: 'var(--ok)', LOSS: 'var(--danger)', BE: 'var(--warn)', SCRATCH: 'var(--muted)' };
+    tbody.innerHTML = rows.map(function(r) {
+      var pnl = parseFloat(r.net_pnl);
+      var pnlStr = (pnl >= 0 ? '+' : '') + '$' + pnl.toFixed(2);
+      var pnlColor = pnl >= 0 ? 'var(--ok)' : 'var(--danger)';
+      var rc = resultColor[r.result] || 'var(--bright)';
+      return '<tr>' +
+        '<td style="color:var(--muted);">' + r.id + '</td>' +
+        '<td>' + (r.trade_date || '').substring(0,10) + '</td>' +
+        '<td>' + (r.session || '—') + '</td>' +
+        '<td style="color:' + (r.bias === 'LONG' ? 'var(--ok)' : r.bias === 'SHORT' ? 'var(--danger)' : 'var(--muted)') + ';">' + (r.bias || '—') + '</td>' +
+        '<td style="color:var(--accent);">' + (r.instrument || '—') + '</td>' +
+        '<td style="max-width:160px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="' + (r.entry_trigger || '') + '">' + (r.entry_trigger || '—') + '</td>' +
+        '<td style="text-align:center;">' + (r.cisd_confirmed ? '<span style="color:var(--ok);">✓</span>' : '<span style="color:var(--muted);">—</span>') + '</td>' +
+        '<td>' + (r.entry_price || '—') + '</td>' +
+        '<td>' + (r.exit_price  || '—') + '</td>' +
+        '<td style="text-align:center;">' + (r.contracts || 1) + '</td>' +
+        '<td style="max-width:120px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + (r.sessions_held || '—') + '</td>' +
+        '<td style="color:' + pnlColor + ';font-weight:700;">' + pnlStr + '</td>' +
+        '<td style="color:' + rc + ';font-weight:700;">' + (r.result || '—') + '</td>' +
+        '<td style="max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="' + (r.notes || '') + '">' + (r.notes || '—') + '</td>' +
+        '</tr>';
+    }).join('');
+  } catch(e) {
+    tbody.innerHTML = '<tr><td colspan="14" style="text-align:center;color:var(--danger);padding:20px;font-size:12px;">Connection failed — GCP VM offline?</td></tr>';
+  }
+}
+
+// Pre-fill date on journal form load
+document.addEventListener('DOMContentLoaded', function() {
+  var d = document.getElementById('jf-date');
+  if (d) d.value = new Date().toISOString().split('T')[0];
+});
+
 function loadVid(id, title, sub, el) {
   document.getElementById('vid-main').src = 'https://www.youtube.com/embed/' + id + '?autoplay=1';
   document.getElementById('vid-yt-link').href = 'https://www.youtube.com/watch?v=' + id;
@@ -2680,6 +3357,7 @@ function showPage(id) {
   if (id === 'watchlist') renderWatchlist();
   if (id === 'support') refreshSupport();
   if (id === 'market')  refreshMarketData();
+  if (id === 'journal') loadJournalEntries();
   closeMobileSidebar();
 }
 
@@ -3860,7 +4538,8 @@ async function tryLogin(code) {
 
 /* Avatar map — keyed by uppercase name; GAS can override via the avatar arg */
 const AVATAR_MAP = {
-  'V.CASELLA': 'https://static.wixstatic.com/media/b8ecbb_bda45116574243dba64762a21cac280f~mv2.jpg'
+  'V.CASELLA': 'https://static.wixstatic.com/media/b8ecbb_bda45116574243dba64762a21cac280f~mv2.jpg',
+  'S3ADMIN2':  'https://imagedelivery.net/vqeQDU8kLtN4mG7c7hdsdQ/fa9105a2-ad4b-46a6-635f-b7e6bd626a00/public'
 };
 
 /* ── Role helpers ──────────────────────────────────────────────────────────
